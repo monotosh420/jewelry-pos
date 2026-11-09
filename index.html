@@ -1,0 +1,2515 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>স্বর্ণালংকার স্টোর ম্যানেজমেন্ট ও POS</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JsBarcode CDN for automated barcode generation -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <!-- Google Fonts: Hind Siliguri for clean Bengali typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background-color: #fdfbf7;
+            color: #1f2937;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: 85px;
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        }
+        .gold-card {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 1px solid #fde68a;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-area, #printable-area * {
+                visibility: visible;
+            }
+            #printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 15px;
+                background: white;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-amber-200 selection:text-amber-900">
+
+    <!-- Custom Toast / Message Notification -->
+    <div id="toast-box" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none w-11/12 max-w-md">
+        <div id="toast-content" class="bg-gray-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center justify-between text-sm font-medium border border-amber-500/30">
+            <span id="toast-msg">বার্তা</span>
+            <i id="toast-icon" class="fas fa-info-circle text-amber-400 ml-2"></i>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-amber-100">
+            <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <i class="fas fa-exclamation-triangle text-amber-600"></i> নিশ্চিত করুন
+            </h3>
+            <p id="confirm-text" class="text-gray-600 text-sm mb-5">আপনি কি নিশ্চিত?</p>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeConfirmModal(false)" class="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition">বাতিল</button>
+                <button type="button" onclick="closeConfirmModal(true)" class="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition">হ্যাঁ, মুছে ফেলুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LOGIN SCREEN ==================== -->
+    <div id="login-screen" class="min-h-screen flex flex-col justify-center items-center p-4 bg-gradient-to-b from-amber-50 to-orange-50">
+        <div class="w-full max-w-md bg-white rounded-3xl shadow-xl border border-amber-200/70 p-6 sm:p-8">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 gold-gradient rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-3">
+                    <i class="fas fa-gem text-3xl text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900">স্বর্ণালংকার POS ও স্টক</h1>
+                <p class="text-sm text-gray-500 mt-1">জুয়েলারি শপ ম্যানেজমেন্ট সিস্টেম</p>
+            </div>
+
+            <!-- Role Switcher Tabs -->
+            <div class="grid grid-cols-2 gap-2 p-1 bg-amber-100/70 rounded-xl mb-6">
+                <button type="button" id="tab-owner" onclick="switchLoginRole('owner')" class="py-2.5 text-sm font-bold rounded-lg bg-amber-600 text-white shadow transition">
+                    <i class="fas fa-crown mr-1"></i> মালিক (Owner)
+                </button>
+                <button type="button" id="tab-staff" onclick="switchLoginRole('staff')" class="py-2.5 text-sm font-bold rounded-lg text-amber-900 hover:bg-amber-200/50 transition">
+                    <i class="fas fa-user-tie mr-1"></i> স্টাফ (Staff)
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label id="login-id-label" class="block text-sm font-semibold text-gray-700 mb-1">মালিকের আইডি (Admin ID)</label>
+                    <input type="text" id="login-id" required placeholder="যেমন: admin" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-base">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">পিন / পাসওয়ার্ড (PIN)</label>
+                    <input type="password" id="login-pin" required placeholder="••••" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-base">
+                </div>
+
+                <button type="submit" class="w-full py-3.5 gold-gradient text-white font-bold rounded-xl shadow-md hover:opacity-95 active:scale-[0.99] transition text-base">
+                    লগইন করুন <i class="fas fa-arrow-right ml-1"></i>
+                </button>
+            </form>
+
+            <!-- Quick Demo Fill Hints -->
+            <div class="mt-6 pt-5 border-t border-gray-100">
+                <p class="text-xs text-center text-gray-500 mb-2.5 font-medium">দ্রুত পরীক্ষার জন্য নিচের বাটনে ট্যাপ করুন:</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="quickFillLogin('owner')" class="py-2 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl text-xs font-semibold text-amber-900 text-left">
+                        <div class="font-bold">মালিক ডেমো</div>
+                        <div class="text-amber-700">ID: admin | PIN: 1234</div>
+                    </button>
+                    <button type="button" onclick="quickFillLogin('staff')" class="py-2 px-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl text-xs font-semibold text-blue-900 text-left">
+                        <div id="staff-demo-title" class="font-bold">স্টাফ ডেমো (মহিত)</div>
+                        <div id="staff-demo-info" class="text-blue-700">ID: মহিত | PIN: 1223</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN APPLICATION ==================== -->
+    <div id="app-container" class="hidden max-w-3xl mx-auto">
+        
+        <!-- Top Header -->
+        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-amber-200 px-4 py-3 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 gold-gradient rounded-xl flex items-center justify-center text-white shadow">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <div>
+                    <h2 id="shop-header-name" class="font-bold text-gray-900 text-base leading-tight">মা তারা জুয়েলার্স</h2>
+                    <div class="flex items-center gap-1.5 text-xs">
+                        <span id="user-badge" class="px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800">মালিক</span>
+                        <span id="user-name-display" class="text-gray-500 font-medium">Admin</span>
+                    </div>
+                </div>
+            </div>
+            <button type="button" onclick="logout()" class="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition" title="লগআউট">
+                <i class="fas fa-sign-out-alt text-lg"></i>
+            </button>
+        </header>
+
+        <!-- Dynamic Content Views -->
+        <main class="p-4 space-y-5">
+
+            <!-- 1. DASHBOARD / HOME VIEW -->
+            <section id="view-dashboard" class="space-y-5">
+                <!-- Today's Gold & Silver Rates Card -->
+                <div class="gold-card rounded-2xl p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-amber-950 flex items-center gap-2">
+                            <i class="fas fa-coins text-amber-600"></i> আজকের সোনা ও রূপার দর
+                        </h3>
+                        <span class="text-xs bg-amber-200/70 text-amber-900 px-2.5 py-0.5 rounded-full font-semibold">Live</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                        <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200/60">
+                            <div class="text-xs text-gray-500 font-medium">২২ ক্যারেট (১০ গ্রাম)</div>
+                            <div id="dash-rate-22k" class="text-base font-bold text-amber-800">₹ ৭২,০০০</div>
+                            <div id="dash-vori-22k" class="text-[11px] text-gray-500">ভরি: ₹ ৮৩,৯৮১</div>
+                        </div>
+                        <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200/60">
+                            <div class="text-xs text-gray-500 font-medium">১৮ ক্যারেট (১০ গ্রাম)</div>
+                            <div id="dash-rate-18k" class="text-base font-bold text-amber-800">₹ ৫৮,৯০০</div>
+                            <div id="dash-vori-18k" class="text-[11px] text-gray-500">ভরি: ₹ ৬৮,৭০১</div>
+                        </div>
+                        <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200/60">
+                            <div class="text-xs text-gray-500 font-medium">৯ ক্যারেট (১০ গ্রাম)</div>
+                            <div id="dash-rate-9k" class="text-base font-bold text-amber-800">₹ ২৯,৫০০</div>
+                            <div id="dash-vori-9k" class="text-[11px] text-gray-500">ভরি: ₹ ৩৪,৪০৯</div>
+                        </div>
+                        <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200/60">
+                            <div class="text-xs text-gray-500 font-medium">রুপো ৬০ (১০ গ্রাম)</div>
+                            <div id="dash-rate-silver60" class="text-base font-bold text-gray-700">₹ ৬০০</div>
+                            <div id="dash-vori-silver60" class="text-[11px] text-gray-500">ভরি: ₹ ৭০০</div>
+                        </div>
+                        <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200/60">
+                            <div class="text-xs text-gray-500 font-medium">রুপো ৭০ (১০ গ্রাম)</div>
+                            <div id="dash-rate-silver70" class="text-base font-bold text-gray-700">₹ ৭০০</div>
+                            <div id="dash-vori-silver70" class="text-[11px] text-gray-500">ভরি: ₹ ৮১৬</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Stats Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm">
+                        <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-1">
+                            <span>মোট মজুত গহনা</span>
+                            <i class="fas fa-box-open text-amber-500 text-base"></i>
+                        </div>
+                        <div id="stat-stock-count" class="text-2xl font-bold text-gray-900">0 টি</div>
+                        <div id="stat-stock-weight" class="text-xs text-amber-700 font-medium mt-0.5">মোট ওজন: 0.000 গ্রাম</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm">
+                        <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-1">
+                            <span>মোট বিক্রয় (Sales)</span>
+                            <i class="fas fa-receipt text-emerald-500 text-base"></i>
+                        </div>
+                        <div id="stat-sales-total" class="text-2xl font-bold text-emerald-700">₹ ০</div>
+                        <div id="stat-sales-count" class="text-xs text-gray-500 font-medium mt-0.5">মোট বিল: 0 টি</div>
+                    </div>
+                </div>
+
+                <!-- Metal-wise Stock Weight Breakdown (Gold & Silver) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="bg-amber-50/80 p-3.5 rounded-2xl border border-amber-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                                <i class="fas fa-ring text-amber-600"></i> মোট মজুত সোনা (Gold)
+                            </span>
+                            <span id="stat-gold-count" class="text-[11px] bg-amber-200/80 text-amber-950 px-2 py-0.5 rounded-full font-bold">0 টি</span>
+                        </div>
+                        <div id="stat-gold-weight" class="text-xl font-extrabold text-amber-800">0.000 গ্রাম</div>
+                        <div id="stat-gold-breakdown" class="text-[11px] text-amber-900/80 mt-1 font-medium">22K: 0.000g | 18K: 0.000g | 9K: 0.000g</div>
+                    </div>
+
+                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <i class="fas fa-coins text-slate-500"></i> মোট মজুত রুপো (Silver)
+                            </span>
+                            <span id="stat-silver-count" class="text-[11px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full font-bold">0 টি</span>
+                        </div>
+                        <div id="stat-silver-weight" class="text-xl font-extrabold text-slate-800">0.000 গ্রাম</div>
+                        <div id="stat-silver-breakdown" class="text-[11px] text-slate-600 mt-1 font-medium">রুপো ৬০: 0.000g | রুপো ৭০: 0.000g</div>
+                    </div>
+                </div>
+
+                <!-- Quick Action Buttons -->
+                <div>
+                    <h3 class="font-bold text-gray-800 text-sm mb-2.5">দ্রুত কাজ শুরু করুন</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        <button type="button" onclick="navigateTo('pos')" class="p-3.5 bg-amber-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
+                            <i class="fas fa-cash-register text-xl"></i>
+                            <span class="text-xs font-bold">নতুন বিল (POS)</span>
+                        </button>
+                        <button type="button" onclick="navigateTo('calculator')" class="p-3.5 bg-white border border-amber-200 text-amber-900 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
+                            <i class="fas fa-calculator text-xl text-amber-600"></i>
+                            <span class="text-xs font-bold">ভরি-আনা হিসাব</span>
+                        </button>
+                        <button type="button" onclick="navigateTo('inventory')" class="p-3.5 bg-white border border-gray-200 text-gray-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
+                            <i class="fas fa-barcode text-xl text-blue-600"></i>
+                            <span class="text-xs font-bold">স্টক ও বারকোড</span>
+                        </button>
+                        <button type="button" onclick="navigateTo('history')" class="p-3.5 bg-white border border-gray-200 text-gray-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
+                            <i class="fas fa-history text-xl text-purple-600"></i>
+                            <span class="text-xs font-bold">বিক্রয় খাতা</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions Preview -->
+                <div class="bg-white rounded-2xl border border-gray-200/80 p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-gray-800 text-sm">সাম্প্রতিক বিক্রয়</h3>
+                        <button type="button" onclick="navigateTo('history')" class="text-xs text-amber-700 font-semibold">সব দেখুন →</button>
+                    </div>
+                    <div id="dash-recent-sales" class="space-y-2.5 text-sm">
+                        <p class="text-gray-400 text-center py-4 text-xs">এখনও কোনো বিক্রয় রেকর্ড নেই</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. LOCALIZED WEIGHT & PRICE CALCULATOR VIEW -->
+            <section id="view-calculator" class="hidden space-y-4">
+                <div class="bg-white rounded-2xl border border-amber-200 p-4 shadow-sm">
+                    <h2 class="font-bold text-lg text-gray-900 mb-1 flex items-center gap-2">
+                        <i class="fas fa-balance-scale text-amber-600"></i> ভরি-আনা-রতি ও দাম ক্যালকুলেটর
+                    </h2>
+                    <p class="text-xs text-gray-500 mb-3">১ ভরি = ১৬ আনা = ৯৬ রতি = ৯৬০ পয়েন্ট (১১.৬৬৪ গ্রাম)</p>
+
+                    <!-- Stock & Barcode Lookup inside Calculator -->
+                    <div class="bg-amber-50/80 p-3 rounded-xl border border-amber-200 mb-4 space-y-2">
+                        <label class="block text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                            <i class="fas fa-barcode text-amber-700"></i> স্টক বা বারকোড থেকে গহনা লোড করুন (হিসাব দেখার জন্য):
+                        </label>
+                        <div class="flex gap-2">
+                            <select id="calc-stock-select" onchange="loadStockIntoCalculator(this.value)" class="flex-1 px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-semibold text-gray-800">
+                                <option value="">-- স্টক থেকে গহনা বাছুন --</option>
+                            </select>
+                            <button type="button" onclick="clearCalculatorStock()" class="px-2.5 py-2 bg-white hover:bg-gray-100 text-gray-600 border border-gray-300 rounded-xl text-xs font-bold" title="রিসেট করুন">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" id="calc-barcode-input" onkeydown="if(event.key==='Enter'){event.preventDefault();lookupBarcodeInCalculator();}" placeholder="বারকোড আইডি লিখুন বা স্ক্যান করুন (যেমন: JW-1001)" class="flex-1 px-3 py-2 rounded-xl border border-gray-300 bg-white text-xs uppercase font-mono">
+                            <button type="button" onclick="lookupBarcodeInCalculator()" class="px-3.5 py-2 bg-gray-900 text-white font-bold rounded-xl text-xs">
+                                <i class="fas fa-search mr-1"></i> খুঁজুন
+                            </button>
+                        </div>
+                        <div id="calc-selected-item-banner" class="hidden bg-white p-2 rounded-lg border border-amber-300 flex items-center justify-between text-xs">
+                            <div>
+                                <span class="font-bold text-amber-900" id="calc-loaded-title">গহনার নাম</span>
+                                <span class="text-[11px] text-gray-600 block" id="calc-loaded-meta">ID • HUID • ক্যাটেগরি</span>
+                            </div>
+                            <span id="calc-loaded-status" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">মজুত</span>
+                        </div>
+                    </div>
+
+                    <!-- Converter Mode Tabs -->
+                    <div class="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl mb-4">
+                        <button type="button" id="calc-mode-g2v" onclick="setCalcMode('g2v')" class="py-2 text-xs font-bold rounded-lg bg-white text-amber-800 shadow-sm">
+                            গ্রাম → ভরি-আনা-রতি
+                        </button>
+                        <button type="button" id="calc-mode-v2g" onclick="setCalcMode('v2g')" class="py-2 text-xs font-bold rounded-lg text-gray-600">
+                            ভরি-আনা-রতি → গ্রাম
+                        </button>
+                    </div>
+
+                    <!-- Gram Input -->
+                    <div id="calc-gram-box" class="mb-4">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">নিট ওজন (গ্রাম / Grams)</label>
+                        <input type="number" step="0.001" id="calc-grams" oninput="calculateJewelryPrice()" placeholder="যেমন: 11.664" class="w-full px-3.5 py-3 rounded-xl border border-gray-300 focus:border-amber-500 outline-none text-lg font-bold text-gray-900">
+                        <div class="mt-2 p-2.5 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
+                            <span class="text-xs text-amber-800 font-medium">বাংলা ওজন:</span>
+                            <span id="calc-vori-output" class="text-sm font-bold text-amber-950">০ ভরি ০ আনা ০ রতি ০ পয়েন্ট</span>
+                        </div>
+                    </div>
+
+                    <!-- Vori-Ana-Roti-Point Inputs -->
+                    <div id="calc-vori-box" class="hidden mb-4">
+                        <label class="block text-xs font-bold text-gray-700 mb-1.5">ভরি - আনা - রতি - পয়েন্ট লিখুন</label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <div>
+                                <input type="number" id="in-vori" oninput="convertVoriToGram()" placeholder="০" min="0" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
+                                <span class="block text-[11px] text-center text-gray-500 mt-1">ভরি</span>
+                            </div>
+                            <div>
+                                <input type="number" id="in-ana" oninput="convertVoriToGram()" placeholder="০" min="0" max="15" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
+                                <span class="block text-[11px] text-center text-gray-500 mt-1">আনা (১৬)</span>
+                            </div>
+                            <div>
+                                <input type="number" id="in-roti" oninput="convertVoriToGram()" placeholder="০" min="0" max="5" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
+                                <span class="block text-[11px] text-center text-gray-500 mt-1">রতি (৬)</span>
+                            </div>
+                            <div>
+                                <input type="number" id="in-point" oninput="convertVoriToGram()" placeholder="০" min="0" max="9" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
+                                <span class="block text-[11px] text-center text-gray-500 mt-1">পয়েন্ট (১০)</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 p-2.5 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
+                            <span class="text-xs text-amber-800 font-medium">মোট গ্রাম ওজন:</span>
+                            <span id="calc-gram-output" class="text-sm font-bold text-amber-950">0.000 গ্রাম</span>
+                        </div>
+                    </div>
+
+                    <!-- Price Calculator based on selected purity -->
+                    <div class="space-y-3 border-t border-gray-100 pt-3">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">ধাতু / ক্যারেট</label>
+                                <select id="calc-purity" onchange="calculateJewelryPrice()" class="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs font-semibold">
+                                    <option value="22K">22K সোনা</option>
+                                    <option value="18K">18K সোনা</option>
+                                    <option value="9K">9K সোনা</option>
+                                    <option value="Silver60">রুপো ৬০</option>
+                                    <option value="Silver70">রুপো ৭০</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">মজুরি (%)</label>
+                                <input type="number" id="calc-making-val" value="10" oninput="calculateJewelryPrice()" class="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">অতিরিক্ত নাম</label>
+                                <input type="text" id="calc-addon-name" oninput="calculateJewelryPrice()" placeholder="যেমন: শাখা" class="w-full px-2.5 py-2 rounded-xl border border-amber-300 bg-amber-50/40 text-xs">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">অতিরিক্ত টাকা (₹)</label>
+                                <input type="number" id="calc-addon-price" oninput="calculateJewelryPrice()" placeholder="0" class="w-full px-2.5 py-2 rounded-xl border border-amber-300 bg-amber-50/40 text-xs font-bold">
+                            </div>
+                        </div>
+
+                        <!-- Live Invoice-Style Detailed Breakdown (Estimate Only, No Bill Saved) -->
+                        <div class="border border-gray-300 rounded-xl overflow-hidden bg-white shadow-sm">
+                            <div class="bg-amber-100/80 px-3 py-2 border-b border-amber-200 flex items-center justify-between">
+                                <span class="text-xs font-extrabold text-amber-950 flex items-center gap-1.5">
+                                    <i class="fas fa-file-invoice text-amber-700"></i> কাস্টমারকে দেখানোর জন্য ইনভয়েস হিসাব (Estimate)
+                                </span>
+                                <span id="calc-est-rate-badge" class="text-[11px] font-bold bg-white text-amber-900 px-2 py-0.5 rounded border border-amber-300">
+                                    রেট: ₹ ০/গ্রাম
+                                </span>
+                            </div>
+
+                            <div class="p-3 space-y-2 text-xs">
+                                <div class="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 text-[11px]">
+                                    <div>ধাতু ও নিট ওজন: <strong id="calc-est-wt" class="text-gray-900">22K • 0.000g</strong></div>
+                                    <div class="text-right">প্রতি গ্রাম দর: <strong id="calc-est-rate" class="text-gray-900">₹ ০.০০</strong></div>
+                                </div>
+
+                                <div class="space-y-1.5 pt-1">
+                                    <div class="flex justify-between text-gray-700">
+                                        <span>১. খাঁটি ধাতুর মূল্য (Net Wt × Rate):</span>
+                                        <span id="calc-metal-price" class="font-bold text-gray-900">₹ ০.০০</span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-700">
+                                        <span id="calc-making-label-row">২. মেকিং চার্জ / মজুরি (10%):</span>
+                                        <span id="calc-making-price" class="font-bold text-gray-900">₹ ০.০০</span>
+                                    </div>
+                                    <div class="flex justify-between border-t border-dashed border-gray-300 pt-1.5 font-semibold text-gray-800">
+                                        <span>Taxable Value (গহনার মোট মূল্য):</span>
+                                        <span id="calc-taxable-price">₹ ০.০০</span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-600 text-[11px]">
+                                        <span id="calc-cgst-label">৩. CGST (১.৫%):</span>
+                                        <span id="calc-cgst-price" class="font-semibold text-gray-800">₹ ০.০০</span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-600 text-[11px]">
+                                        <span id="calc-sgst-label">৪. SGST (১.৫%):</span>
+                                        <span id="calc-sgst-price" class="font-semibold text-gray-800">₹ ০.০০</span>
+                                    </div>
+                                    <div id="calc-addon-row" class="hidden flex justify-between text-amber-900 bg-amber-50 px-2 py-1 rounded font-bold">
+                                        <span id="calc-addon-label">+ অতিরিক্ত আইটেম (GST মুক্ত):</span>
+                                        <span id="calc-addon-display">+ ₹ ০.০০</span>
+                                    </div>
+                                    <div class="flex justify-between border-t-2 border-gray-800 pt-2 text-sm font-extrabold text-amber-950 bg-amber-50/70 px-2 py-1.5 rounded-lg">
+                                        <span>সর্বমোট আনুমানিক মূল্য (Grand Total):</span>
+                                        <span id="calc-total-price">₹ ০</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. INVENTORY & STOCK VIEW -->
+            <section id="view-inventory" class="hidden space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold text-lg text-gray-900">স্টক ও বারকোড ম্যানেজমেন্ট</h2>
+                    <button type="button" onclick="toggleAddStockForm()" class="owner-only px-3.5 py-2 gold-gradient text-white font-bold rounded-xl text-xs shadow">
+                        <i class="fas fa-plus mr-1"></i> নতুন গহনা যোগ করুন
+                    </button>
+                </div>
+
+                <!-- Add Stock Form Modal/Card -->
+                <div id="add-stock-card" class="owner-only hidden bg-white rounded-2xl border border-amber-200 p-4 shadow-sm space-y-3">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <h3 class="font-bold text-sm text-gray-900">নতুন গহনা বা আইটেম স্টকে তুলুন</h3>
+                        <button type="button" onclick="toggleAddStockForm()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                    </div>
+                    <form onsubmit="addStockItem(event)" class="space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">গহনার নাম / বিবরণ *</label>
+                                <input type="text" id="item-name" required placeholder="যেমন: সোনার আংটি বা শাখা" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">ক্যাটেগরি</label>
+                                <select id="item-category" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 bg-white text-sm">
+                                    <option value="আংটি">আংটি (Ring)</option>
+                                    <option value="হার">হার (Necklace)</option>
+                                    <option value="দুল">দুল (Earrings)</option>
+                                    <option value="বালা/চুড়ি">বালা / চুড়ি / শাখা</option>
+                                    <option value="চেইন">চেইন (Chain)</option>
+                                    <option value="অন্যান্য">অন্যান্য (Miscellaneous)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">ক্যারেট / ধাতু / ধরন</label>
+                                <select id="item-purity" onchange="toggleStockMakingField()" class="w-full px-2.5 py-2.5 rounded-xl border border-gray-300 bg-white text-sm font-semibold">
+                                    <option value="22K">22K সোনা</option>
+                                    <option value="18K">18K সোনা</option>
+                                    <option value="9K">9K সোনা</option>
+                                    <option value="Silver60">রুপো ৬০</option>
+                                    <option value="Silver70">রুপো ৭০</option>
+                                    <option value="Miscellaneous">অন্যান্য (শাখা, পলা, পেটি চুড়ি ইত্যাদি - নির্দিষ্ট টাকা)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">HUID কোড (৬ ডিজিট)</label>
+                                <input type="text" id="item-huid" maxlength="6" placeholder="যেমন: AB12CD" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm uppercase">
+                            </div>
+                        </div>
+
+                        <!-- Added Extra Addon fields for Shakha, Pala, etc. -->
+                        <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200/80 space-y-2">
+                            <label class="block text-xs font-bold text-amber-950">অতিরিক্ত আইটেম ও দাম যোগ করুন (যেমন: শাখা বা পলা):</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="item-addon-name" placeholder="নাম (যেমন: লাল শাখা)" class="px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs">
+                                <input type="number" id="item-addon-price" placeholder="দাম (₹)" class="px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-bold">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">গ্রস ওজন (গ্রাম)</label>
+                                <input type="number" step="0.001" id="item-gross-wt" required placeholder="0.000" class="w-full px-2.5 py-2.5 rounded-xl border border-gray-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">নিট ওজন (গ্রাম) / পরিমাণ *</label>
+                                <input type="number" step="0.001" id="item-net-wt" required placeholder="0.000" class="w-full px-2.5 py-2.5 rounded-xl border border-gray-300 text-sm font-bold">
+                            </div>
+                        </div>
+
+                        <div id="stock-making-wrapper">
+                            <label id="item-making-label" class="block text-xs font-bold text-gray-700 mb-1">মজুরি বা নির্দিষ্ট দাম (₹)</label>
+                            <input type="number" id="item-making" value="10" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-bold" placeholder="টাকা লিখুন">
+                        </div>
+
+                        <button type="submit" class="w-full py-3 gold-gradient text-white font-bold rounded-xl shadow text-sm">
+                            <i class="fas fa-barcode mr-1"></i> স্টকে সেভ করুন ও বারকোড তৈরি করুন
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Search & Filter Bar -->
+                <div class="flex gap-2">
+                    <div class="relative flex-1">
+                        <i class="fas fa-search absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
+                        <input type="text" id="stock-search" oninput="renderInventory()" placeholder="আইটেম নাম, আইডি বা HUID খুঁজুন..." class="w-full pl-9 pr-3 py-2.5 bg-white rounded-xl border border-gray-200 text-sm outline-none focus:border-amber-500">
+                    </div>
+                    <select id="stock-filter" onchange="renderInventory()" class="px-3 py-2.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-gray-700">
+                        <option value="all">সব স্টক</option>
+                        <option value="available">মজুত (Available)</option>
+                        <option value="sold">বিক্রিত (Sold)</option>
+                    </select>
+                </div>
+
+                <!-- Stock Gold & Silver Summary Strip -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5">
+                        <div class="text-[11px] font-bold text-amber-900">মজুত সোনা (মোট)</div>
+                        <div id="inv-gold-total" class="text-base font-extrabold text-amber-800">0.000 গ্রাম</div>
+                        <div id="inv-gold-sub" class="text-[10px] text-amber-800/80">22K: 0g | 18K: 0g | 9K: 0g</div>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                        <div class="text-[11px] font-bold text-slate-700">মজুত রুপো (মোট)</div>
+                        <div id="inv-silver-total" class="text-base font-extrabold text-slate-800">0.000 গ্রাম</div>
+                        <div id="inv-silver-sub" class="text-[10px] text-slate-600">রুপো ৬০: 0g | রুপো ৭০: 0g</div>
+                    </div>
+                </div>
+
+                <!-- Stock List Container -->
+                <div id="inventory-list" class="space-y-3"></div>
+            </section>
+
+            <!-- 4. POS BILLING VIEW -->
+            <section id="view-pos" class="hidden space-y-4">
+                <div class="bg-white rounded-2xl border border-amber-200 p-4 shadow-sm space-y-4">
+                    <h2 class="font-bold text-lg text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-file-invoice-dollar text-amber-600"></i> কাস্টমার বিল তৈরি করুন (POS)
+                    </h2>
+
+                    <!-- Add Item to Bill by ID/Barcode or Dropdown -->
+                    <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200/80 space-y-2.5">
+                        <label class="block text-xs font-bold text-amber-950">স্টক থেকে গহনা বা শাখা নির্বাচন করুন:</label>
+                        <div class="flex gap-2">
+                            <select id="pos-item-select" class="flex-1 px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-sm font-medium">
+                                <option value="">-- মজুত গহনা বেছে নিন --</option>
+                            </select>
+                            <button type="button" onclick="addSelectedToCart()" class="px-4 py-2.5 bg-amber-600 text-white font-bold rounded-xl text-sm shadow-sm active:scale-95">
+                                যোগ করুন
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" id="pos-barcode-input" placeholder="বারকোড আইডি লিখুন (যেমন: JW-1001)" class="flex-1 px-3 py-2 rounded-xl border border-gray-300 bg-white text-sm uppercase">
+                            <button type="button" onclick="addByBarcode()" class="px-3.5 py-2 bg-gray-800 text-white font-semibold rounded-xl text-xs">
+                                <i class="fas fa-barcode mr-1"></i> স্ক্যান/যোগ
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Selected Cart Items -->
+                    <div>
+                        <h4 class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">বিলের তালিকা (Selected Items)</h4>
+                        <div id="pos-cart-list" class="space-y-2">
+                            <p class="text-xs text-gray-400 text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">বিলে কোনো গহনা যোগ করা হয়নি</p>
+                        </div>
+                    </div>
+
+                    <!-- Customer Details -->
+                    <div class="border-t border-gray-100 pt-3 space-y-3">
+                        <h4 class="text-xs font-bold text-gray-700">ক্রেতার তথ্য (Customer Details)</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <input type="text" id="cust-name" placeholder="ক্রেতার নাম *" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm">
+                            <input type="tel" id="cust-phone" placeholder="মোবাইল নম্বর" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <input type="text" id="cust-address" placeholder="ক্রেতার ঠিকানা (Address)" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm">
+                            <input type="text" id="cust-gstin" placeholder="ক্রেতার GSTIN (ঐচ্ছিক)" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-500 mb-1">ছাড় (Discount ₹)</label>
+                            <input type="number" id="pos-discount" value="0" oninput="renderPosCart()" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm font-bold">
+                        </div>
+                    </div>
+
+                    <!-- POS Summary Totals -->
+                    <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 space-y-1.5 text-sm">
+                        <div class="flex justify-between text-gray-600">
+                            <span>গহনা ও মেকিং মূল্য:</span>
+                            <span id="pos-subtotal" class="font-semibold">₹ ০</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600">
+                            <span>জিএসটি (শুধুমাত্র সোনায় ৩% GST):</span>
+                            <span id="pos-gst" class="font-semibold">₹ ০</span>
+                        </div>
+                        <div id="pos-addon-row" class="hidden flex justify-between text-amber-900 font-semibold text-xs">
+                            <span id="pos-addon-label">+ অতিরিক্ত আইটেম (GST মুক্ত):</span>
+                            <span id="pos-addon-total">+ ₹ ০</span>
+                        </div>
+                        <div class="flex justify-between text-red-600 text-xs">
+                            <span>ছাড় (Discount):</span>
+                            <span id="pos-disc-display">- ₹ ০</span>
+                        </div>
+                        <div class="border-t border-gray-300 pt-2 flex justify-between items-center text-base font-bold text-gray-900">
+                            <span>সর্বমোট প্রদেয় বিল:</span>
+                            <span id="pos-grand-total" class="text-xl text-amber-700">₹ ০</span>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="completeSale()" class="w-full py-3.5 gold-gradient text-white font-bold rounded-xl shadow-md text-base active:scale-[0.99] transition">
+                        <i class="fas fa-check-circle mr-1"></i> বিল সম্পন্ন করুন ও ইনভয়েস দেখুন
+                    </button>
+                </div>
+            </section>
+
+            <!-- 5. SALES HISTORY VIEW -->
+            <section id="view-history" class="hidden space-y-4">
+                <div class="flex items-center justify-between gap-2">
+                    <h2 class="font-bold text-lg text-gray-900">বিক্রয় খাতা (Transaction Logs)</h2>
+                    <div class="flex items-center gap-2">
+                        <span id="history-count-badge" class="text-xs bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full">0 টি বিল</span>
+                        <button type="button" id="clear-all-sales-btn" onclick="deleteAllSales()" class="owner-only hidden text-xs bg-red-100 hover:bg-red-200 text-red-700 font-bold px-2.5 py-1 rounded-full transition">
+                            <i class="fas fa-trash-alt mr-1"></i> সব মুছুন
+                        </button>
+                    </div>
+                </div>
+                <div id="sales-history-list" class="space-y-3"></div>
+            </section>
+
+            <!-- 6. OWNER SETTINGS & STAFF MANAGEMENT VIEW -->
+            <section id="view-settings" class="hidden space-y-4">
+                <!-- Daily Gold Rates Update -->
+                <div class="bg-white rounded-2xl border border-amber-200 p-4 shadow-sm space-y-3">
+                    <h3 class="font-bold text-base text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-coins text-amber-600"></i> আজকের সোনা ও রূপার দর আপডেট (প্রতি ১০ গ্রাম)
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">২২ ক্যারেট (১০ গ্রাম ₹)</label>
+                            <input type="number" id="set-rate-22k" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-bold text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">১৮ ক্যারেট (১০ গ্রাম ₹)</label>
+                            <input type="number" id="set-rate-18k" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-bold text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">৯ ক্যারেট (১০ গ্রাম ₹)</label>
+                            <input type="number" id="set-rate-9k" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-bold text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">রুপো ৬০ (১০ গ্রাম ₹)</label>
+                            <input type="number" id="set-rate-silver60" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-bold text-sm">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">রুপো ৭০ (১০ গ্রাম ₹)</label>
+                            <input type="number" id="set-rate-silver70" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-bold text-sm">
+                        </div>
+                        <div class="col-span-2 bg-amber-50 p-2.5 rounded-xl border border-amber-200 space-y-2">
+                            <div>
+                                <label class="block text-xs font-bold text-amber-950 mb-1">সোনার গ্লোবাল মজুরি হার (%) — ১ গ্রামের বেশি হলে প্রযোজ্য</label>
+                                <input type="number" step="0.1" id="set-gold-making" class="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white font-bold text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-amber-950 mb-1">১ গ্রাম পর্যন্ত সোনার নির্দিষ্ট মজুরি (₹) — ১g বা কম ওজনে অটোমেটিক</label>
+                                <input type="number" step="1" id="set-gold-1g-making" class="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white font-bold text-sm" placeholder="যেমন: 500">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">দোকানের নাম</label>
+                        <input type="text" id="set-shop-name" class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm font-semibold">
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">দোকানের ঠিকানা</label>
+                            <input type="text" id="set-shop-address" class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">দোকানের ফোন ও GSTIN</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="set-shop-phone" placeholder="ফোন" class="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs">
+                                <input type="text" id="set-shop-gstin" placeholder="GSTIN" class="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs uppercase">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Custom Logos Upload -->
+                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2.5">
+                        <div class="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                            <i class="fas fa-image text-amber-600"></i> বিলের উপরের লোগো পরিবর্তন করুন (ঐচ্ছিক)
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="bg-white p-2.5 rounded-xl border border-gray-200">
+                                <label class="block text-[11px] font-bold text-gray-700 mb-1.5">বামদিকের লোগো (Left Logo)</label>
+                                <div class="flex items-center gap-2">
+                                    <img id="preview-left-logo" src="" alt="Left Logo" class="hidden w-10 h-10 object-contain rounded border border-gray-200 bg-gray-50">
+                                    <label class="flex-1 py-1.5 px-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-semibold text-center cursor-pointer">
+                                        <i class="fas fa-upload mr-1"></i> ছবি বাছুন
+                                        <input type="file" accept="image/*" onchange="handleLogoUpload(event, 'left')" class="hidden">
+                                    </label>
+                                    <button type="button" onclick="resetInvoiceLogo('left')" class="px-2 py-1.5 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-lg text-xs" title="ডিফল্ট লোগো">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="bg-white p-2.5 rounded-xl border border-gray-200">
+                                <label class="block text-[11px] font-bold text-gray-700 mb-1.5">ডানদিকের লোগো (Right Logo)</label>
+                                <div class="flex items-center gap-2">
+                                    <img id="preview-right-logo" src="" alt="Right Logo" class="hidden w-10 h-10 object-contain rounded border border-gray-200 bg-gray-50">
+                                    <label class="flex-1 py-1.5 px-2.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-300 rounded-lg text-xs font-semibold text-center cursor-pointer">
+                                        <i class="fas fa-upload mr-1"></i> ছবি বাছুন
+                                        <input type="file" accept="image/*" onchange="handleLogoUpload(event, 'right')" class="hidden">
+                                    </label>
+                                    <button type="button" onclick="resetInvoiceLogo('right')" class="px-2 py-1.5 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-lg text-xs" title="ডিফল্ট লোগো">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="saveRatesAndShop()" class="w-full py-2.5 bg-amber-600 text-white font-bold rounded-xl text-sm shadow">
+                        দর ও তথ্য সেভ করুন
+                    </button>
+                </div>
+
+                <!-- Staff Management -->
+                <div class="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm space-y-3">
+                    <h3 class="font-bold text-base text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-users-cog text-blue-600"></i> স্টাফ ম্যানেজমেন্ট (Staff Access)
+                    </h3>
+                    <form onsubmit="addStaffAccount(event)" class="grid grid-cols-3 gap-2">
+                        <input type="text" id="new-staff-name" required placeholder="নাম (যেমন: রাহুল)" class="px-2.5 py-2 rounded-xl border border-gray-300 text-xs">
+                        <input type="text" id="new-staff-id" required placeholder="লগইন ID" class="px-2.5 py-2 rounded-xl border border-gray-300 text-xs">
+                        <div class="flex gap-1">
+                            <input type="text" id="new-staff-pin" required placeholder="PIN" class="w-full px-2 py-2 rounded-xl border border-gray-300 text-xs">
+                            <button type="submit" class="px-3 bg-blue-600 text-white rounded-xl font-bold text-xs">+</button>
+                        </div>
+                    </form>
+                    <div id="staff-list-container" class="space-y-2 pt-2"></div>
+                </div>
+
+                <!-- Data Backup & Restore -->
+                <div class="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm space-y-3">
+                    <h3 class="font-bold text-base text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-database text-emerald-600"></i> ডেটা ব্যাকআপ ও রিস্টোর (JSON)
+                    </h3>
+                    <p class="text-xs text-gray-500">আপনার ফোনের সমস্ত স্টক এবং বিক্রয়ের হিসাব নিরাপদ রাখতে ব্যাকআপ ফাইল ডাউনলোড করে রাখুন।</p>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button type="button" onclick="exportBackupJSON()" class="py-2.5 px-3 bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5">
+                            <i class="fas fa-download"></i> ব্যাকআপ ডাউনলোড
+                        </button>
+                        <label class="py-2.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer border border-gray-300">
+                            <i class="fas fa-upload"></i> ব্যাকআপ রিস্টোর
+                            <input type="file" accept=".json" onchange="importBackupJSON(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-amber-200/80 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] z-30 no-print">
+            <div class="max-w-3xl mx-auto flex justify-around items-center py-1.5 px-1">
+                <button type="button" onclick="navigateTo('dashboard')" data-nav="dashboard" class="nav-btn flex flex-col items-center p-2 text-amber-600 font-bold">
+                    <i class="fas fa-home text-lg"></i>
+                    <span class="text-[11px] mt-0.5">হোম</span>
+                </button>
+                <button type="button" onclick="navigateTo('pos')" data-nav="pos" class="nav-btn flex flex-col items-center p-2 text-gray-500">
+                    <i class="fas fa-cash-register text-lg"></i>
+                    <span class="text-[11px] mt-0.5">POS বিল</span>
+                </button>
+                <button type="button" onclick="navigateTo('inventory')" data-nav="inventory" class="nav-btn flex flex-col items-center p-2 text-gray-500">
+                    <i class="fas fa-gem text-lg"></i>
+                    <span class="text-[11px] mt-0.5">স্টক</span>
+                </button>
+                <button type="button" onclick="navigateTo('calculator')" data-nav="calculator" class="nav-btn flex flex-col items-center p-2 text-gray-500">
+                    <i class="fas fa-calculator text-lg"></i>
+                    <span class="text-[11px] mt-0.5">ক্যালকুলেটর</span>
+                </button>
+                <button type="button" onclick="navigateTo('history')" data-nav="history" class="nav-btn flex flex-col items-center p-2 text-gray-500">
+                    <i class="fas fa-receipt text-lg"></i>
+                    <span class="text-[11px] mt-0.5">খাতা</span>
+                </button>
+                <button type="button" onclick="navigateTo('settings')" data-nav="settings" class="nav-btn owner-only flex flex-col items-center p-2 text-gray-500">
+                    <i class="fas fa-cog text-lg"></i>
+                    <span class="text-[11px] mt-0.5">সেটিংস</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- ==================== MODAL FOR INVOICE & BARCODE PRINT ==================== -->
+    <div id="print-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl my-auto">
+            <div class="p-3 bg-gray-100 border-b flex justify-between items-center no-print">
+                <span class="font-bold text-sm text-gray-800">প্রিন্ট / ইনভয়েস প্রিভিউ</span>
+                <button type="button" onclick="closePrintModal()" class="w-8 h-8 rounded-full bg-white text-gray-600 flex items-center justify-center shadow-sm">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Printable Content Container -->
+            <div id="printable-area" class="p-3 sm:p-6 bg-white text-gray-900 overflow-x-auto"></div>
+
+            <div class="p-3 bg-gray-50 border-t flex gap-2 no-print">
+                <button type="button" onclick="window.print()" class="flex-1 py-2.5 bg-amber-600 text-white font-bold rounded-xl text-sm shadow">
+                    <i class="fas fa-print mr-1"></i> প্রিন্ট / PDF সেভ
+                </button>
+                <button type="button" id="share-bill-btn" onclick="shareInvoiceText()" class="flex-1 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-sm shadow hidden">
+                    <i class="fas fa-copy mr-1"></i> বিল কপি করুন
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+    <script>
+        // --- 1. INITIAL STATE & LOCALSTORAGE SETUP ---
+        const STORAGE_KEY = 'bengali_jewelry_pos_v1';
+
+        const defaultData = {
+            shopName: 'মা তারা জুয়েলার্স',
+            shopAddress: 'বড় বাজার, কলকাতা - ৭০০০০৭',
+            shopPhone: '+91 98123 45670',
+            shopGstin: '19AAICP1234K1ZP',
+            leftLogo: '',
+            rightLogo: '',
+            owner: { id: 'admin', pin: '1234', name: 'মালিক (Admin)' },
+            staffList: [
+                { id: 'মহিত', pin: '1223', name: 'মহিত (Mohit)' }
+            ],
+            rates: {
+                '22K': 72000,
+                '18K': 58900,
+                '9K': 29500,
+                'Silver60': 600,
+                'Silver70': 700
+            },
+            goldMakingPercent: 10,
+            gold1gMakingFixed: 500,
+            inventory: [
+                {
+                    id: 'JW-1001',
+                    name: 'ময়ূর ডিজাইন সোনার আংটি',
+                    category: 'আংটি',
+                    purity: '22K',
+                    grossWt: 4.550,
+                    netWt: 4.500,
+                    huid: 'H9K2L1',
+                    makingType: 'percent',
+                    makingValue: 10,
+                    status: 'available',
+                    addedAt: new Date().toLocaleDateString('bn-BD')
+                },
+                {
+                    id: 'JW-1002',
+                    name: 'লাল শাখা জোড়া',
+                    category: 'বালা/চুড়ি',
+                    purity: 'Miscellaneous',
+                    grossWt: 20.000,
+                    netWt: 20.000,
+                    huid: 'N/A',
+                    makingType: 'fixed',
+                    makingValue: 0,
+                    fixedPrice: 1200,
+                    status: 'available',
+                    addedAt: new Date().toLocaleDateString('bn-BD')
+                }
+            ],
+            sales: [
+                {
+                    invoiceNo: 'Inv-1',
+                    date: new Date().toLocaleDateString('en-GB'),
+                    customerName: 'অমিত সিং (ডেমো বিল)',
+                    customerPhone: '9876543210',
+                    customerAddress: '৭৮, কলেজ স্ট্রিট, কলকাতা - ৭০০০৭৩',
+                    customerGstin: '',
+                    billedBy: 'মালিক (Admin)',
+                    items: [
+                        {
+                            id: 'JW-1001',
+                            name: 'ময়ূর ডিজাইন সোনার আংটি',
+                            purity: '22K',
+                            hsn: '711319',
+                            grossWt: 4.550,
+                            stoneWt: 0.050,
+                            netWt: 4.500,
+                            ratePerGram: 7200,
+                            makingCost: 3240,
+                            makingLabel: '10%',
+                            huid: 'H9K2L1',
+                            taxableValue: 35640,
+                            gstRate: 3,
+                            gstAmt: 1069.20,
+                            totalWithGst: 36709.20,
+                            price: 35640
+                        }
+                    ],
+                    subtotal: 35640,
+                    gst: 1069.20,
+                    roundOff: -0.20,
+                    discount: 0,
+                    grandTotal: 36709
+                }
+            ]
+        };
+
+        let appData = null;
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            appData = raw ? JSON.parse(raw) : null;
+        } catch (err) {
+            appData = null;
+        }
+        if (!appData || typeof appData !== 'object') {
+            appData = JSON.parse(JSON.stringify(defaultData));
+        }
+        if (!appData.owner) appData.owner = { id: 'admin', pin: '1234', name: 'মালিক (Admin)' };
+        if (!Array.isArray(appData.staffList)) appData.staffList = [{ id: 'মহিত', pin: '1223', name: 'মহিত (Mohit)' }];
+        if (!appData.rates) appData.rates = { '22K': 72000, '18K': 58900, '9K': 29500, 'Silver60': 600, 'Silver70': 700 };
+        if (!Array.isArray(appData.inventory)) appData.inventory = [];
+        if (!Array.isArray(appData.sales)) appData.sales = [];
+        if (!appData.rates['9K']) appData.rates['9K'] = 29500;
+        if (!appData.rates.Silver60) appData.rates.Silver60 = 600;
+        if (!appData.rates.Silver70) appData.rates.Silver70 = 700;
+        if (typeof appData.goldMakingPercent === 'undefined') appData.goldMakingPercent = 10;
+        if (typeof appData.gold1gMakingFixed === 'undefined') appData.gold1gMakingFixed = 500;
+        if (!appData.shopAddress) appData.shopAddress = 'বড় বাজার, কলকাতা - ৭০০০০৭';
+        if (!appData.shopPhone) appData.shopPhone = '+91 98123 45670';
+        if (!appData.shopGstin) appData.shopGstin = '19AAICP1234K1ZP';
+        if (typeof appData.leftLogo === 'undefined') appData.leftLogo = '';
+        if (typeof appData.rightLogo === 'undefined') appData.rightLogo = '';
+
+        let currentUser = null;
+        let selectedLoginRole = 'owner';
+        let posCart = [];
+        let confirmCallback = null;
+        let lastInvoiceText = '';
+
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+            } catch (e) {
+                console.warn('Storage restricted:', e);
+            }
+        }
+
+        function formatCurrency(amount) {
+            const num = Math.round(Number(amount) || 0);
+            return '₹ ' + num.toLocaleString('en-IN');
+        }
+
+        // --- 2. CUSTOM UI HELPERS ---
+        function showToast(msg, isError = false) {
+            const box = document.getElementById('toast-box');
+            const text = document.getElementById('toast-msg');
+            const icon = document.getElementById('toast-icon');
+            text.textContent = msg;
+            icon.className = isError ? 'fas fa-exclamation-circle text-red-400 ml-2' : 'fas fa-check-circle text-emerald-400 ml-2';
+            box.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                box.classList.add('opacity-0', 'pointer-events-none');
+            }, 2800);
+        }
+
+        function askConfirm(message, callback) {
+            document.getElementById('confirm-text').textContent = message;
+            confirmCallback = callback;
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeConfirmModal(confirmed) {
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (confirmed && confirmCallback) confirmCallback();
+            confirmCallback = null;
+        }
+
+        // --- 3. AUTHENTICATION ---
+        function switchLoginRole(role) {
+            selectedLoginRole = role;
+            const tabOwner = document.getElementById('tab-owner');
+            const tabStaff = document.getElementById('tab-staff');
+            const label = document.getElementById('login-id-label');
+
+            if (role === 'owner') {
+                tabOwner.className = 'py-2.5 text-sm font-bold rounded-lg bg-amber-600 text-white shadow transition';
+                tabStaff.className = 'py-2.5 text-sm font-bold rounded-lg text-amber-900 hover:bg-amber-200/50 transition';
+                label.textContent = 'মালিকের আইডি (Admin ID)';
+                document.getElementById('login-id').placeholder = 'যেমন: admin';
+            } else {
+                tabStaff.className = 'py-2.5 text-sm font-bold rounded-lg bg-blue-600 text-white shadow transition';
+                tabOwner.className = 'py-2.5 text-sm font-bold rounded-lg text-amber-900 hover:bg-amber-200/50 transition';
+                label.textContent = 'স্টাফ আইডি (Staff ID)';
+                document.getElementById('login-id').placeholder = 'যেমন: মহিত';
+            }
+        }
+
+        function quickFillLogin(role) {
+            switchLoginRole(role);
+            if (role === 'owner') {
+                document.getElementById('login-id').value = appData.owner.id;
+                document.getElementById('login-pin').value = appData.owner.pin;
+            } else {
+                const staff = (appData.staffList && appData.staffList[0]) || { id: 'মহিত', pin: '1223' };
+                document.getElementById('login-id').value = staff.id;
+                document.getElementById('login-pin').value = staff.pin;
+            }
+            showToast('তথ্য বসানো হয়েছে, লগইন বাটনে চাপ দিন');
+        }
+
+        function handleLogin(e) {
+            if (e) e.preventDefault();
+            const idInput = document.getElementById('login-id').value.trim();
+            const pinInput = normalizeDigits(document.getElementById('login-pin').value.trim());
+
+            if (selectedLoginRole === 'owner') {
+                if (idInput.toLowerCase() === appData.owner.id.toLowerCase() && pinInput === normalizeDigits(appData.owner.pin)) {
+                    currentUser = { role: 'owner', name: appData.owner.name, id: appData.owner.id };
+                    initAppSession();
+                } else {
+                    showToast('ভুল মালিক আইডি বা পিন!', true);
+                }
+            } else {
+                const matchedStaff = (appData.staffList || []).find(s => {
+                    const matchId = s.id && s.id.trim().toLowerCase() === idInput.toLowerCase();
+                    const matchName = s.name && s.name.trim().toLowerCase() === idInput.toLowerCase();
+                    const matchPin = normalizeDigits(s.pin).trim() === pinInput;
+                    return (matchId || matchName) && matchPin;
+                });
+                if (matchedStaff) {
+                    currentUser = { role: 'staff', name: matchedStaff.name, id: matchedStaff.id };
+                    initAppSession();
+                } else {
+                    const hintStaff = (appData.staffList && appData.staffList[0]);
+                    const hintText = hintStaff ? ` (ID: ${hintStaff.id} | PIN: ${hintStaff.pin})` : '';
+                    showToast('ভুল স্টাফ আইডি বা পিন!' + hintText, true);
+                }
+            }
+        }
+
+        function initAppSession() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+
+            document.getElementById('shop-header-name').textContent = appData.shopName;
+            document.getElementById('user-name-display').textContent = currentUser.name;
+            const badge = document.getElementById('user-badge');
+            const ownerElements = document.querySelectorAll('.owner-only');
+
+            if (currentUser.role === 'owner') {
+                badge.textContent = 'মালিক (Admin)';
+                badge.className = 'px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800';
+                ownerElements.forEach(el => el.classList.remove('hidden'));
+            } else {
+                badge.textContent = 'স্টাফ (POS)';
+                badge.className = 'px-2 py-0.5 rounded-full font-semibold bg-blue-100 text-blue-800';
+                ownerElements.forEach(el => el.classList.add('hidden'));
+            }
+
+            showToast(`স্বাগতম, ${currentUser.name}!`);
+            navigateTo('dashboard');
+        }
+
+        function logout() {
+            currentUser = null;
+            posCart = [];
+            document.getElementById('app-container').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('login-pin').value = '';
+            updateStaffLoginHint();
+        }
+
+        // --- 4. NAVIGATION ---
+        function navigateTo(viewName) {
+            if (viewName === 'settings' && currentUser && currentUser.role !== 'owner') {
+                showToast('শুধুমাত্র মালিক এই সেকশনে প্রবেশ করতে পারবেন', true);
+                return;
+            }
+
+            const sections = ['dashboard', 'calculator', 'inventory', 'pos', 'history', 'settings'];
+            sections.forEach(sec => {
+                document.getElementById(`view-${sec}`).classList.add('hidden');
+            });
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.nav === viewName) {
+                    btn.classList.remove('text-gray-500');
+                    btn.classList.add('text-amber-600', 'font-bold');
+                } else {
+                    btn.classList.add('text-gray-500');
+                    btn.classList.remove('text-amber-600', 'font-bold');
+                }
+            });
+
+            if (viewName === 'dashboard') updateDashboard();
+            if (viewName === 'calculator') {
+                populateCalculatorStockDropdown();
+                calculateJewelryPrice();
+            }
+            if (viewName === 'inventory') {
+                const addCard = document.getElementById('add-stock-card');
+                if (addCard && (!currentUser || currentUser.role !== 'owner')) {
+                    addCard.classList.add('hidden');
+                }
+                toggleStockMakingField();
+                renderInventory();
+            }
+            if (viewName === 'pos') initPosView();
+            if (viewName === 'history') renderSalesHistory();
+            if (viewName === 'settings') loadSettingsView();
+        }
+
+        // --- 5. CALCULATOR LOGIC ---
+        let calcSelectedItem = null;
+
+        function populateCalculatorStockDropdown() {
+            const select = document.getElementById('calc-stock-select');
+            if (!select) return;
+            const currentVal = select.value;
+            select.innerHTML = `<option value="">-- স্টক থেকে গহনা বাছুন (${appData.inventory.length} টি) --</option>` +
+                appData.inventory.map(i => `<option value="${i.id}">${i.id} - ${i.name} (${i.netWt}g | ${getMetalLabel(i.purity)})${i.status === 'sold' ? ' [বিক্রিত]' : ''}</option>`).join('');
+            if (currentVal && appData.inventory.some(i => i.id === currentVal)) {
+                select.value = currentVal;
+            }
+        }
+
+        function lookupBarcodeInCalculator() {
+            const code = (document.getElementById('calc-barcode-input').value || '').trim().toUpperCase();
+            if (!code) {
+                showToast('অনুগ্রহ করে বারকোড আইডি লিখুন', true);
+                return;
+            }
+            const item = appData.inventory.find(i => i.id.toUpperCase() === code || (i.huid && i.huid.toUpperCase() === code));
+            if (!item) {
+                showToast('এই বারকোড বা HUID-এর কোনো গহনা স্টকে নেই!', true);
+                return;
+            }
+            document.getElementById('calc-stock-select').value = item.id;
+            loadStockIntoCalculator(item.id);
+            document.getElementById('calc-barcode-input').value = '';
+        }
+
+        function loadStockIntoCalculator(id) {
+            const banner = document.getElementById('calc-selected-item-banner');
+            if (!id) {
+                calcSelectedItem = null;
+                if (banner) banner.classList.add('hidden');
+                calculateJewelryPrice();
+                return;
+            }
+            const item = appData.inventory.find(i => i.id === id);
+            if (!item) return;
+
+            calcSelectedItem = item;
+            if (banner) {
+                banner.classList.remove('hidden');
+                document.getElementById('calc-loaded-title').textContent = `${item.name} (${item.id})`;
+                document.getElementById('calc-loaded-meta').textContent = `ক্যাটেগরি: ${item.category} • HUID: ${item.huid} • গ্রস: ${item.grossWt}g`;
+                const statusEl = document.getElementById('calc-loaded-status');
+                if (item.status === 'sold') {
+                    statusEl.textContent = 'বিক্রিত (Sold)';
+                    statusEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700';
+                } else {
+                    statusEl.textContent = 'মজুত (Available)';
+                    statusEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800';
+                }
+            }
+
+            document.getElementById('calc-grams').value = item.netWt;
+            if (!isMiscellaneous(item.purity)) {
+                document.getElementById('calc-purity').value = item.purity;
+            }
+            if (!isSilverPurity(item.purity) && !isMiscellaneous(item.purity)) {
+                document.getElementById('calc-making-val').value = appData.goldMakingPercent;
+            } else {
+                document.getElementById('calc-making-val').value = 0;
+            }
+            document.getElementById('calc-addon-name').value = item.addonName || '';
+            document.getElementById('calc-addon-price').value = item.addonPrice || '';
+
+            calculateJewelryPrice();
+            showToast(`${item.name} (${item.id})-এর হিসাব লোড হয়েছে`);
+        }
+
+        function clearCalculatorStock() {
+            calcSelectedItem = null;
+            document.getElementById('calc-stock-select').value = '';
+            document.getElementById('calc-barcode-input').value = '';
+            document.getElementById('calc-grams').value = '';
+            document.getElementById('calc-addon-name').value = '';
+            document.getElementById('calc-addon-price').value = '';
+            document.getElementById('calc-making-val').value = appData.goldMakingPercent;
+            const banner = document.getElementById('calc-selected-item-banner');
+            if (banner) banner.classList.add('hidden');
+            calculateJewelryPrice();
+        }
+
+        function setCalcMode(mode) {
+            const btnG2V = document.getElementById('calc-mode-g2v');
+            const btnV2G = document.getElementById('calc-mode-v2g');
+            const gramBox = document.getElementById('calc-gram-box');
+            const voriBox = document.getElementById('calc-vori-box');
+
+            if (mode === 'g2v') {
+                btnG2V.className = 'py-2 text-xs font-bold rounded-lg bg-white text-amber-800 shadow-sm';
+                btnV2G.className = 'py-2 text-xs font-bold rounded-lg text-gray-600';
+                gramBox.classList.remove('hidden');
+                voriBox.classList.add('hidden');
+            } else {
+                btnV2G.className = 'py-2 text-xs font-bold rounded-lg bg-white text-amber-800 shadow-sm';
+                btnG2V.className = 'py-2 text-xs font-bold rounded-lg text-gray-600';
+                voriBox.classList.remove('hidden');
+                gramBox.classList.add('hidden');
+            }
+        }
+
+        function calculateJewelryPrice() {
+            const fmtExact = (val) => '₹ ' + Number(val || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            if (calcSelectedItem) {
+                const grams = parseFloat(document.getElementById('calc-grams').value) || 0;
+                const addonName = (document.getElementById('calc-addon-name')?.value || '').trim();
+                const addonPrice = parseFloat(document.getElementById('calc-addon-price')?.value) || 0;
+                const tempItem = {
+                    ...calcSelectedItem,
+                    netWt: grams,
+                    addonName,
+                    addonPrice
+                };
+                if (!isSilverPurity(tempItem.purity) && !isMiscellaneous(tempItem.purity)) {
+                    const userMakingPct = parseFloat(document.getElementById('calc-making-val').value);
+                    if (!isNaN(userMakingPct) && grams > 1) {
+                        tempItem.customMakingPct = userMakingPct;
+                    }
+                }
+                const billing = calculateItemBilling(tempItem);
+
+                const totalPoints = Math.round((grams / 11.664) * 960);
+                const vori = Math.floor(totalPoints / 960);
+                const remAfterVori = totalPoints % 960;
+                const ana = Math.floor(remAfterVori / 60);
+                const remAfterAna = remAfterVori % 60;
+                const roti = Math.floor(remAfterAna / 10);
+                const point = remAfterAna % 10;
+                document.getElementById('calc-vori-output').textContent = `${toBengaliDigits(vori)} ভরি ${toBengaliDigits(ana)} আনা ${toBengaliDigits(roti)} রতি ${toBengaliDigits(point)} পয়েন্ট`;
+
+                const isSilver = isSilverPurity(tempItem.purity);
+                const isMisc = isMiscellaneous(tempItem.purity);
+                const gstAmt = (isSilver || isMisc) ? 0 : (billing.baseItemCost * 0.03);
+                const cgstAmt = gstAmt / 2;
+                const sgstAmt = gstAmt / 2;
+                const grandTotal = billing.baseItemCost + gstAmt + addonPrice;
+
+                document.getElementById('calc-est-rate-badge').textContent = isMisc ? 'নির্দিষ্ট দাম' : `রেট: ${fmtExact(billing.ratePerGram)}/গ্রাম`;
+                document.getElementById('calc-est-wt').textContent = `${getMetalLabel(tempItem.purity)} • ${grams.toFixed(3)}g`;
+                document.getElementById('calc-est-rate').textContent = fmtExact(billing.ratePerGram);
+
+                document.getElementById('calc-metal-price').textContent = fmtExact(billing.metalCost);
+                document.getElementById('calc-making-label-row').textContent = isMisc
+                    ? '২. আইটেমের নির্দিষ্ট মূল্য:'
+                    : `২. মেকিং চার্জ / মজুরি (${billing.makingLabel}):`;
+                document.getElementById('calc-making-price').textContent = fmtExact(billing.makingCost);
+                document.getElementById('calc-taxable-price').textContent = fmtExact(billing.baseItemCost);
+
+                document.getElementById('calc-cgst-label').textContent = (isSilver || isMisc) ? '৩. CGST (০%):' : '৩. CGST (১.৫%):';
+                document.getElementById('calc-sgst-label').textContent = (isSilver || isMisc) ? '৪. SGST (০%):' : '৪. SGST (১.৫%):';
+                document.getElementById('calc-cgst-price').textContent = fmtExact(cgstAmt);
+                document.getElementById('calc-sgst-price').textContent = fmtExact(sgstAmt);
+
+                const addonRow = document.getElementById('calc-addon-row');
+                if (addonRow) {
+                    if (addonPrice > 0) {
+                        addonRow.classList.remove('hidden');
+                        document.getElementById('calc-addon-label').textContent = `+ ${addonName || 'অতিরিক্ত আইটেম'} (GST মুক্ত):`;
+                        document.getElementById('calc-addon-display').textContent = '+ ' + fmtExact(addonPrice);
+                    } else {
+                        addonRow.classList.add('hidden');
+                    }
+                }
+                document.getElementById('calc-total-price').textContent = formatCurrency(grandTotal);
+                return;
+            }
+
+            const grams = parseFloat(document.getElementById('calc-grams').value) || 0;
+            const purity = document.getElementById('calc-purity').value;
+            const makingPct = parseFloat(document.getElementById('calc-making-val').value) || 0;
+            const addonName = (document.getElementById('calc-addon-name')?.value || '').trim();
+            const addonPrice = parseFloat(document.getElementById('calc-addon-price')?.value) || 0;
+
+            const totalPoints = Math.round((grams / 11.664) * 960);
+            const vori = Math.floor(totalPoints / 960);
+            const remAfterVori = totalPoints % 960;
+            const ana = Math.floor(remAfterVori / 60);
+            const remAfterAna = remAfterVori % 60;
+            const roti = Math.floor(remAfterAna / 10);
+            const point = remAfterAna % 10;
+
+            document.getElementById('calc-vori-output').textContent = `${toBengaliDigits(vori)} ভরি ${toBengaliDigits(ana)} আনা ${toBengaliDigits(roti)} রতি ${toBengaliDigits(point)} পয়েন্ট`;
+
+            const ratePerGram = (appData.rates[purity] || 0) / 10;
+            const metalCost = grams * ratePerGram;
+            const isSilver = isSilverPurity(purity);
+            const isGold1g = !isSilver && grams > 0 && grams <= 1;
+            const makingCost = isGold1g ? (parseFloat(appData.gold1gMakingFixed) || 0) : (metalCost * (makingPct / 100));
+            const taxableCost = metalCost + makingCost;
+            const gstAmt = isSilver ? 0 : (taxableCost * 0.03);
+            const cgstAmt = gstAmt / 2;
+            const sgstAmt = gstAmt / 2;
+            const totalPrice = taxableCost + gstAmt + addonPrice;
+
+            document.getElementById('calc-est-rate-badge').textContent = `রেট: ${fmtExact(ratePerGram)}/গ্রাম`;
+            document.getElementById('calc-est-wt').textContent = `${getMetalLabel(purity)} • ${grams.toFixed(3)}g`;
+            document.getElementById('calc-est-rate').textContent = fmtExact(ratePerGram);
+
+            document.getElementById('calc-metal-price').textContent = fmtExact(metalCost);
+            document.getElementById('calc-making-label-row').textContent = isGold1g
+                ? `২. মেকিং চার্জ / মজুরি (১g পর্যন্ত নির্দিষ্ট):`
+                : `২. মেকিং চার্জ / মজুরি (${makingPct}%):`;
+            document.getElementById('calc-making-price').textContent = fmtExact(makingCost);
+            document.getElementById('calc-taxable-price').textContent = fmtExact(taxableCost);
+
+            document.getElementById('calc-cgst-label').textContent = isSilver ? '৩. CGST (০%):' : '৩. CGST (১.৫%):';
+            document.getElementById('calc-sgst-label').textContent = isSilver ? '৪. SGST (০%):' : '৪. SGST (১.৫%):';
+            document.getElementById('calc-cgst-price').textContent = fmtExact(cgstAmt);
+            document.getElementById('calc-sgst-price').textContent = fmtExact(sgstAmt);
+
+            const addonRow = document.getElementById('calc-addon-row');
+            if (addonRow) {
+                if (addonPrice > 0) {
+                    addonRow.classList.remove('hidden');
+                    document.getElementById('calc-addon-label').textContent = `+ ${addonName || 'অতিরিক্ত আইটেম'} (GST মুক্ত):`;
+                    document.getElementById('calc-addon-display').textContent = '+ ' + fmtExact(addonPrice);
+                } else {
+                    addonRow.classList.add('hidden');
+                }
+            }
+
+            document.getElementById('calc-total-price').textContent = formatCurrency(totalPrice);
+        }
+
+        function toBengaliDigits(num) {
+            const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+            return String(num).replace(/\d/g, d => bn[d]);
+        }
+
+        function normalizeDigits(str) {
+            const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+            return String(str || '').replace(/[০-৯]/g, d => bn.indexOf(d));
+        }
+
+        function updateStaffLoginHint() {
+            const titleEl = document.getElementById('staff-demo-title');
+            const infoEl = document.getElementById('staff-demo-info');
+            if (!titleEl || !infoEl) return;
+            const staff = (appData.staffList && appData.staffList[0]) || { id: 'মহিত', pin: '1223', name: 'মহিত (Mohit)' };
+            titleEl.textContent = `স্টাফ লগইন (${staff.name})`;
+            infoEl.textContent = `ID: ${staff.id} | PIN: ${staff.pin}`;
+        }
+
+        function getMetalLabel(purity) {
+            if (purity === 'Silver60') return 'রুপো ৬০';
+            if (purity === 'Silver70') return 'রুপো ৭০';
+            if (purity === 'Miscellaneous') return 'অন্যান্য (নির্দিষ্ট টাকা)';
+            return purity;
+        }
+
+        function isMiscellaneous(purity) {
+            return purity === 'Miscellaneous';
+        }
+
+        function isSilverPurity(purity) {
+            return purity === 'Silver60' || purity === 'Silver70';
+        }
+
+        function toggleAddStockForm() {
+            if (!currentUser || currentUser.role !== 'owner') {
+                showToast('শুধুমাত্র মালিক নতুন স্টক যোগ করতে পারবেন', true);
+                return;
+            }
+            const card = document.getElementById('add-stock-card');
+            card.classList.toggle('hidden');
+            if (!card.classList.contains('hidden')) {
+                toggleStockMakingField();
+            }
+        }
+
+        function toggleStockMakingField() {
+            const purity = document.getElementById('item-purity').value;
+            const netWt = parseFloat(document.getElementById('item-net-wt').value) || 0;
+            const label = document.getElementById('item-making-label');
+            const input = document.getElementById('item-making');
+
+            if (isMiscellaneous(purity)) {
+                label.textContent = 'আইটেমের মোট নির্দিষ্ট দাম (টাকা ₹) — যেমন: শাখা বা পলা *';
+                input.readOnly = false;
+                input.dataset.mode = 'misc';
+                input.placeholder = 'যেমন: 1200';
+                input.className = 'w-full px-3 py-2.5 rounded-xl border border-amber-500 bg-white text-gray-900 text-sm font-bold';
+            } else if (isSilverPurity(purity)) {
+                label.textContent = 'রুপোর নির্দিষ্ট মজুরি (টাকা ₹) *';
+                input.readOnly = false;
+                input.dataset.mode = 'silver';
+                input.placeholder = 'যেমন: 200';
+                input.className = 'w-full px-3 py-2.5 rounded-xl border border-amber-400 bg-white text-gray-900 text-sm font-bold';
+            } else if (netWt > 0 && netWt <= 1) {
+                label.textContent = `১ গ্রাম পর্যন্ত সোনার মজুরি (₹${appData.gold1gMakingFixed}) — অটোমেটিক`;
+                input.readOnly = true;
+                input.dataset.mode = 'gold1g';
+                input.value = appData.gold1gMakingFixed;
+                input.className = 'w-full px-3 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-sm font-bold';
+            } else {
+                label.textContent = `সোনার গ্লোবাল মজুরি (${appData.goldMakingPercent}%) — সেটিংস থেকে অটোমেটিক`;
+                input.readOnly = true;
+                input.dataset.mode = 'gold';
+                input.value = appData.goldMakingPercent;
+                input.className = 'w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-100 text-gray-700 text-sm font-bold';
+            }
+        }
+
+        document.getElementById('item-net-wt').addEventListener('input', toggleStockMakingField);
+
+        function addStockItem(e) {
+            e.preventDefault();
+            if (!currentUser || currentUser.role !== 'owner') {
+                showToast('শুধুমাত্র মালিক নতুন স্টক যোগ করতে পারবেন', true);
+                return;
+            }
+            const nextNum = 1001 + appData.inventory.length;
+            const newId = 'JW-' + nextNum;
+            const purity = document.getElementById('item-purity').value;
+            const netWt = parseFloat(document.getElementById('item-net-wt').value);
+            const isMisc = isMiscellaneous(purity);
+            const isSilver = isSilverPurity(purity);
+            const isGold1g = !isMisc && !isSilver && netWt > 0 && netWt <= 1;
+            const makingVal = parseFloat(document.getElementById('item-making').value) || 0;
+
+            const addonName = document.getElementById('item-addon-name').value.trim();
+            const addonPrice = parseFloat(document.getElementById('item-addon-price').value) || 0;
+
+            const newItem = {
+                id: newId,
+                name: document.getElementById('item-name').value.trim(),
+                category: document.getElementById('item-category').value,
+                purity: purity,
+                grossWt: parseFloat(document.getElementById('item-gross-wt').value) || netWt,
+                netWt: netWt,
+                huid: document.getElementById('item-huid').value.trim().toUpperCase() || 'N/A',
+                makingType: (isMisc || isSilver || isGold1g) ? 'fixed' : 'percent',
+                makingValue: isMisc ? 0 : makingVal,
+                fixedPrice: isMisc ? makingVal : 0,
+                addonName: addonName,
+                addonPrice: addonPrice,
+                status: 'available',
+                addedAt: new Date().toLocaleDateString('bn-BD')
+            };
+
+            appData.inventory.unshift(newItem);
+            saveData();
+            e.target.reset();
+            toggleStockMakingField();
+            toggleAddStockForm();
+            renderInventory();
+            showToast(`নতুন গহনা (${newId}) স্টকে যোগ হয়েছে!`);
+            openBarcodeModal(newId);
+        }
+
+        function deleteStockItem(id) {
+            if (!currentUser || currentUser.role !== 'owner') return;
+            askConfirm(`আপনি কি নিশ্চিতভাবে ${id} গহনাটি স্টক থেকে মুছে ফেলতে চান?`, () => {
+                appData.inventory = appData.inventory.filter(i => i.id !== id);
+                saveData();
+                renderInventory();
+                updateDashboard();
+                showToast('গহনাটি স্টক থেকে মুছে ফেলা হয়েছে');
+            });
+        }
+
+        function renderInventory() {
+            const list = document.getElementById('inventory-list');
+            const query = document.getElementById('stock-search').value.toLowerCase();
+            const filter = document.getElementById('stock-filter').value;
+
+            const metalStats = getAvailableMetalStats();
+            const invGoldTotal = document.getElementById('inv-gold-total');
+            if (invGoldTotal) {
+                invGoldTotal.textContent = metalStats.goldWeight.toFixed(3) + ' গ্রাম';
+                document.getElementById('inv-gold-sub').textContent = `22K: ${metalStats.w22.toFixed(3)}g | 18K: ${metalStats.w18.toFixed(3)}g | 9K: ${metalStats.w9.toFixed(3)}g`;
+                document.getElementById('inv-silver-total').textContent = metalStats.silverWeight.toFixed(3) + ' গ্রাম';
+                document.getElementById('inv-silver-sub').textContent = `রুপো ৬০: ${metalStats.wS60.toFixed(3)}g | রুপো ৭০: ${metalStats.wS70.toFixed(3)}g`;
+            }
+
+            const filtered = appData.inventory.filter(item => {
+                const matchesQuery = item.name.toLowerCase().includes(query) ||
+                                     item.id.toLowerCase().includes(query) ||
+                                     item.huid.toLowerCase().includes(query);
+                const matchesFilter = filter === 'all' || item.status === filter;
+                return matchesQuery && matchesFilter;
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl border border-gray-200 text-gray-400 text-sm">কোনো গহনা পাওয়া যায়নি</div>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map(item => {
+                const isSold = item.status === 'sold';
+                const isMisc = isMiscellaneous(item.purity);
+                const isSilver = isSilverPurity(item.purity);
+                const isGold1g = !isMisc && !isSilver && parseFloat(item.netWt) > 0 && parseFloat(item.netWt) <= 1;
+                const addonText = (item.addonPrice > 0) ? ` + ${item.addonName || 'অতিরিক্ত'}: ₹${item.addonPrice}` : '';
+                const makingDisplay = isMisc
+                    ? `নির্দিষ্ট দাম: ₹ ${item.fixedPrice || 0}${addonText}`
+                    : (isSilver
+                        ? `₹ ${item.makingValue ?? 0} (নির্দিষ্ট)${addonText}`
+                        : (isGold1g
+                            ? `₹ ${appData.gold1gMakingFixed} (১g অটো)${addonText}`
+                            : `${appData.goldMakingPercent}% (গ্লোবাল)${addonText}`));
+                const deleteBtn = (currentUser && currentUser.role === 'owner')
+                    ? `<button type="button" onclick="deleteStockItem('${item.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="মুছে ফেলুন"><i class="fas fa-trash-alt"></i></button>`
+                    : '';
+
+                return `
+                <div class="bg-white rounded-2xl border ${isSold ? 'border-gray-200 opacity-75' : 'border-amber-200/80'} p-3.5 shadow-sm">
+                    <div class="flex justify-between items-start gap-2">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900">${item.id}</span>
+                                <span class="text-xs font-bold px-2 py-0.5 rounded ${isSold ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}">
+                                    ${isSold ? 'বিক্রিত (Sold)' : 'মজুত (Available)'}
+                                </span>
+                                <span class="text-xs font-semibold text-gray-500">${getMetalLabel(item.purity)}</span>
+                            </div>
+                            <h4 class="font-bold text-gray-900 text-base mt-1">${item.name} <span class="text-xs font-normal text-gray-500">(${item.category})</span></h4>
+                            <div class="text-xs text-gray-600 mt-1 space-y-0.5">
+                                <div>ওজন: <strong class="text-gray-900">${item.netWt.toFixed(3)} গ্রাম</strong></div>
+                                <div>HUID: <span class="font-mono font-semibold">${item.huid}</span> | দাম/মজুরি: <strong>${makingDisplay}</strong></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-1">
+                            <button type="button" onclick="openBarcodeModal('${item.id}')" class="px-2.5 py-1.5 bg-gray-900 text-white rounded-xl text-xs font-semibold flex items-center gap-1 shadow-sm">
+                                <i class="fas fa-barcode"></i> ট্যাগ
+                            </button>
+                            ${deleteBtn}
+                        </div>
+                    </div>
+                    <!-- Inline Mini Barcode Preview directly inside Stock Card -->
+                    <div class="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between bg-gray-50/80 px-2.5 py-1.5 rounded-xl">
+                        <div class="text-[11px] text-gray-600">
+                            <div>ট্যাগ আইডি: <strong class="font-mono text-gray-900">${item.id}</strong></div>
+                            <div>আজকের দর অনুযায়ী আনুমানিক: <strong class="text-amber-800">${formatCurrency(calculateItemBilling(item).totalItemCost)}</strong></div>
+                        </div>
+                        <div class="bg-white px-2 py-0.5 rounded border border-gray-200">
+                            <svg class="stock-inline-barcode" data-code="${item.id}"></svg>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // Render inline barcodes for all visible stock cards
+            if (typeof JsBarcode !== 'undefined') {
+                document.querySelectorAll('.stock-inline-barcode').forEach(svg => {
+                    const code = svg.getAttribute('data-code');
+                    if (code) {
+                        try {
+                            JsBarcode(svg, code, {
+                                format: 'CODE128',
+                                width: 1.4,
+                                height: 26,
+                                displayValue: false,
+                                margin: 0
+                            });
+                        } catch (e) {}
+                    }
+                });
+            }
+        }
+        function openBarcodeModal(id) {
+            const item = appData.inventory.find(i => i.id === id);
+            if (!item) return;
+            const shareBtn = document.getElementById('share-bill-btn');
+            shareBtn.classList.add('hidden');
+            const estCalc = calculateItemBilling(item);
+
+            const area = document.getElementById('printable-area');
+            area.innerHTML = `
+                <div class="max-w-xs mx-auto border-2 border-dashed border-gray-400 p-4 rounded-xl text-center bg-white">
+                    <div class="text-xs font-extrabold text-amber-900 uppercase">${appData.shopName}</div>
+                    <div class="font-bold text-base text-gray-900 mt-0.5">${item.name}</div>
+                    <div class="text-xs text-gray-700 mt-1">ধাতু: <strong>${getMetalLabel(item.purity)}</strong> | নিট ওজন: <strong>${item.netWt.toFixed(3)}g</strong></div>
+                    ${item.grossWt && item.grossWt !== item.netWt ? `<div class="text-[11px] text-gray-600">গ্রস ওজন: ${item.grossWt.toFixed(3)}g</div>` : ''}
+                    ${item.huid && item.huid !== 'N/A' ? `<div class="text-xs font-mono font-bold text-gray-800 mt-0.5">HUID: ${item.huid}</div>` : ''}
+                    ${item.addonPrice > 0 ? `<div class="text-[11px] text-amber-900 font-semibold mt-0.5">+ ${item.addonName || 'অতিরিক্ত'}: ₹${item.addonPrice}</div>` : ''}
+                    <div class="my-2.5 flex justify-center bg-white p-1">
+                        <svg id="barcode-svg"></svg>
+                    </div>
+                    <div class="text-[11px] font-bold text-gray-700 border-t border-gray-200 pt-1.5">
+                        আনুমানিক মূল্য: ${formatCurrency(estCalc.totalItemCost)}
+                    </div>
+                </div>
+            `;
+
+            const modal = document.getElementById('print-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (typeof JsBarcode !== 'undefined') {
+                try {
+                    JsBarcode('#barcode-svg', item.id, {
+                        format: 'CODE128',
+                        width: 2.2,
+                        height: 55,
+                        displayValue: true,
+                        fontSize: 15,
+                        fontOptions: 'bold',
+                        margin: 4
+                    });
+                } catch (err) {
+                    console.warn('Barcode render error:', err);
+                }
+            }
+        }
+
+        function convertVoriToGram() {
+            const vori = parseFloat(document.getElementById('in-vori').value) || 0;
+            const ana = parseFloat(document.getElementById('in-ana').value) || 0;
+            const roti = parseFloat(document.getElementById('in-roti').value) || 0;
+            const point = parseFloat(document.getElementById('in-point').value) || 0;
+
+            const totalPoints = (vori * 960) + (ana * 60) + (roti * 10) + point;
+            const grams = (totalPoints / 960) * 11.664;
+
+            document.getElementById('calc-gram-output').textContent = grams.toFixed(3) + ' গ্রাম';
+            document.getElementById('calc-grams').value = grams.toFixed(3);
+            calculateJewelryPrice();
+        }
+
+        function getAvailableMetalStats() {
+            const available = appData.inventory.filter(i => i.status === 'available');
+            let goldWeight = 0, goldCount = 0, w22 = 0, w18 = 0, w9 = 0;
+            let silverWeight = 0, silverCount = 0, wS60 = 0, wS70 = 0;
+            let totalWeight = 0;
+
+            available.forEach(item => {
+                const wt = parseFloat(item.netWt) || 0;
+                totalWeight += wt;
+                if (item.purity === '22K' || item.purity === '18K' || item.purity === '9K') {
+                    goldWeight += wt;
+                    goldCount++;
+                    if (item.purity === '22K') w22 += wt;
+                    if (item.purity === '18K') w18 += wt;
+                    if (item.purity === '9K') w9 += wt;
+                } else if (item.purity === 'Silver60' || item.purity === 'Silver70') {
+                    silverWeight += wt;
+                    silverCount++;
+                    if (item.purity === 'Silver60') wS60 += wt;
+                    if (item.purity === 'Silver70') wS70 += wt;
+                }
+            });
+
+            return {
+                availableCount: available.length,
+                totalWeight,
+                goldWeight,
+                goldCount,
+                w22,
+                w18,
+                w9,
+                silverWeight,
+                silverCount,
+                wS60,
+                wS70
+            };
+        }
+
+        function updateDashboard() {
+            document.getElementById('dash-rate-22k').textContent = formatCurrency(appData.rates['22K']);
+            document.getElementById('dash-vori-22k').textContent = 'ভরি: ' + formatCurrency(appData.rates['22K'] * 1.1664);
+            document.getElementById('dash-rate-18k').textContent = formatCurrency(appData.rates['18K']);
+            document.getElementById('dash-vori-18k').textContent = 'ভরি: ' + formatCurrency(appData.rates['18K'] * 1.1664);
+            document.getElementById('dash-rate-9k').textContent = formatCurrency(appData.rates['9K']);
+            document.getElementById('dash-vori-9k').textContent = 'ভরি: ' + formatCurrency(appData.rates['9K'] * 1.1664);
+            document.getElementById('dash-rate-silver60').textContent = formatCurrency(appData.rates['Silver60']);
+            document.getElementById('dash-vori-silver60').textContent = 'ভরি: ' + formatCurrency(appData.rates['Silver60'] * 1.1664);
+            document.getElementById('dash-rate-silver70').textContent = formatCurrency(appData.rates['Silver70']);
+            document.getElementById('dash-vori-silver70').textContent = 'ভরি: ' + formatCurrency(appData.rates['Silver70'] * 1.1664);
+
+            const metalStats = getAvailableMetalStats();
+            document.getElementById('stat-stock-count').textContent = metalStats.availableCount + ' টি';
+            document.getElementById('stat-stock-weight').textContent = 'মোট ওজন: ' + metalStats.totalWeight.toFixed(3) + ' গ্রাম';
+
+            document.getElementById('stat-gold-count').textContent = metalStats.goldCount + ' টি';
+            document.getElementById('stat-gold-weight').textContent = metalStats.goldWeight.toFixed(3) + ' গ্রাম';
+            document.getElementById('stat-gold-breakdown').textContent = `22K: ${metalStats.w22.toFixed(3)}g | 18K: ${metalStats.w18.toFixed(3)}g | 9K: ${metalStats.w9.toFixed(3)}g`;
+
+            document.getElementById('stat-silver-count').textContent = metalStats.silverCount + ' টি';
+            document.getElementById('stat-silver-weight').textContent = metalStats.silverWeight.toFixed(3) + ' গ্রাম';
+            document.getElementById('stat-silver-breakdown').textContent = `রুপো ৬০: ${metalStats.wS60.toFixed(3)}g | রুপো ৭০: ${metalStats.wS70.toFixed(3)}g`;
+
+            const totalSalesAmt = appData.sales.reduce((acc, s) => acc + (s.grandTotal || 0), 0);
+            document.getElementById('stat-sales-total').textContent = formatCurrency(totalSalesAmt);
+            document.getElementById('stat-sales-count').textContent = 'মোট বিল: ' + appData.sales.length + ' টি';
+
+            const recentContainer = document.getElementById('dash-recent-sales');
+            if (appData.sales.length === 0) {
+                recentContainer.innerHTML = `<p class="text-gray-400 text-center py-4 text-xs">এখনও কোনো বিক্রয় রেকর্ড নেই</p>`;
+            } else {
+                recentContainer.innerHTML = appData.sales.slice(0, 3).map(sale => `
+                    <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-100">
+                        <div>
+                            <div class="font-bold text-gray-900">${sale.customerName}</div>
+                            <div class="text-xs text-gray-500">${sale.invoiceNo} • ${sale.date}</div>
+                        </div>
+                        <div class="font-bold text-emerald-700">${formatCurrency(sale.grandTotal)}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // --- 6. POS BILLING LOGIC ---
+        function initPosView() {
+            const select = document.getElementById('pos-item-select');
+            const available = appData.inventory.filter(i => i.status === 'available' && !posCart.some(c => c.id === i.id));
+            select.innerHTML = `<option value="">-- মজুত গহনা বেছে নিন (${available.length} টি) --</option>` +
+                available.map(i => `<option value="${i.id}">${i.id} - ${i.name} (${i.netWt}g | ${getMetalLabel(i.purity)})</option>`).join('');
+            renderPosCart();
+        }
+
+        function addSelectedToCart() {
+            const id = document.getElementById('pos-item-select').value;
+            if (!id) {
+                showToast('অনুগ্রহ করে তালিকা থেকে একটি গহনা বা শাখা বেছে নিন', true);
+                return;
+            }
+            addItemToPosCart(id);
+        }
+
+        function addByBarcode() {
+            const code = document.getElementById('pos-barcode-input').value.trim().toUpperCase();
+            if (!code) return;
+            addItemToPosCart(code);
+            document.getElementById('pos-barcode-input').value = '';
+        }
+
+        function addItemToPosCart(id) {
+            const item = appData.inventory.find(i => i.id.toUpperCase() === id.toUpperCase());
+            if (!item) {
+                showToast('এই আইডির কোনো গহনা স্টকে নেই!', true);
+                return;
+            }
+            if (item.status === 'sold') {
+                showToast('এই গহনাটি ইতিমধ্যে বিক্রি হয়ে গেছে!', true);
+                return;
+            }
+            if (posCart.some(c => c.id === item.id)) {
+                showToast('গহনাটি ইতিমধ্যে বিলে যোগ করা আছে', true);
+                return;
+            }
+
+            posCart.push(item);
+            initPosView();
+            showToast(`${item.name} বিলে যোগ হয়েছে`);
+        }
+
+        function removeFromCart(id) {
+            posCart = posCart.filter(i => i.id !== id);
+            initPosView();
+        }
+
+        function calculateItemBilling(item) {
+            const addonPrice = parseFloat(item.addonPrice) || 0;
+            const addonName = item.addonName || '';
+            const isMisc = isMiscellaneous(item.purity);
+            if (isMisc) {
+                const baseFixed = item.fixedPrice || item.makingValue || 0;
+                return {
+                    ratePerGram: 0,
+                    metalCost: 0,
+                    makingCost: baseFixed,
+                    addonName,
+                    addonPrice,
+                    makingLabel: `₹${Math.round(baseFixed)} (নির্দিষ্ট দাম)`,
+                    baseItemCost: baseFixed,
+                    totalItemCost: baseFixed + addonPrice
+                };
+            }
+
+            const ratePerGram = (appData.rates[item.purity] || 0) / 10;
+            const netWt = parseFloat(item.netWt) || 0;
+            const metalCost = netWt * ratePerGram;
+            const isSilver = isSilverPurity(item.purity);
+            const isGold1g = !isSilver && netWt > 0 && netWt <= 1;
+            const hasCustomPct = typeof item.customMakingPct === 'number';
+            const baseMakingCost = isSilver
+                ? (parseFloat(item.makingValue ?? item.makingPercent) || 0)
+                : (hasCustomPct
+                    ? metalCost * (item.customMakingPct / 100)
+                    : (isGold1g
+                        ? (parseFloat(appData.gold1gMakingFixed) || 0)
+                        : metalCost * (appData.goldMakingPercent / 100)));
+            const baseItemCost = metalCost + baseMakingCost;
+            return {
+                ratePerGram,
+                metalCost,
+                makingCost: baseMakingCost,
+                addonName,
+                addonPrice,
+                makingLabel: isSilver
+                    ? `₹${Math.round(baseMakingCost)}`
+                    : (hasCustomPct ? `${item.customMakingPct}%` : (isGold1g ? `₹${Math.round(baseMakingCost)} (১g)` : `${appData.goldMakingPercent}%`)),
+                baseItemCost,
+                totalItemCost: baseItemCost + addonPrice
+            };
+        }
+
+        function renderPosCart() {
+            const container = document.getElementById('pos-cart-list');
+            const addonRow = document.getElementById('pos-addon-row');
+            if (posCart.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">বিলে কোনো গহনা যোগ করা হয়নি</p>`;
+                document.getElementById('pos-subtotal').textContent = '₹ ০';
+                document.getElementById('pos-gst').textContent = '₹ ০';
+                if (addonRow) addonRow.classList.add('hidden');
+                document.getElementById('pos-disc-display').textContent = '- ₹ ০';
+                document.getElementById('pos-grand-total').textContent = '₹ ০';
+                return;
+            }
+
+            let baseSubtotal = 0;
+            let goldTaxableTotal = 0;
+            let totalAddonPrice = 0;
+            let addonNames = [];
+
+            container.innerHTML = posCart.map(item => {
+                const calc = calculateItemBilling(item);
+                baseSubtotal += calc.baseItemCost;
+                totalAddonPrice += calc.addonPrice;
+                if (calc.addonPrice > 0) {
+                    addonNames.push(calc.addonName || 'অতিরিক্ত');
+                }
+                if (!isSilverPurity(item.purity) && !isMiscellaneous(item.purity)) {
+                    goldTaxableTotal += calc.baseItemCost;
+                }
+                const addonTag = calc.addonPrice > 0
+                    ? `<div class="text-[11px] font-semibold text-amber-800">+ ${calc.addonName || 'অতিরিক্ত'}: ${formatCurrency(calc.addonPrice)} (GST মুক্ত)</div>`
+                    : '';
+                return `
+                <div class="flex items-center justify-between p-2.5 bg-amber-50/60 border border-amber-200 rounded-xl">
+                    <div>
+                        <div class="font-bold text-gray-900 text-xs">${item.name} <span class="text-amber-800">(${item.id})</span></div>
+                        <div class="text-[11px] text-gray-600">${getMetalLabel(item.purity)} | ওজন: ${item.netWt}g | গহনার মূল্য: ${formatCurrency(calc.baseItemCost)}</div>
+                        ${addonTag}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-gray-900 text-sm">${formatCurrency(calc.totalItemCost)}</span>
+                        <button type="button" onclick="removeFromCart('${item.id}')" class="text-red-500 p-1.5 hover:bg-red-50 rounded-lg">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            const gst = goldTaxableTotal * 0.03;
+            const discount = parseFloat(document.getElementById('pos-discount').value) || 0;
+            const grandTotal = Math.max(0, baseSubtotal + gst + totalAddonPrice - discount);
+
+            document.getElementById('pos-subtotal').textContent = formatCurrency(baseSubtotal);
+            document.getElementById('pos-gst').textContent = formatCurrency(gst);
+            if (addonRow) {
+                if (totalAddonPrice > 0) {
+                    addonRow.classList.remove('hidden');
+                    document.getElementById('pos-addon-label').textContent = `+ ${addonNames.join(', ')} (GST মুক্ত):`;
+                    document.getElementById('pos-addon-total').textContent = '+ ' + formatCurrency(totalAddonPrice);
+                } else {
+                    addonRow.classList.add('hidden');
+                }
+            }
+            document.getElementById('pos-disc-display').textContent = '- ' + formatCurrency(discount);
+            document.getElementById('pos-grand-total').textContent = formatCurrency(grandTotal);
+        }
+
+        function completeSale() {
+            if (posCart.length === 0) {
+                showToast('বিলে অন্তত একটি গহনা বা শাখা যোগ করুন!', true);
+                return;
+            }
+            const custName = document.getElementById('cust-name').value.trim();
+            if (!custName) {
+                showToast('ক্রেতার নাম লিখুন!', true);
+                return;
+            }
+
+            const custPhone = document.getElementById('cust-phone').value.trim() || 'N/A';
+            const custAddress = document.getElementById('cust-address').value.trim() || 'স্থানীয় ক্রেতা';
+            const custGstin = document.getElementById('cust-gstin').value.trim().toUpperCase() || '';
+            const discount = parseFloat(document.getElementById('pos-discount').value) || 0;
+
+            let baseSubtotal = 0;
+            let goldTaxableTotal = 0;
+            let totalAddonPrice = 0;
+
+            const billedItems = posCart.map(item => {
+                const calc = calculateItemBilling(item);
+                const isMisc = isMiscellaneous(item.purity);
+                const isSilver = isSilverPurity(item.purity);
+                const itemGstRate = (isSilver || isMisc) ? 0 : 3;
+                const itemGstAmt = (isSilver || isMisc) ? 0 : (calc.baseItemCost * 0.03);
+                const grossWt = parseFloat(item.grossWt) || parseFloat(item.netWt) || 0;
+                const netWt = parseFloat(item.netWt) || 0;
+                const stoneWt = Math.max(0, +(grossWt - netWt).toFixed(3));
+
+                baseSubtotal += calc.baseItemCost;
+                totalAddonPrice += calc.addonPrice;
+                if (!isSilver && !isMisc) {
+                    goldTaxableTotal += calc.baseItemCost;
+                }
+
+                const invIdx = appData.inventory.findIndex(inv => inv.id === item.id);
+                if (invIdx !== -1) {
+                    appData.inventory[invIdx].status = 'sold';
+                }
+
+                return {
+                    id: item.id,
+                    name: item.name,
+                    addonName: calc.addonName,
+                    addonPrice: calc.addonPrice,
+                    purity: item.purity,
+                    hsn: isMisc ? '711319' : (isSilver ? '711311' : '711319'),
+                    grossWt: grossWt,
+                    stoneWt: stoneWt,
+                    netWt: netWt,
+                    ratePerGram: calc.ratePerGram,
+                    makingCost: calc.makingCost,
+                    makingLabel: calc.makingLabel,
+                    huid: item.huid,
+                    taxableValue: calc.baseItemCost,
+                    gstRate: itemGstRate,
+                    gstAmt: itemGstAmt,
+                    totalWithGst: calc.baseItemCost + itemGstAmt,
+                    price: calc.baseItemCost
+                };
+            });
+
+            const gst = goldTaxableTotal * 0.03;
+            const exactTotal = Math.max(0, baseSubtotal + gst + totalAddonPrice - discount);
+            const grandTotal = Math.round(exactTotal);
+            const roundOff = +(grandTotal - exactTotal).toFixed(2);
+
+            const invoiceRecord = {
+                invoiceNo: 'Inv-' + (1 + appData.sales.length),
+                date: new Date().toLocaleDateString('en-GB'),
+                customerName: custName,
+                customerPhone: custPhone,
+                customerAddress: custAddress,
+                customerGstin: custGstin,
+                billedBy: currentUser ? currentUser.name : 'Staff',
+                items: billedItems,
+                subtotal: baseSubtotal,
+                addonTotal: totalAddonPrice,
+                gst,
+                roundOff,
+                discount,
+                grandTotal
+            };
+
+            appData.sales.unshift(invoiceRecord);
+            saveData();
+
+            posCart = [];
+            document.getElementById('cust-name').value = '';
+            document.getElementById('cust-phone').value = '';
+            document.getElementById('cust-address').value = '';
+            document.getElementById('cust-gstin').value = '';
+            document.getElementById('pos-discount').value = '0';
+
+            showToast('বিল সফলভাবে সম্পন্ন হয়েছে!');
+            openInvoiceModal(invoiceRecord);
+            initPosView();
+        }
+
+        // --- 7. SALES HISTORY & GST INVOICE ---
+        function renderSalesHistory() {
+            const list = document.getElementById('sales-history-list');
+            document.getElementById('history-count-badge').textContent = `${toBengaliDigits(appData.sales.length)} টি বিল`;
+            const clearAllBtn = document.getElementById('clear-all-sales-btn');
+            if (clearAllBtn) {
+                if (currentUser && currentUser.role === 'owner' && appData.sales.length > 0) {
+                    clearAllBtn.classList.remove('hidden');
+                } else {
+                    clearAllBtn.classList.add('hidden');
+                }
+            }
+
+            if (appData.sales.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl border border-gray-200 text-gray-400 text-sm">কোনো বিক্রয় খাতা পাওয়া যায়নি</div>`;
+                return;
+            }
+
+            list.innerHTML = appData.sales.map((sale, index) => {
+                const deleteBillBtn = (currentUser && currentUser.role === 'owner')
+                    ? `<button type="button" onclick="deleteSaleByIndex(${index})" class="mt-1 px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-xs" title="বিল মুছে ফেলুন">
+                        <i class="fas fa-trash-alt"></i>
+                       </button>`
+                    : '';
+                return `
+                <div class="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm flex items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-900">${sale.invoiceNo}</span>
+                            <span class="text-xs text-gray-500">${sale.date}</span>
+                        </div>
+                        <h4 class="font-bold text-gray-900 text-base mt-1">${sale.customerName}</h4>
+                        <div class="text-xs text-gray-500">ফোন: ${sale.customerPhone} • ${sale.items.length} টি আইটেম</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-lg text-gray-900">${formatCurrency(sale.grandTotal)}</div>
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button type="button" onclick="viewInvoiceByIndex(${index})" class="mt-1 px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg text-xs">
+                                <i class="fas fa-file-invoice mr-1"></i> বিল দেখুন
+                            </button>
+                            ${deleteBillBtn}
+                        </div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function deleteSaleByIndex(idx) {
+            if (!currentUser || currentUser.role !== 'owner') return;
+            const sale = appData.sales[idx];
+            if (!sale) return;
+            askConfirm(`আপনি কি নিশ্চিতভাবে ${sale.invoiceNo} (${sale.customerName}) বিলটি খাতা থেকে মুছে ফেলতে চান?`, () => {
+                appData.sales.splice(idx, 1);
+                saveData();
+                renderSalesHistory();
+                updateDashboard();
+                showToast(`${sale.invoiceNo} বিলটি মুছে ফেলা হয়েছে`);
+            });
+        }
+
+        function deleteAllSales() {
+            if (!currentUser || currentUser.role !== 'owner') return;
+            askConfirm('আপনি কি নিশ্চিতভাবে খাতার সমস্ত বিল মুছে ফেলতে চান?', () => {
+                appData.sales = [];
+                saveData();
+                renderSalesHistory();
+                updateDashboard();
+                showToast('খাতার সমস্ত বিল মুছে ফেলা হয়েছে');
+            });
+        }
+
+        function viewInvoiceByIndex(idx) {
+            const sale = appData.sales[idx];
+            if (sale) openInvoiceModal(sale);
+        }
+
+        function openInvoiceModal(sale) {
+            const shareBtn = document.getElementById('share-bill-btn');
+            shareBtn.classList.remove('hidden');
+
+            const cgst = (sale.gst || 0) / 2;
+            const sgst = (sale.gst || 0) / 2;
+            const roundOff = typeof sale.roundOff === 'number' ? sale.roundOff : 0;
+
+            let sumWeight = 0;
+            let sumStone = 0;
+            let sumNetWt = 0;
+            let sumTaxable = 0;
+            let sumGstAmt = 0;
+            let sumRowTotal = 0;
+
+            const rowsHtml = sale.items.map((it, idx) => {
+                const isSilver = isSilverPurity(it.purity);
+                const grossWt = typeof it.grossWt === 'number' ? it.grossWt : (parseFloat(it.netWt) || 0);
+                const netWt = parseFloat(it.netWt) || 0;
+                const stoneWt = typeof it.stoneWt === 'number' ? it.stoneWt : Math.max(0, +(grossWt - netWt).toFixed(3));
+                const taxable = typeof it.taxableValue === 'number' ? it.taxableValue : (it.price || 0);
+                const gstPct = typeof it.gstRate === 'number' ? it.gstRate : (isSilver ? 0 : 3);
+                const gstAmt = typeof it.gstAmt === 'number' ? it.gstAmt : (taxable * (gstPct / 100));
+                const rowTotal = typeof it.totalWithGst === 'number' ? it.totalWithGst : (taxable + gstAmt);
+
+                sumWeight += grossWt;
+                sumStone += stoneWt;
+                sumNetWt += netWt;
+                sumTaxable += taxable;
+                sumGstAmt += gstAmt;
+                sumRowTotal += rowTotal;
+
+                return `
+                <tr class="border-b border-gray-200 text-[11px]">
+                    <td class="py-1.5 px-1.5 text-center border-r border-gray-200">${idx + 1}</td>
+                    <td class="py-1.5 px-1.5 font-semibold text-gray-900 border-r border-gray-200">${it.name}${it.huid && it.huid !== 'N/A' ? ` <span class="text-[9px] text-gray-500">(${it.huid})</span>` : ''}${it.addonPrice > 0 ? `<div class="text-[10px] font-normal text-gray-700">+ ${it.addonName || 'অতিরিক্ত'}: ₹${Number(it.addonPrice).toFixed(2)}</div>` : ''}</td>
+                    <td class="py-1.5 px-1.5 text-center border-r border-gray-200">${it.hsn || (isSilver ? '711311' : '711319')}</td>
+                    <td class="py-1.5 px-1.5 text-center border-r border-gray-200">${getMetalLabel(it.purity)}</td>
+                    <td class="py-1.5 px-1.5 text-right border-r border-gray-200">${grossWt.toFixed(3)}</td>
+                    <td class="py-1.5 px-1.5 text-right border-r border-gray-200">${stoneWt > 0 ? stoneWt.toFixed(3) : '0'}</td>
+                    <td class="py-1.5 px-1.5 text-right border-r border-gray-200">${(it.makingCost || 0).toFixed(2)}</td>
+                    <td class="py-1.5 px-1.5 text-right font-semibold border-r border-gray-200">${netWt.toFixed(3)}</td>
+                    <td class="py-1.5 px-1.5 text-right border-r border-gray-200">${(it.ratePerGram || 0).toFixed(2)}</td>
+                    <td class="py-1.5 px-1.5 text-right border-r border-gray-200">${taxable.toFixed(2)}</td>
+                    <td class="py-1.5 px-1.5 text-center border-r border-gray-200">${gstPct}%</td>
+                    <td class="py-1.5 px-1.5 text-right border-r border-gray-200">${gstAmt.toFixed(2)}</td>
+                    <td class="py-1.5 px-1.5 text-right font-bold text-gray-900">${rowTotal.toFixed(2)}</td>
+                </tr>`;
+            }).join('');
+
+            const leftLogoHtml = appData.leftLogo
+                ? `<img src="${appData.leftLogo}" alt="Left Logo" class="w-16 h-16 object-contain mx-auto sm:mx-0">`
+                : `<div class="w-14 h-14 rounded-full bg-amber-50 border border-amber-300 flex items-center justify-center text-amber-700 mx-auto sm:mx-0">
+                    <i class="fas fa-gem text-2xl"></i>
+                   </div>`;
+
+            const rightLogoHtml = appData.rightLogo
+                ? `<img src="${appData.rightLogo}" alt="Right Logo" class="w-16 h-16 object-contain mx-auto sm:ml-auto">`
+                : `<div class="w-14 h-14 rounded-lg bg-blue-50 border border-blue-200 flex flex-col items-center justify-center text-blue-800 mx-auto sm:ml-auto px-1">
+                    <span class="text-xs font-extrabold tracking-tight">BIS</span>
+                    <span class="text-[9px] font-bold">HALLMARK</span>
+                   </div>`;
+
+            const area = document.getElementById('printable-area');
+            area.innerHTML = `
+                <div class="border border-gray-400 p-3 sm:p-5 bg-white text-gray-900 min-w-[680px]">
+                    <div class="flex justify-between items-start border-b border-gray-300 pb-3">
+                        <div class="w-24 flex-shrink-0">${leftLogoHtml}</div>
+                        <div class="text-center flex-1 px-2">
+                            <div class="text-xs font-bold tracking-widest uppercase text-gray-700">GST INVOICE</div>
+                            <h1 class="text-2xl font-extrabold text-gray-900 mt-0.5">${appData.shopName}</h1>
+                            <p class="text-xs text-gray-600 mt-0.5">${appData.shopAddress}</p>
+                            <p class="text-xs text-gray-600">Contact: ${appData.shopPhone}</p>
+                            <p class="text-xs font-bold text-gray-800 mt-0.5">GSTIN: ${appData.shopGstin}</p>
+                        </div>
+                        <div class="w-24 flex-shrink-0 text-right">
+                            <div class="text-[10px] text-gray-500 mb-1">Original Copy</div>
+                            ${rightLogoHtml}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-12 gap-3 my-3">
+                        <div class="col-span-7">
+                            <div class="border border-gray-300 rounded-md overflow-hidden h-full">
+                                <div class="bg-gray-100 px-2.5 py-1 text-[11px] font-bold text-gray-700 border-b border-gray-300">
+                                    Details of Receiver | Billed to:
+                                </div>
+                                <div class="p-2.5 text-xs space-y-0.5">
+                                    <div class="font-bold text-sm text-gray-900">${sale.customerName}</div>
+                                    <div class="text-gray-600">${sale.customerAddress || 'স্থানীয় ক্রেতা'}</div>
+                                    <div class="text-gray-700"><span class="font-semibold">Contact:</span> ${sale.customerPhone}</div>
+                                    ${sale.customerGstin ? `<div class="text-gray-700"><span class="font-semibold">GSTIN:</span> ${sale.customerGstin}</div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-span-5 border border-gray-300 rounded-md p-3 text-xs">
+                            <table class="w-full">
+                                <tbody>
+                                    <tr>
+                                        <td class="py-1 font-bold text-gray-700 w-28">Invoice No</td>
+                                        <td class="py-1 font-bold text-gray-900">: ${sale.invoiceNo}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1 font-bold text-gray-700">Date</td>
+                                        <td class="py-1 text-gray-900">: ${sale.date}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-300 my-3">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 border-b border-gray-300 text-[10px] font-bold text-gray-800">
+                                    <th class="py-1.5 px-1.5 text-center border-r border-gray-300">#</th>
+                                    <th class="py-1.5 px-1.5 text-left border-r border-gray-300">Product</th>
+                                    <th class="py-1.5 px-1.5 text-center border-r border-gray-300">HSN</th>
+                                    <th class="py-1.5 px-1.5 text-center border-r border-gray-300">Purity</th>
+                                    <th class="py-1.5 px-1.5 text-right border-r border-gray-300">Weight</th>
+                                    <th class="py-1.5 px-1.5 text-right border-r border-gray-300">Stone</th>
+                                    <th class="py-1.5 px-1.5 text-right border-r border-gray-300">Mkg. Chg.</th>
+                                    <th class="py-1.5 px-1.5 text-right border-r border-gray-300">Net Wt.</th>
+                                    <th class="py-1.5 px-1.5 text-right border-r border-gray-300">Rate</th>
+                                    <th class="py-1.5 px-1.5 text-right border-r border-gray-300">Taxable Value</th>
+                                    <th class="py-1.5 px-1.5 text-center border-r border-gray-300">GST%</th>
+                                    <th class="py-1.5 px-1.5 text-right border-r border-gray-300">GST Amt</th>
+                                    <th class="py-1.5 px-1.5 text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-gray-50 font-bold text-[11px] border-t border-gray-300">
+                                    <td colspan="4" class="py-1.5 px-2 text-right border-r border-gray-300">Total :</td>
+                                    <td class="py-1.5 px-1.5 text-right border-r border-gray-300">${sumWeight.toFixed(3)}</td>
+                                    <td class="py-1.5 px-1.5 text-right border-r border-gray-300">${sumStone > 0 ? sumStone.toFixed(3) : '0'}</td>
+                                    <td class="py-1.5 px-1.5 border-r border-gray-300"></td>
+                                    <td class="py-1.5 px-1.5 text-right border-r border-gray-300">${sumNetWt.toFixed(3)}</td>
+                                    <td class="py-1.5 px-1.5 border-r border-gray-300"></td>
+                                    <td class="py-1.5 px-1.5 text-right border-r border-gray-300">${sumTaxable.toFixed(2)}</td>
+                                    <td class="py-1.5 px-1.5 border-r border-gray-300"></td>
+                                    <td class="py-1.5 px-1.5 text-right border-r border-gray-300">${sumGstAmt.toFixed(2)}</td>
+                                    <td class="py-1.5 px-1.5 text-right">${sumRowTotal.toFixed(2)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="grid grid-cols-12 gap-4 mt-4 pt-2 border-t border-gray-300 items-end">
+                        <div class="col-span-7 text-[11px] text-gray-600">
+                            <div class="font-bold text-gray-800 mb-1">Declaration & Terms:</div>
+                            <ul class="list-disc pl-4 space-y-0.5 text-[10px]">
+                                <li>Goods once sold will not be taken back or exchanged.</li>
+                                <li>Please check the jewelry weight & purity before leaving the counter.</li>
+                                <li>Subject to local jurisdiction only.</li>
+                            </ul>
+                        </div>
+
+                        <div class="col-span-5 space-y-4">
+                            <table class="w-full text-xs">
+                                <tbody>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-1 text-gray-700">Taxable Value (গহনার মূল্য)</td>
+                                        <td class="py-1 text-right font-semibold">₹ ${(sale.subtotal || sumTaxable).toFixed(2)}</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-1 text-gray-700">CGST</td>
+                                        <td class="py-1 text-right">₹ ${cgst.toFixed(2)}</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-1 text-gray-700">SGST</td>
+                                        <td class="py-1 text-right">₹ ${sgst.toFixed(2)}</td>
+                                    </tr>
+                                    ${(() => {
+                                        const addonItems = sale.items.filter(it => Number(it.addonPrice) > 0);
+                                        return addonItems.map(it => `
+                                            <tr class="border-b border-gray-200 text-amber-900 bg-amber-50/70">
+                                                <td class="py-1 font-bold">+ ${it.addonName || 'অতিরিক্ত আইটেম'} (No GST)</td>
+                                                <td class="py-1 text-right font-bold">+ ₹ ${Number(it.addonPrice).toFixed(2)}</td>
+                                            </tr>
+                                        `).join('');
+                                    })()}
+                                    ${sale.discount > 0 ? `
+                                    <tr class="border-b border-gray-200 text-red-600">
+                                        <td class="py-1">Discount</td>
+                                        <td class="py-1 text-right">- ₹ ${sale.discount.toFixed(2)}</td>
+                                    </tr>` : ''}
+                                    <tr class="border-b border-gray-300">
+                                        <td class="py-1 text-gray-700">Round Off</td>
+                                        <td class="py-1 text-right">₹ ${roundOff.toFixed(2)}</td>
+                                    </tr>
+                                    <tr class="border-b-2 border-gray-800 font-bold text-sm bg-amber-50">
+                                        <td class="py-1.5 px-1 text-gray-900">Total (সর্বমোট বিল)</td>
+                                        <td class="py-1.5 px-1 text-right text-gray-900">₹ ${Number(sale.grandTotal).toFixed(2)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="text-right pt-6">
+                                <div class="font-bold text-xs text-gray-900">For ${appData.shopName}</div>
+                                <div class="text-[11px] text-gray-600">Authorised Signatory</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            lastInvoiceText = `${appData.shopName}\nGST Invoice: ${sale.invoiceNo}\nতারিখ: ${sale.date}\nক্রেতা: ${sale.customerName} (${sale.customerPhone})\n` +
+                sale.items.map(i => `- ${i.name} (${i.netWt}g): ₹${Math.round(i.totalWithGst || i.price)}`).join('\n') +
+                `\nসর্বমোট বিল: ₹${sale.grandTotal}`;
+
+            const modal = document.getElementById('print-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closePrintModal() {
+            const modal = document.getElementById('print-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function shareInvoiceText() {
+            if (!lastInvoiceText) return;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = lastInvoiceText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast('বিলের বিবরণ ক্লিপবোর্ডে কপি হয়েছে!');
+        }
+
+        // --- 8. OWNER SETTINGS & STAFF MANAGEMENT ---
+        function loadSettingsView() {
+            document.getElementById('set-rate-22k').value = appData.rates['22K'];
+            document.getElementById('set-rate-18k').value = appData.rates['18K'];
+            document.getElementById('set-rate-9k').value = appData.rates['9K'];
+            document.getElementById('set-rate-silver60').value = appData.rates['Silver60'];
+            document.getElementById('set-rate-silver70').value = appData.rates['Silver70'];
+            document.getElementById('set-gold-making').value = appData.goldMakingPercent;
+            document.getElementById('set-gold-1g-making').value = appData.gold1gMakingFixed;
+            document.getElementById('set-shop-name').value = appData.shopName;
+            document.getElementById('set-shop-address').value = appData.shopAddress;
+            document.getElementById('set-shop-phone').value = appData.shopPhone;
+            document.getElementById('set-shop-gstin').value = appData.shopGstin;
+
+            updateLogoPreviews();
+            renderStaffList();
+        }
+
+        function updateLogoPreviews() {
+            const leftImg = document.getElementById('preview-left-logo');
+            const rightImg = document.getElementById('preview-right-logo');
+            if (appData.leftLogo) {
+                leftImg.src = appData.leftLogo;
+                leftImg.classList.remove('hidden');
+            } else {
+                leftImg.classList.add('hidden');
+            }
+            if (appData.rightLogo) {
+                rightImg.src = appData.rightLogo;
+                rightImg.classList.remove('hidden');
+            } else {
+                rightImg.classList.add('hidden');
+            }
+        }
+
+        function handleLogoUpload(event, side) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxDim = 200;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) {
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
+                        } else {
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
+                        }
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    const dataUrl = canvas.toDataURL('image/png');
+                    if (side === 'left') {
+                        appData.leftLogo = dataUrl;
+                    } else {
+                        appData.rightLogo = dataUrl;
+                    }
+                    saveData();
+                    updateLogoPreviews();
+                    showToast('বিলের লোগো আপডেট হয়েছে!');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetInvoiceLogo(side) {
+            if (side === 'left') {
+                appData.leftLogo = '';
+            } else {
+                appData.rightLogo = '';
+            }
+            saveData();
+            updateLogoPreviews();
+            showToast('ডিফল্ট লোগো সেট করা হয়েছে');
+        }
+
+        function saveRatesAndShop() {
+            appData.rates['22K'] = parseFloat(document.getElementById('set-rate-22k').value) || 72000;
+            appData.rates['18K'] = parseFloat(document.getElementById('set-rate-18k').value) || 58900;
+            appData.rates['9K'] = parseFloat(document.getElementById('set-rate-9k').value) || 29500;
+            appData.rates['Silver60'] = parseFloat(document.getElementById('set-rate-silver60').value) || 600;
+            appData.rates['Silver70'] = parseFloat(document.getElementById('set-rate-silver70').value) || 700;
+            appData.goldMakingPercent = parseFloat(document.getElementById('set-gold-making').value) || 0;
+            appData.gold1gMakingFixed = parseFloat(document.getElementById('set-gold-1g-making').value) || 0;
+            appData.shopName = document.getElementById('set-shop-name').value.trim() || 'মা তারা জুয়েলার্স';
+            appData.shopAddress = document.getElementById('set-shop-address').value.trim() || 'বড় বাজার, কলকাতা - ৭০০০০৭';
+            appData.shopPhone = document.getElementById('set-shop-phone').value.trim() || '+91 98123 45670';
+            appData.shopGstin = document.getElementById('set-shop-gstin').value.trim().toUpperCase() || '19AAICP1234K1ZP';
+
+            saveData();
+            document.getElementById('shop-header-name').textContent = appData.shopName;
+            showToast('দর এবং দোকানের তথ্য আপডেট হয়েছে!');
+        }
+
+        function renderStaffList() {
+            const container = document.getElementById('staff-list-container');
+            if (appData.staffList.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400">কোনো স্টাফ অ্যাকাউন্ট নেই</p>`;
+                return;
+            }
+            container.innerHTML = appData.staffList.map((st, idx) => `
+                <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-200 text-xs">
+                    <div>
+                        <span class="font-bold text-gray-900">${st.name}</span>
+                        <span class="text-gray-500 ml-2">ID: <strong>${st.id}</strong> | PIN: <strong>${st.pin}</strong></span>
+                    </div>
+                    <button type="button" onclick="removeStaff(${idx})" class="text-red-500 hover:bg-red-100 p-1.5 rounded-lg">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addStaffAccount(e) {
+            e.preventDefault();
+            const name = document.getElementById('new-staff-name').value.trim();
+            const id = document.getElementById('new-staff-id').value.trim();
+            const pin = document.getElementById('new-staff-pin').value.trim();
+
+            if (appData.staffList.some(s => s.id.toLowerCase() === id.toLowerCase())) {
+                showToast('এই লগইন ID ইতিমধ্যে আছে!', true);
+                return;
+            }
+
+            appData.staffList.push({ id, pin, name });
+            saveData();
+            e.target.reset();
+            renderStaffList();
+            updateStaffLoginHint();
+            showToast('নতুন স্টাফ অ্যাকাউন্ট তৈরি হয়েছে');
+        }
+
+        function removeStaff(idx) {
+            askConfirm('আপনি কি এই স্টাফ অ্যাকাউন্টটি মুছে ফেলতে চান?', () => {
+                appData.staffList.splice(idx, 1);
+                saveData();
+                renderStaffList();
+                updateStaffLoginHint();
+                showToast('স্টাফ অ্যাকাউন্ট মুছে ফেলা হয়েছে');
+            });
+        }
+
+        // --- 9. JSON BACKUP & RESTORE ---
+        function exportBackupJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `jewelry_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            showToast('ব্যাকআপ ফাইল ডাউনলোড শুরু হয়েছে');
+        }
+
+        function importBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && parsed.rates && parsed.inventory) {
+                        appData = parsed;
+                        saveData();
+                        loadSettingsView();
+                        showToast('ব্যাকআপ সফলভাবে রিস্টোর হয়েছে!');
+                    } else {
+                        showToast('সঠিক ব্যাকআপ ফাইল নয়!', true);
+                    }
+                } catch (err) {
+                    showToast('ফাইল পড়তে সমস্যা হয়েছে!', true);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Initialize login screen on load
+        window.onload = function() {
+            switchLoginRole('owner');
+            updateStaffLoginHint();
+        };
+    </script>
+</body>
+</html>
