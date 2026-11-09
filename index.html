@@ -117,36 +117,34 @@
             </form>
 
             <!-- Quick Demo Fill Hints -->
-            <div class="mt-6 pt-5 border-t border-gray-100">
-                <p class="text-xs text-center text-gray-500 mb-2.5 font-medium">দ্রুত পরীক্ষার জন্য নিচের বাটনে ট্যাপ করুন:</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <button type="button" onclick="quickFillLogin('owner')" class="py-2 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl text-xs font-semibold text-amber-900 text-left">
-                        <div class="font-bold">মালিক ডেমো</div>
-                        <div class="text-amber-700">ID: admin | PIN: 1234</div>
+            <div class="mt-6 pt-4 border-t border-gray-100 text-center space-y-2">
+                <p class="text-xs text-gray-400">দ্রুত লগইন করতে নিচের বাটনে চাপ দিন:</p>
+                <div class="flex justify-center gap-2">
+                    <button type="button" onclick="quickFillLogin('owner')" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold px-3 py-1.5 rounded-lg border border-amber-200 transition">
+                        মালিক ডেমো
                     </button>
-                    <button type="button" onclick="quickFillLogin('staff')" class="py-2 px-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl text-xs font-semibold text-blue-900 text-left">
-                        <div id="staff-demo-title" class="font-bold">স্টাফ ডেমো (মহিত)</div>
-                        <div id="staff-demo-info" class="text-blue-700">ID: মহিত | PIN: 1223</div>
+                    <button type="button" onclick="quickFillLogin('staff')" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-800 font-semibold px-3 py-1.5 rounded-lg border border-blue-200 transition">
+                        <span id="staff-demo-title">স্টাফ ডেমো</span>
                     </button>
                 </div>
+                <p id="staff-demo-info" class="text-[11px] text-gray-400"></p>
             </div>
         </div>
     </div>
 
-    <!-- ==================== MAIN APPLICATION ==================== -->
+    <!-- ==================== MAIN APP CONTAINER ==================== -->
     <div id="app-container" class="hidden max-w-3xl mx-auto">
-        
         <!-- Top Header -->
-        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-amber-200 px-4 py-3 flex items-center justify-between shadow-sm">
+        <header class="bg-white/95 backdrop-blur-md sticky top-0 z-20 border-b border-amber-200/70 px-4 py-3 flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 gold-gradient rounded-xl flex items-center justify-center text-white shadow">
-                    <i class="fas fa-gem"></i>
+                <div class="w-10 h-10 gold-gradient rounded-xl flex items-center justify-center text-white shadow">
+                    <i class="fas fa-gem text-lg"></i>
                 </div>
                 <div>
                     <h2 id="shop-header-name" class="font-bold text-gray-900 text-base leading-tight">মা তারা জুয়েলার্স</h2>
-                    <div class="flex items-center gap-1.5 text-xs">
-                        <span id="user-badge" class="px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800">মালিক</span>
-                        <span id="user-name-display" class="text-gray-500 font-medium">Admin</span>
+                    <div class="flex items-center gap-1.5 text-xs mt-0.5">
+                        <span id="user-name-display" class="text-gray-600 font-medium">মালিক</span>
+                        <span id="user-badge" class="px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800">মালিক (Admin)</span>
                     </div>
                 </div>
             </div>
@@ -746,6 +744,29 @@
                     </button>
                 </div>
 
+                <!-- Admin Username & Password Settings (English) -->
+                <div class="bg-white rounded-2xl border border-amber-200 p-4 shadow-sm space-y-3">
+                    <h3 class="font-bold text-base text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-user-shield text-amber-600"></i> Admin Account Settings (Owner Login)
+                    </h3>
+                    <p class="text-xs text-gray-500">Set your custom Admin Username and Password/PIN below:</p>
+                    <form onsubmit="updateAdminCredentials(event)" class="space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Admin Username</label>
+                                <input type="text" id="set-admin-id" required placeholder="Enter Username (e.g. admin)" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-semibold text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">New Password / PIN</label>
+                                <input type="text" id="set-admin-pin" required placeholder="Enter New Password / PIN" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-bold text-sm">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl text-sm shadow transition flex items-center justify-center gap-2">
+                            <i class="fas fa-key"></i> Update Admin Username & Password
+                        </button>
+                    </form>
+                </div>
+
                 <!-- Staff Management -->
                 <div class="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm space-y-3">
                     <h3 class="font-bold text-base text-gray-900 flex items-center gap-2">
@@ -839,8 +860,7 @@
 
     <!-- ==================== JAVASCRIPT LOGIC ==================== -->
     <script>
-        // --- 1. INITIAL STATE & LOCALSTORAGE SETUP ---
-        const STORAGE_KEY = 'bengali_jewelry_pos_v1';
+        const STORAGE_KEY = 'jewelry_pos_app_data_v1';
 
         const defaultData = {
             shopName: 'মা তারা জুয়েলার্স',
@@ -873,20 +893,9 @@
                     huid: 'H9K2L1',
                     makingType: 'percent',
                     makingValue: 10,
-                    status: 'available',
-                    addedAt: new Date().toLocaleDateString('bn-BD')
-                },
-                {
-                    id: 'JW-1002',
-                    name: 'লাল শাখা জোড়া',
-                    category: 'বালা/চুড়ি',
-                    purity: 'Miscellaneous',
-                    grossWt: 20.000,
-                    netWt: 20.000,
-                    huid: 'N/A',
-                    makingType: 'fixed',
-                    makingValue: 0,
-                    fixedPrice: 1200,
+                    fixedPrice: 0,
+                    addonName: '',
+                    addonPrice: 0,
                     status: 'available',
                     addedAt: new Date().toLocaleDateString('bn-BD')
                 }
@@ -2334,8 +2343,32 @@
             document.getElementById('set-shop-phone').value = appData.shopPhone;
             document.getElementById('set-shop-gstin').value = appData.shopGstin;
 
+            document.getElementById('set-admin-id').value = appData.owner.id;
+            document.getElementById('set-admin-pin').value = appData.owner.pin;
+
             updateLogoPreviews();
             renderStaffList();
+        }
+
+        function updateAdminCredentials(e) {
+            e.preventDefault();
+            if (!currentUser || currentUser.role !== 'owner') {
+                showToast('Only Owner can change Admin credentials!', true);
+                return;
+            }
+            const newId = document.getElementById('set-admin-id').value.trim();
+            const newPin = document.getElementById('set-admin-pin').value.trim();
+
+            if (!newId || !newPin) {
+                showToast('Please enter both Admin Username and Password!', true);
+                return;
+            }
+
+            appData.owner.id = newId;
+            appData.owner.pin = newPin;
+            currentUser.id = newId;
+            saveData();
+            showToast('Admin Username & Password updated successfully!');
         }
 
         function updateLogoPreviews() {
