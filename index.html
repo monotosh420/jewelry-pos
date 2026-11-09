@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>স্বর্ণালংকার স্টোর ম্যানেজমেন্ট ও POS</title>
+    <title>Jewelry Store Management & POS</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- JsBarcode CDN for automated barcode generation -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-    <!-- Google Fonts: Hind Siliguri for clean Bengali typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Inter for clean modern English typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            font-family: 'Hind Siliguri', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: #fdfbf7;
             color: #1f2937;
             -webkit-tap-highlight-color: transparent;
@@ -60,7 +60,7 @@
     <!-- Custom Toast / Message Notification -->
     <div id="toast-box" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none w-11/12 max-w-md">
         <div id="toast-content" class="bg-gray-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center justify-between text-sm font-medium border border-amber-500/30">
-            <span id="toast-msg">বার্তা</span>
+            <span id="toast-msg">Notification</span>
             <i id="toast-icon" class="fas fa-info-circle text-amber-400 ml-2"></i>
         </div>
     </div>
@@ -69,12 +69,12 @@
     <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-amber-100">
             <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
-                <i class="fas fa-exclamation-triangle text-amber-600"></i> নিশ্চিত করুন
+                <i class="fas fa-exclamation-triangle text-amber-600"></i> Please Confirm
             </h3>
-            <p id="confirm-text" class="text-gray-600 text-sm mb-5">আপনি কি নিশ্চিত?</p>
+            <p id="confirm-text" class="text-gray-600 text-sm mb-5">Are you sure?</p>
             <div class="flex gap-3">
-                <button type="button" onclick="closeConfirmModal(false)" class="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition">বাতিল</button>
-                <button type="button" onclick="closeConfirmModal(true)" class="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition">হ্যাঁ, মুছে ফেলুন</button>
+                <button type="button" onclick="closeConfirmModal(false)" class="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition">Cancel</button>
+                <button type="button" onclick="closeConfirmModal(true)" class="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition">Yes, Delete</button>
             </div>
         </div>
     </div>
@@ -86,45 +86,45 @@
                 <div class="w-16 h-16 gold-gradient rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-3">
                     <i class="fas fa-gem text-3xl text-white"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900">স্বর্ণালংকার POS ও স্টক</h1>
-                <p class="text-sm text-gray-500 mt-1">জুয়েলারি শপ ম্যানেজমেন্ট সিস্টেম</p>
+                <h1 class="text-2xl font-bold text-gray-900">Jewelry POS & Stock</h1>
+                <p class="text-sm text-gray-500 mt-1">Jewelry Shop Management System</p>
             </div>
 
             <!-- Role Switcher Tabs -->
             <div class="grid grid-cols-2 gap-2 p-1 bg-amber-100/70 rounded-xl mb-6">
                 <button type="button" id="tab-owner" onclick="switchLoginRole('owner')" class="py-2.5 text-sm font-bold rounded-lg bg-amber-600 text-white shadow transition">
-                    <i class="fas fa-crown mr-1"></i> মালিক (Owner)
+                    <i class="fas fa-crown mr-1"></i> Owner (Admin)
                 </button>
                 <button type="button" id="tab-staff" onclick="switchLoginRole('staff')" class="py-2.5 text-sm font-bold rounded-lg text-amber-900 hover:bg-amber-200/50 transition">
-                    <i class="fas fa-user-tie mr-1"></i> স্টাফ (Staff)
+                    <i class="fas fa-user-tie mr-1"></i> Staff (POS)
                 </button>
             </div>
 
             <!-- Login Form -->
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label id="login-id-label" class="block text-sm font-semibold text-gray-700 mb-1">মালিকের আইডি (Admin ID)</label>
-                    <input type="text" id="login-id" required placeholder="যেমন: admin" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-base">
+                    <label id="login-id-label" class="block text-sm font-semibold text-gray-700 mb-1">Admin Username</label>
+                    <input type="text" id="login-id" required placeholder="e.g. admin" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-base">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">পিন / পাসওয়ার্ড (PIN)</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Password / PIN</label>
                     <input type="password" id="login-pin" required placeholder="••••" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-base">
                 </div>
 
                 <button type="submit" class="w-full py-3.5 gold-gradient text-white font-bold rounded-xl shadow-md hover:opacity-95 active:scale-[0.99] transition text-base">
-                    লগইন করুন <i class="fas fa-arrow-right ml-1"></i>
+                    Login <i class="fas fa-arrow-right ml-1"></i>
                 </button>
             </form>
 
             <!-- Quick Demo Fill Hints -->
             <div class="mt-6 pt-4 border-t border-gray-100 text-center space-y-2">
-                <p class="text-xs text-gray-400">দ্রুত লগইন করতে নিচের বাটনে চাপ দিন:</p>
+                <p class="text-xs text-gray-400">Quick Auto-Fill Login:</p>
                 <div class="flex justify-center gap-2">
                     <button type="button" onclick="quickFillLogin('owner')" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold px-3 py-1.5 rounded-lg border border-amber-200 transition">
-                        মালিক ডেমো
+                        Owner Demo
                     </button>
                     <button type="button" onclick="quickFillLogin('staff')" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-800 font-semibold px-3 py-1.5 rounded-lg border border-blue-200 transition">
-                        <span id="staff-demo-title">স্টাফ ডেমো</span>
+                        <span id="staff-demo-title">Staff Demo</span>
                     </button>
                 </div>
                 <p id="staff-demo-info" class="text-[11px] text-gray-400"></p>
@@ -141,14 +141,14 @@
                     <i class="fas fa-gem text-lg"></i>
                 </div>
                 <div>
-                    <h2 id="shop-header-name" class="font-bold text-gray-900 text-base leading-tight">মা তারা জুয়েলার্স</h2>
+                    <h2 id="shop-header-name" class="font-bold text-gray-900 text-base leading-tight">Maa Tara Jewelers</h2>
                     <div class="flex items-center gap-1.5 text-xs mt-0.5">
-                        <span id="user-name-display" class="text-gray-600 font-medium">মালিক</span>
-                        <span id="user-badge" class="px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800">মালিক (Admin)</span>
+                        <span id="user-name-display" class="text-gray-600 font-medium">Owner</span>
+                        <span id="user-badge" class="px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800">Owner (Admin)</span>
                     </div>
                 </div>
             </div>
-            <button type="button" onclick="logout()" class="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition" title="লগআউট">
+            <button type="button" onclick="logout()" class="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition" title="Logout">
                 <i class="fas fa-sign-out-alt text-lg"></i>
             </button>
         </header>
@@ -162,35 +162,35 @@
                 <div class="gold-card rounded-2xl p-4 shadow-sm">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold text-amber-950 flex items-center gap-2">
-                            <i class="fas fa-coins text-amber-600"></i> আজকের সোনা ও রূপার দর
+                            <i class="fas fa-coins text-amber-600"></i> Today's Gold & Silver Rates
                         </h3>
                         <span class="text-xs bg-amber-200/70 text-amber-900 px-2.5 py-0.5 rounded-full font-semibold">Live</span>
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
                         <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200/60">
-                            <div class="text-xs text-gray-500 font-medium">২২ ক্যারেট (১০ গ্রাম)</div>
-                            <div id="dash-rate-22k" class="text-base font-bold text-amber-800">₹ ৭২,০০০</div>
-                            <div id="dash-vori-22k" class="text-[11px] text-gray-500">ভরি: ₹ ৮৩,৯৮১</div>
+                            <div class="text-xs text-gray-500 font-medium">22K Gold (10g)</div>
+                            <div id="dash-rate-22k" class="text-base font-bold text-amber-800">₹ 72,000</div>
+                            <div id="dash-vori-22k" class="text-[11px] text-gray-500">Vori: ₹ 83,981</div>
                         </div>
                         <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200/60">
-                            <div class="text-xs text-gray-500 font-medium">১৮ ক্যারেট (১০ গ্রাম)</div>
-                            <div id="dash-rate-18k" class="text-base font-bold text-amber-800">₹ ৫৮,৯০০</div>
-                            <div id="dash-vori-18k" class="text-[11px] text-gray-500">ভরি: ₹ ৬৮,৭০১</div>
+                            <div class="text-xs text-gray-500 font-medium">18K Gold (10g)</div>
+                            <div id="dash-rate-18k" class="text-base font-bold text-amber-800">₹ 58,900</div>
+                            <div id="dash-vori-18k" class="text-[11px] text-gray-500">Vori: ₹ 68,701</div>
                         </div>
                         <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200/60">
-                            <div class="text-xs text-gray-500 font-medium">৯ ক্যারেট (১০ গ্রাম)</div>
-                            <div id="dash-rate-9k" class="text-base font-bold text-amber-800">₹ ২৯,৫০০</div>
-                            <div id="dash-vori-9k" class="text-[11px] text-gray-500">ভরি: ₹ ৩৪,৪০৯</div>
+                            <div class="text-xs text-gray-500 font-medium">9K Gold (10g)</div>
+                            <div id="dash-rate-9k" class="text-base font-bold text-amber-800">₹ 29,500</div>
+                            <div id="dash-vori-9k" class="text-[11px] text-gray-500">Vori: ₹ 34,409</div>
                         </div>
                         <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200/60">
-                            <div class="text-xs text-gray-500 font-medium">রুপো ৬০ (১০ গ্রাম)</div>
-                            <div id="dash-rate-silver60" class="text-base font-bold text-gray-700">₹ ৬০০</div>
-                            <div id="dash-vori-silver60" class="text-[11px] text-gray-500">ভরি: ₹ ৭০০</div>
+                            <div class="text-xs text-gray-500 font-medium">Silver 60 (10g)</div>
+                            <div id="dash-rate-silver60" class="text-base font-bold text-gray-700">₹ 600</div>
+                            <div id="dash-vori-silver60" class="text-[11px] text-gray-500">Vori: ₹ 700</div>
                         </div>
                         <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200/60">
-                            <div class="text-xs text-gray-500 font-medium">রুপো ৭০ (১০ গ্রাম)</div>
-                            <div id="dash-rate-silver70" class="text-base font-bold text-gray-700">₹ ৭০০</div>
-                            <div id="dash-vori-silver70" class="text-[11px] text-gray-500">ভরি: ₹ ৮১৬</div>
+                            <div class="text-xs text-gray-500 font-medium">Silver 70 (10g)</div>
+                            <div id="dash-rate-silver70" class="text-base font-bold text-gray-700">₹ 700</div>
+                            <div id="dash-vori-silver70" class="text-[11px] text-gray-500">Vori: ₹ 816</div>
                         </div>
                     </div>
                 </div>
@@ -199,19 +199,19 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm">
                         <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-1">
-                            <span>মোট মজুত গহনা</span>
+                            <span>Available Stock</span>
                             <i class="fas fa-box-open text-amber-500 text-base"></i>
                         </div>
-                        <div id="stat-stock-count" class="text-2xl font-bold text-gray-900">0 টি</div>
-                        <div id="stat-stock-weight" class="text-xs text-amber-700 font-medium mt-0.5">মোট ওজন: 0.000 গ্রাম</div>
+                        <div id="stat-stock-count" class="text-2xl font-bold text-gray-900">0 pcs</div>
+                        <div id="stat-stock-weight" class="text-xs text-amber-700 font-medium mt-0.5">Total Wt: 0.000 g</div>
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm">
                         <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-1">
-                            <span>মোট বিক্রয় (Sales)</span>
+                            <span>Total Sales</span>
                             <i class="fas fa-receipt text-emerald-500 text-base"></i>
                         </div>
-                        <div id="stat-sales-total" class="text-2xl font-bold text-emerald-700">₹ ০</div>
-                        <div id="stat-sales-count" class="text-xs text-gray-500 font-medium mt-0.5">মোট বিল: 0 টি</div>
+                        <div id="stat-sales-total" class="text-2xl font-bold text-emerald-700">₹ 0</div>
+                        <div id="stat-sales-count" class="text-xs text-gray-500 font-medium mt-0.5">Total Invoices: 0</div>
                     </div>
                 </div>
 
@@ -220,45 +220,45 @@
                     <div class="bg-amber-50/80 p-3.5 rounded-2xl border border-amber-200 shadow-sm">
                         <div class="flex items-center justify-between mb-1">
                             <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                                <i class="fas fa-ring text-amber-600"></i> মোট মজুত সোনা (Gold)
+                                <i class="fas fa-ring text-amber-600"></i> Total Gold Stock
                             </span>
-                            <span id="stat-gold-count" class="text-[11px] bg-amber-200/80 text-amber-950 px-2 py-0.5 rounded-full font-bold">0 টি</span>
+                            <span id="stat-gold-count" class="text-[11px] bg-amber-200/80 text-amber-950 px-2 py-0.5 rounded-full font-bold">0 pcs</span>
                         </div>
-                        <div id="stat-gold-weight" class="text-xl font-extrabold text-amber-800">0.000 গ্রাম</div>
+                        <div id="stat-gold-weight" class="text-xl font-extrabold text-amber-800">0.000 g</div>
                         <div id="stat-gold-breakdown" class="text-[11px] text-amber-900/80 mt-1 font-medium">22K: 0.000g | 18K: 0.000g | 9K: 0.000g</div>
                     </div>
 
                     <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 shadow-sm">
                         <div class="flex items-center justify-between mb-1">
                             <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                <i class="fas fa-coins text-slate-500"></i> মোট মজুত রুপো (Silver)
+                                <i class="fas fa-coins text-slate-500"></i> Total Silver Stock
                             </span>
-                            <span id="stat-silver-count" class="text-[11px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full font-bold">0 টি</span>
+                            <span id="stat-silver-count" class="text-[11px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full font-bold">0 pcs</span>
                         </div>
-                        <div id="stat-silver-weight" class="text-xl font-extrabold text-slate-800">0.000 গ্রাম</div>
-                        <div id="stat-silver-breakdown" class="text-[11px] text-slate-600 mt-1 font-medium">রুপো ৬০: 0.000g | রুপো ৭০: 0.000g</div>
+                        <div id="stat-silver-weight" class="text-xl font-extrabold text-slate-800">0.000 g</div>
+                        <div id="stat-silver-breakdown" class="text-[11px] text-slate-600 mt-1 font-medium">Silver 60: 0.000g | Silver 70: 0.000g</div>
                     </div>
                 </div>
 
                 <!-- Quick Action Buttons -->
                 <div>
-                    <h3 class="font-bold text-gray-800 text-sm mb-2.5">দ্রুত কাজ শুরু করুন</h3>
+                    <h3 class="font-bold text-gray-800 text-sm mb-2.5">Quick Actions</h3>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                         <button type="button" onclick="navigateTo('pos')" class="p-3.5 bg-amber-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
                             <i class="fas fa-cash-register text-xl"></i>
-                            <span class="text-xs font-bold">নতুন বিল (POS)</span>
+                            <span class="text-xs font-bold">New Bill (POS)</span>
                         </button>
                         <button type="button" onclick="navigateTo('calculator')" class="p-3.5 bg-white border border-amber-200 text-amber-900 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
                             <i class="fas fa-calculator text-xl text-amber-600"></i>
-                            <span class="text-xs font-bold">ভরি-আনা হিসাব</span>
+                            <span class="text-xs font-bold">Vori-Ana Calc</span>
                         </button>
                         <button type="button" onclick="navigateTo('inventory')" class="p-3.5 bg-white border border-gray-200 text-gray-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
                             <i class="fas fa-barcode text-xl text-blue-600"></i>
-                            <span class="text-xs font-bold">স্টক ও বারকোড</span>
+                            <span class="text-xs font-bold">Stock & Barcode</span>
                         </button>
                         <button type="button" onclick="navigateTo('history')" class="p-3.5 bg-white border border-gray-200 text-gray-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
                             <i class="fas fa-history text-xl text-purple-600"></i>
-                            <span class="text-xs font-bold">বিক্রয় খাতা</span>
+                            <span class="text-xs font-bold">Sales Ledger</span>
                         </button>
                     </div>
                 </div>
@@ -266,11 +266,11 @@
                 <!-- Recent Transactions Preview -->
                 <div class="bg-white rounded-2xl border border-gray-200/80 p-4 shadow-sm">
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-bold text-gray-800 text-sm">সাম্প্রতিক বিক্রয়</h3>
-                        <button type="button" onclick="navigateTo('history')" class="text-xs text-amber-700 font-semibold">সব দেখুন →</button>
+                        <h3 class="font-bold text-gray-800 text-sm">Recent Sales</h3>
+                        <button type="button" onclick="navigateTo('history')" class="text-xs text-amber-700 font-semibold">View All →</button>
                     </div>
                     <div id="dash-recent-sales" class="space-y-2.5 text-sm">
-                        <p class="text-gray-400 text-center py-4 text-xs">এখনও কোনো বিক্রয় রেকর্ড নেই</p>
+                        <p class="text-gray-400 text-center py-4 text-xs">No sales records yet</p>
                     </div>
                 </div>
             </section>
@@ -279,82 +279,82 @@
             <section id="view-calculator" class="hidden space-y-4">
                 <div class="bg-white rounded-2xl border border-amber-200 p-4 shadow-sm">
                     <h2 class="font-bold text-lg text-gray-900 mb-1 flex items-center gap-2">
-                        <i class="fas fa-balance-scale text-amber-600"></i> ভরি-আনা-রতি ও দাম ক্যালকুলেটর
+                        <i class="fas fa-balance-scale text-amber-600"></i> Vori-Ana-Roti & Price Calculator
                     </h2>
-                    <p class="text-xs text-gray-500 mb-3">১ ভরি = ১৬ আনা = ৯৬ রতি = ৯৬০ পয়েন্ট (১১.৬৬৪ গ্রাম)</p>
+                    <p class="text-xs text-gray-500 mb-3">1 Vori = 16 Ana = 96 Roti = 960 Point (11.664 Grams)</p>
 
                     <!-- Stock & Barcode Lookup inside Calculator -->
                     <div class="bg-amber-50/80 p-3 rounded-xl border border-amber-200 mb-4 space-y-2">
                         <label class="block text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                            <i class="fas fa-barcode text-amber-700"></i> স্টক বা বারকোড থেকে গহনা লোড করুন (হিসাব দেখার জন্য):
+                            <i class="fas fa-barcode text-amber-700"></i> Load Item from Stock or Barcode (For Instant Estimate):
                         </label>
                         <div class="flex gap-2">
                             <select id="calc-stock-select" onchange="loadStockIntoCalculator(this.value)" class="flex-1 px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-semibold text-gray-800">
-                                <option value="">-- স্টক থেকে গহনা বাছুন --</option>
+                                <option value="">-- Select Jewelry from Stock --</option>
                             </select>
-                            <button type="button" onclick="clearCalculatorStock()" class="px-2.5 py-2 bg-white hover:bg-gray-100 text-gray-600 border border-gray-300 rounded-xl text-xs font-bold" title="রিসেট করুন">
+                            <button type="button" onclick="clearCalculatorStock()" class="px-2.5 py-2 bg-white hover:bg-gray-100 text-gray-600 border border-gray-300 rounded-xl text-xs font-bold" title="Reset">
                                 <i class="fas fa-undo"></i>
                             </button>
                         </div>
                         <div class="flex gap-2">
-                            <input type="text" id="calc-barcode-input" onkeydown="if(event.key==='Enter'){event.preventDefault();lookupBarcodeInCalculator();}" placeholder="বারকোড আইডি লিখুন বা স্ক্যান করুন (যেমন: JW-1001)" class="flex-1 px-3 py-2 rounded-xl border border-gray-300 bg-white text-xs uppercase font-mono">
+                            <input type="text" id="calc-barcode-input" onkeydown="if(event.key==='Enter'){event.preventDefault();lookupBarcodeInCalculator();}" placeholder="Enter or Scan Barcode ID (e.g. JW-1001)" class="flex-1 px-3 py-2 rounded-xl border border-gray-300 bg-white text-xs uppercase font-mono">
                             <button type="button" onclick="lookupBarcodeInCalculator()" class="px-3.5 py-2 bg-gray-900 text-white font-bold rounded-xl text-xs">
-                                <i class="fas fa-search mr-1"></i> খুঁজুন
+                                <i class="fas fa-search mr-1"></i> Search
                             </button>
                         </div>
                         <div id="calc-selected-item-banner" class="hidden bg-white p-2 rounded-lg border border-amber-300 flex items-center justify-between text-xs">
                             <div>
-                                <span class="font-bold text-amber-900" id="calc-loaded-title">গহনার নাম</span>
-                                <span class="text-[11px] text-gray-600 block" id="calc-loaded-meta">ID • HUID • ক্যাটেগরি</span>
+                                <span class="font-bold text-amber-900" id="calc-loaded-title">Item Name</span>
+                                <span class="text-[11px] text-gray-600 block" id="calc-loaded-meta">ID • HUID • Category</span>
                             </div>
-                            <span id="calc-loaded-status" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">মজুত</span>
+                            <span id="calc-loaded-status" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Available</span>
                         </div>
                     </div>
 
                     <!-- Converter Mode Tabs -->
                     <div class="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl mb-4">
                         <button type="button" id="calc-mode-g2v" onclick="setCalcMode('g2v')" class="py-2 text-xs font-bold rounded-lg bg-white text-amber-800 shadow-sm">
-                            গ্রাম → ভরি-আনা-রতি
+                            Grams → Vori-Ana-Roti
                         </button>
                         <button type="button" id="calc-mode-v2g" onclick="setCalcMode('v2g')" class="py-2 text-xs font-bold rounded-lg text-gray-600">
-                            ভরি-আনা-রতি → গ্রাম
+                            Vori-Ana-Roti → Grams
                         </button>
                     </div>
 
                     <!-- Gram Input -->
                     <div id="calc-gram-box" class="mb-4">
-                        <label class="block text-xs font-bold text-gray-700 mb-1">নিট ওজন (গ্রাম / Grams)</label>
-                        <input type="number" step="0.001" id="calc-grams" oninput="calculateJewelryPrice()" placeholder="যেমন: 11.664" class="w-full px-3.5 py-3 rounded-xl border border-gray-300 focus:border-amber-500 outline-none text-lg font-bold text-gray-900">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Net Weight (Grams)</label>
+                        <input type="number" step="0.001" id="calc-grams" oninput="calculateJewelryPrice()" placeholder="e.g. 11.664" class="w-full px-3.5 py-3 rounded-xl border border-gray-300 focus:border-amber-500 outline-none text-lg font-bold text-gray-900">
                         <div class="mt-2 p-2.5 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
-                            <span class="text-xs text-amber-800 font-medium">বাংলা ওজন:</span>
-                            <span id="calc-vori-output" class="text-sm font-bold text-amber-950">০ ভরি ০ আনা ০ রতি ০ পয়েন্ট</span>
+                            <span class="text-xs text-amber-800 font-medium">Traditional Weight:</span>
+                            <span id="calc-vori-output" class="text-sm font-bold text-amber-950">0 Vori 0 Ana 0 Roti 0 Point</span>
                         </div>
                     </div>
 
                     <!-- Vori-Ana-Roti-Point Inputs -->
                     <div id="calc-vori-box" class="hidden mb-4">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">ভরি - আনা - রতি - পয়েন্ট লিখুন</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-1.5">Enter Vori - Ana - Roti - Point</label>
                         <div class="grid grid-cols-4 gap-2">
                             <div>
-                                <input type="number" id="in-vori" oninput="convertVoriToGram()" placeholder="০" min="0" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
-                                <span class="block text-[11px] text-center text-gray-500 mt-1">ভরি</span>
+                                <input type="number" id="in-vori" oninput="convertVoriToGram()" placeholder="0" min="0" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
+                                <span class="block text-[11px] text-center text-gray-500 mt-1">Vori</span>
                             </div>
                             <div>
-                                <input type="number" id="in-ana" oninput="convertVoriToGram()" placeholder="০" min="0" max="15" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
-                                <span class="block text-[11px] text-center text-gray-500 mt-1">আনা (১৬)</span>
+                                <input type="number" id="in-ana" oninput="convertVoriToGram()" placeholder="0" min="0" max="15" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
+                                <span class="block text-[11px] text-center text-gray-500 mt-1">Ana (16)</span>
                             </div>
                             <div>
-                                <input type="number" id="in-roti" oninput="convertVoriToGram()" placeholder="০" min="0" max="5" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
-                                <span class="block text-[11px] text-center text-gray-500 mt-1">রতি (৬)</span>
+                                <input type="number" id="in-roti" oninput="convertVoriToGram()" placeholder="0" min="0" max="5" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
+                                <span class="block text-[11px] text-center text-gray-500 mt-1">Roti (6)</span>
                             </div>
                             <div>
-                                <input type="number" id="in-point" oninput="convertVoriToGram()" placeholder="০" min="0" max="9" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
-                                <span class="block text-[11px] text-center text-gray-500 mt-1">পয়েন্ট (১০)</span>
+                                <input type="number" id="in-point" oninput="convertVoriToGram()" placeholder="0" min="0" max="9" class="w-full p-2.5 text-center rounded-xl border border-gray-300 font-bold">
+                                <span class="block text-[11px] text-center text-gray-500 mt-1">Point (10)</span>
                             </div>
                         </div>
                         <div class="mt-2 p-2.5 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
-                            <span class="text-xs text-amber-800 font-medium">মোট গ্রাম ওজন:</span>
-                            <span id="calc-gram-output" class="text-sm font-bold text-amber-950">0.000 গ্রাম</span>
+                            <span class="text-xs text-amber-800 font-medium">Total Weight in Grams:</span>
+                            <span id="calc-gram-output" class="text-sm font-bold text-amber-950">0.000 g</span>
                         </div>
                     </div>
 
@@ -362,25 +362,25 @@
                     <div class="space-y-3 border-t border-gray-100 pt-3">
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">ধাতু / ক্যারেট</label>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Metal / Purity</label>
                                 <select id="calc-purity" onchange="calculateJewelryPrice()" class="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs font-semibold">
-                                    <option value="22K">22K সোনা</option>
-                                    <option value="18K">18K সোনা</option>
-                                    <option value="9K">9K সোনা</option>
-                                    <option value="Silver60">রুপো ৬০</option>
-                                    <option value="Silver70">রুপো ৭০</option>
+                                    <option value="22K">22K Gold</option>
+                                    <option value="18K">18K Gold</option>
+                                    <option value="9K">9K Gold</option>
+                                    <option value="Silver60">Silver 60</option>
+                                    <option value="Silver70">Silver 70</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">মজুরি (%)</label>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Making (%)</label>
                                 <input type="number" id="calc-making-val" value="10" oninput="calculateJewelryPrice()" class="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs font-bold">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">অতিরিক্ত নাম</label>
-                                <input type="text" id="calc-addon-name" oninput="calculateJewelryPrice()" placeholder="যেমন: শাখা" class="w-full px-2.5 py-2 rounded-xl border border-amber-300 bg-amber-50/40 text-xs">
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Addon Name</label>
+                                <input type="text" id="calc-addon-name" oninput="calculateJewelryPrice()" placeholder="e.g. Shakha" class="w-full px-2.5 py-2 rounded-xl border border-amber-300 bg-amber-50/40 text-xs">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">অতিরিক্ত টাকা (₹)</label>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Addon Price (₹)</label>
                                 <input type="number" id="calc-addon-price" oninput="calculateJewelryPrice()" placeholder="0" class="w-full px-2.5 py-2 rounded-xl border border-amber-300 bg-amber-50/40 text-xs font-bold">
                             </div>
                         </div>
@@ -389,47 +389,47 @@
                         <div class="border border-gray-300 rounded-xl overflow-hidden bg-white shadow-sm">
                             <div class="bg-amber-100/80 px-3 py-2 border-b border-amber-200 flex items-center justify-between">
                                 <span class="text-xs font-extrabold text-amber-950 flex items-center gap-1.5">
-                                    <i class="fas fa-file-invoice text-amber-700"></i> কাস্টমারকে দেখানোর জন্য ইনভয়েস হিসাব (Estimate)
+                                    <i class="fas fa-file-invoice text-amber-700"></i> Customer Price Estimate Breakdown
                                 </span>
                                 <span id="calc-est-rate-badge" class="text-[11px] font-bold bg-white text-amber-900 px-2 py-0.5 rounded border border-amber-300">
-                                    রেট: ₹ ০/গ্রাম
+                                    Rate: ₹ 0/g
                                 </span>
                             </div>
 
                             <div class="p-3 space-y-2 text-xs">
                                 <div class="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 text-[11px]">
-                                    <div>ধাতু ও নিট ওজন: <strong id="calc-est-wt" class="text-gray-900">22K • 0.000g</strong></div>
-                                    <div class="text-right">প্রতি গ্রাম দর: <strong id="calc-est-rate" class="text-gray-900">₹ ০.০০</strong></div>
+                                    <div>Metal & Net Wt: <strong id="calc-est-wt" class="text-gray-900">22K • 0.000g</strong></div>
+                                    <div class="text-right">Rate per Gram: <strong id="calc-est-rate" class="text-gray-900">₹ 0.00</strong></div>
                                 </div>
 
                                 <div class="space-y-1.5 pt-1">
                                     <div class="flex justify-between text-gray-700">
-                                        <span>১. খাঁটি ধাতুর মূল্য (Net Wt × Rate):</span>
-                                        <span id="calc-metal-price" class="font-bold text-gray-900">₹ ০.০০</span>
+                                        <span>1. Metal Value (Net Wt × Rate):</span>
+                                        <span id="calc-metal-price" class="font-bold text-gray-900">₹ 0.00</span>
                                     </div>
                                     <div class="flex justify-between text-gray-700">
-                                        <span id="calc-making-label-row">২. মেকিং চার্জ / মজুরি (10%):</span>
-                                        <span id="calc-making-price" class="font-bold text-gray-900">₹ ০.০০</span>
+                                        <span id="calc-making-label-row">2. Making Charges (10%):</span>
+                                        <span id="calc-making-price" class="font-bold text-gray-900">₹ 0.00</span>
                                     </div>
                                     <div class="flex justify-between border-t border-dashed border-gray-300 pt-1.5 font-semibold text-gray-800">
-                                        <span>Taxable Value (গহনার মোট মূল্য):</span>
-                                        <span id="calc-taxable-price">₹ ০.০০</span>
+                                        <span>Taxable Value:</span>
+                                        <span id="calc-taxable-price">₹ 0.00</span>
                                     </div>
                                     <div class="flex justify-between text-gray-600 text-[11px]">
-                                        <span id="calc-cgst-label">৩. CGST (১.৫%):</span>
-                                        <span id="calc-cgst-price" class="font-semibold text-gray-800">₹ ০.০০</span>
+                                        <span id="calc-cgst-label">3. CGST (1.5%):</span>
+                                        <span id="calc-cgst-price" class="font-semibold text-gray-800">₹ 0.00</span>
                                     </div>
                                     <div class="flex justify-between text-gray-600 text-[11px]">
-                                        <span id="calc-sgst-label">৪. SGST (১.৫%):</span>
-                                        <span id="calc-sgst-price" class="font-semibold text-gray-800">₹ ০.০০</span>
+                                        <span id="calc-sgst-label">4. SGST (1.5%):</span>
+                                        <span id="calc-sgst-price" class="font-semibold text-gray-800">₹ 0.00</span>
                                     </div>
                                     <div id="calc-addon-row" class="hidden flex justify-between text-amber-900 bg-amber-50 px-2 py-1 rounded font-bold">
-                                        <span id="calc-addon-label">+ অতিরিক্ত আইটেম (GST মুক্ত):</span>
-                                        <span id="calc-addon-display">+ ₹ ০.০০</span>
+                                        <span id="calc-addon-label">+ Extra Addon (No GST):</span>
+                                        <span id="calc-addon-display">+ ₹ 0.00</span>
                                     </div>
                                     <div class="flex justify-between border-t-2 border-gray-800 pt-2 text-sm font-extrabold text-amber-950 bg-amber-50/70 px-2 py-1.5 rounded-lg">
-                                        <span>সর্বমোট আনুমানিক মূল্য (Grand Total):</span>
-                                        <span id="calc-total-price">₹ ০</span>
+                                        <span>Estimated Grand Total:</span>
+                                        <span id="calc-total-price">₹ 0</span>
                                     </div>
                                 </div>
                             </div>
@@ -441,82 +441,82 @@
             <!-- 3. INVENTORY & STOCK VIEW -->
             <section id="view-inventory" class="hidden space-y-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="font-bold text-lg text-gray-900">স্টক ও বারকোড ম্যানেজমেন্ট</h2>
+                    <h2 class="font-bold text-lg text-gray-900">Stock & Barcode Management</h2>
                     <button type="button" onclick="toggleAddStockForm()" class="owner-only px-3.5 py-2 gold-gradient text-white font-bold rounded-xl text-xs shadow">
-                        <i class="fas fa-plus mr-1"></i> নতুন গহনা যোগ করুন
+                        <i class="fas fa-plus mr-1"></i> Add New Item
                     </button>
                 </div>
 
                 <!-- Add Stock Form Modal/Card -->
                 <div id="add-stock-card" class="owner-only hidden bg-white rounded-2xl border border-amber-200 p-4 shadow-sm space-y-3">
                     <div class="flex justify-between items-center border-b pb-2">
-                        <h3 class="font-bold text-sm text-gray-900">নতুন গহনা বা আইটেম স্টকে তুলুন</h3>
+                        <h3 class="font-bold text-sm text-gray-900">Add New Jewelry Item to Stock</h3>
                         <button type="button" onclick="toggleAddStockForm()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
                     </div>
                     <form onsubmit="addStockItem(event)" class="space-y-3">
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">গহনার নাম / বিবরণ *</label>
-                                <input type="text" id="item-name" required placeholder="যেমন: সোনার আংটি বা শাখা" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm">
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Item Name / Description *</label>
+                                <input type="text" id="item-name" required placeholder="e.g. Gold Ring or Shakha" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">ক্যাটেগরি</label>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Category</label>
                                 <select id="item-category" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 bg-white text-sm">
-                                    <option value="আংটি">আংটি (Ring)</option>
-                                    <option value="হার">হার (Necklace)</option>
-                                    <option value="দুল">দুল (Earrings)</option>
-                                    <option value="বালা/চুড়ি">বালা / চুড়ি / শাখা</option>
-                                    <option value="চেইন">চেইন (Chain)</option>
-                                    <option value="অন্যান্য">অন্যান্য (Miscellaneous)</option>
+                                    <option value="Ring">Ring</option>
+                                    <option value="Necklace">Necklace</option>
+                                    <option value="Earrings">Earrings</option>
+                                    <option value="Bangle/Shakha">Bangle / Churi / Shakha</option>
+                                    <option value="Chain">Chain</option>
+                                    <option value="Miscellaneous">Miscellaneous</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">ক্যারেট / ধাতু / ধরন</label>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Purity / Metal Type</label>
                                 <select id="item-purity" onchange="toggleStockMakingField()" class="w-full px-2.5 py-2.5 rounded-xl border border-gray-300 bg-white text-sm font-semibold">
-                                    <option value="22K">22K সোনা</option>
-                                    <option value="18K">18K সোনা</option>
-                                    <option value="9K">9K সোনা</option>
-                                    <option value="Silver60">রুপো ৬০</option>
-                                    <option value="Silver70">রুপো ৭০</option>
-                                    <option value="Miscellaneous">অন্যান্য (শাখা, পলা, পেটি চুড়ি ইত্যাদি - নির্দিষ্ট টাকা)</option>
+                                    <option value="22K">22K Gold</option>
+                                    <option value="18K">18K Gold</option>
+                                    <option value="9K">9K Gold</option>
+                                    <option value="Silver60">Silver 60</option>
+                                    <option value="Silver70">Silver 70</option>
+                                    <option value="Miscellaneous">Miscellaneous (Shakha, Pala, etc. - Fixed Price)</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">HUID কোড (৬ ডিজিট)</label>
-                                <input type="text" id="item-huid" maxlength="6" placeholder="যেমন: AB12CD" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm uppercase">
+                                <label class="block text-xs font-bold text-gray-700 mb-1">HUID Code (6 Digits)</label>
+                                <input type="text" id="item-huid" maxlength="6" placeholder="e.g. AB12CD" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm uppercase">
                             </div>
                         </div>
 
                         <!-- Added Extra Addon fields for Shakha, Pala, etc. -->
                         <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200/80 space-y-2">
-                            <label class="block text-xs font-bold text-amber-950">অতিরিক্ত আইটেম ও দাম যোগ করুন (যেমন: শাখা বা পলা):</label>
+                            <label class="block text-xs font-bold text-amber-950">Add Extra Addon & Price (e.g. Shakha or Pala):</label>
                             <div class="grid grid-cols-2 gap-2">
-                                <input type="text" id="item-addon-name" placeholder="নাম (যেমন: লাল শাখা)" class="px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs">
-                                <input type="number" id="item-addon-price" placeholder="দাম (₹)" class="px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-bold">
+                                <input type="text" id="item-addon-name" placeholder="Name (e.g. Red Shakha)" class="px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs">
+                                <input type="number" id="item-addon-price" placeholder="Price (₹)" class="px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-bold">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">গ্রস ওজন (গ্রাম)</label>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Gross Weight (g)</label>
                                 <input type="number" step="0.001" id="item-gross-wt" required placeholder="0.000" class="w-full px-2.5 py-2.5 rounded-xl border border-gray-300 text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">নিট ওজন (গ্রাম) / পরিমাণ *</label>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Net Weight (g) / Qty *</label>
                                 <input type="number" step="0.001" id="item-net-wt" required placeholder="0.000" class="w-full px-2.5 py-2.5 rounded-xl border border-gray-300 text-sm font-bold">
                             </div>
                         </div>
 
                         <div id="stock-making-wrapper">
-                            <label id="item-making-label" class="block text-xs font-bold text-gray-700 mb-1">মজুরি বা নির্দিষ্ট দাম (₹)</label>
-                            <input type="number" id="item-making" value="10" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-bold" placeholder="টাকা লিখুন">
+                            <label id="item-making-label" class="block text-xs font-bold text-gray-700 mb-1">Making Charge or Fixed Price (₹)</label>
+                            <input type="number" id="item-making" value="10" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-bold" placeholder="Enter amount">
                         </div>
 
                         <button type="submit" class="w-full py-3 gold-gradient text-white font-bold rounded-xl shadow text-sm">
-                            <i class="fas fa-barcode mr-1"></i> স্টকে সেভ করুন ও বারকোড তৈরি করুন
+                            <i class="fas fa-barcode mr-1"></i> Save to Stock & Generate Barcode
                         </button>
                     </form>
                 </div>
@@ -525,26 +525,26 @@
                 <div class="flex gap-2">
                     <div class="relative flex-1">
                         <i class="fas fa-search absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
-                        <input type="text" id="stock-search" oninput="renderInventory()" placeholder="আইটেম নাম, আইডি বা HUID খুঁজুন..." class="w-full pl-9 pr-3 py-2.5 bg-white rounded-xl border border-gray-200 text-sm outline-none focus:border-amber-500">
+                        <input type="text" id="stock-search" oninput="renderInventory()" placeholder="Search item name, ID or HUID..." class="w-full pl-9 pr-3 py-2.5 bg-white rounded-xl border border-gray-200 text-sm outline-none focus:border-amber-500">
                     </div>
                     <select id="stock-filter" onchange="renderInventory()" class="px-3 py-2.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-gray-700">
-                        <option value="all">সব স্টক</option>
-                        <option value="available">মজুত (Available)</option>
-                        <option value="sold">বিক্রিত (Sold)</option>
+                        <option value="all">All Stock</option>
+                        <option value="available">Available</option>
+                        <option value="sold">Sold</option>
                     </select>
                 </div>
 
                 <!-- Stock Gold & Silver Summary Strip -->
                 <div class="grid grid-cols-2 gap-2.5">
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5">
-                        <div class="text-[11px] font-bold text-amber-900">মজুত সোনা (মোট)</div>
-                        <div id="inv-gold-total" class="text-base font-extrabold text-amber-800">0.000 গ্রাম</div>
+                        <div class="text-[11px] font-bold text-amber-900">Available Gold (Total)</div>
+                        <div id="inv-gold-total" class="text-base font-extrabold text-amber-800">0.000 g</div>
                         <div id="inv-gold-sub" class="text-[10px] text-amber-800/80">22K: 0g | 18K: 0g | 9K: 0g</div>
                     </div>
                     <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
-                        <div class="text-[11px] font-bold text-slate-700">মজুত রুপো (মোট)</div>
-                        <div id="inv-silver-total" class="text-base font-extrabold text-slate-800">0.000 গ্রাম</div>
-                        <div id="inv-silver-sub" class="text-[10px] text-slate-600">রুপো ৬০: 0g | রুপো ৭০: 0g</div>
+                        <div class="text-[11px] font-bold text-slate-700">Available Silver (Total)</div>
+                        <div id="inv-silver-total" class="text-base font-extrabold text-slate-800">0.000 g</div>
+                        <div id="inv-silver-sub" class="text-[10px] text-slate-600">Silver 60: 0g | Silver 70: 0g</div>
                     </div>
                 </div>
 
@@ -556,49 +556,49 @@
             <section id="view-pos" class="hidden space-y-4">
                 <div class="bg-white rounded-2xl border border-amber-200 p-4 shadow-sm space-y-4">
                     <h2 class="font-bold text-lg text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-file-invoice-dollar text-amber-600"></i> কাস্টমার বিল তৈরি করুন (POS)
+                        <i class="fas fa-file-invoice-dollar text-amber-600"></i> Create Customer Invoice (POS)
                     </h2>
 
                     <!-- Add Item to Bill by ID/Barcode or Dropdown -->
                     <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200/80 space-y-2.5">
-                        <label class="block text-xs font-bold text-amber-950">স্টক থেকে গহনা বা শাখা নির্বাচন করুন:</label>
+                        <label class="block text-xs font-bold text-amber-950">Select Jewelry or Item from Stock:</label>
                         <div class="flex gap-2">
                             <select id="pos-item-select" class="flex-1 px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-sm font-medium">
-                                <option value="">-- মজুত গহনা বেছে নিন --</option>
+                                <option value="">-- Choose Available Item --</option>
                             </select>
                             <button type="button" onclick="addSelectedToCart()" class="px-4 py-2.5 bg-amber-600 text-white font-bold rounded-xl text-sm shadow-sm active:scale-95">
-                                যোগ করুন
+                                Add
                             </button>
                         </div>
                         <div class="flex gap-2">
-                            <input type="text" id="pos-barcode-input" placeholder="বারকোড আইডি লিখুন (যেমন: JW-1001)" class="flex-1 px-3 py-2 rounded-xl border border-gray-300 bg-white text-sm uppercase">
+                            <input type="text" id="pos-barcode-input" placeholder="Enter Barcode ID (e.g. JW-1001)" class="flex-1 px-3 py-2 rounded-xl border border-gray-300 bg-white text-sm uppercase">
                             <button type="button" onclick="addByBarcode()" class="px-3.5 py-2 bg-gray-800 text-white font-semibold rounded-xl text-xs">
-                                <i class="fas fa-barcode mr-1"></i> স্ক্যান/যোগ
+                                <i class="fas fa-barcode mr-1"></i> Scan/Add
                             </button>
                         </div>
                     </div>
 
                     <!-- Selected Cart Items -->
                     <div>
-                        <h4 class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">বিলের তালিকা (Selected Items)</h4>
+                        <h4 class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Selected Items in Bill</h4>
                         <div id="pos-cart-list" class="space-y-2">
-                            <p class="text-xs text-gray-400 text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">বিলে কোনো গহনা যোগ করা হয়নি</p>
+                            <p class="text-xs text-gray-400 text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">No items added to bill yet</p>
                         </div>
                     </div>
 
                     <!-- Customer Details -->
                     <div class="border-t border-gray-100 pt-3 space-y-3">
-                        <h4 class="text-xs font-bold text-gray-700">ক্রেতার তথ্য (Customer Details)</h4>
+                        <h4 class="text-xs font-bold text-gray-700">Customer Details</h4>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <input type="text" id="cust-name" placeholder="ক্রেতার নাম *" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm">
-                            <input type="tel" id="cust-phone" placeholder="মোবাইল নম্বর" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm">
+                            <input type="text" id="cust-name" placeholder="Customer Name *" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm">
+                            <input type="tel" id="cust-phone" placeholder="Mobile Number" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm">
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <input type="text" id="cust-address" placeholder="ক্রেতার ঠিকানা (Address)" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm">
-                            <input type="text" id="cust-gstin" placeholder="ক্রেতার GSTIN (ঐচ্ছিক)" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm uppercase">
+                            <input type="text" id="cust-address" placeholder="Customer Address" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm">
+                            <input type="text" id="cust-gstin" placeholder="Customer GSTIN (Optional)" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm uppercase">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-500 mb-1">ছাড় (Discount ₹)</label>
+                            <label class="block text-[11px] font-bold text-gray-500 mb-1">Discount (₹)</label>
                             <input type="number" id="pos-discount" value="0" oninput="renderPosCart()" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm font-bold">
                         </div>
                     </div>
@@ -606,29 +606,29 @@
                     <!-- POS Summary Totals -->
                     <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 space-y-1.5 text-sm">
                         <div class="flex justify-between text-gray-600">
-                            <span>গহনা ও মেকিং মূল্য:</span>
-                            <span id="pos-subtotal" class="font-semibold">₹ ০</span>
+                            <span>Item & Making Value:</span>
+                            <span id="pos-subtotal" class="font-semibold">₹ 0</span>
                         </div>
                         <div class="flex justify-between text-gray-600">
-                            <span>জিএসটি (শুধুমাত্র সোনায় ৩% GST):</span>
-                            <span id="pos-gst" class="font-semibold">₹ ০</span>
+                            <span>GST (3% on Gold Items):</span>
+                            <span id="pos-gst" class="font-semibold">₹ 0</span>
                         </div>
                         <div id="pos-addon-row" class="hidden flex justify-between text-amber-900 font-semibold text-xs">
-                            <span id="pos-addon-label">+ অতিরিক্ত আইটেম (GST মুক্ত):</span>
-                            <span id="pos-addon-total">+ ₹ ০</span>
+                            <span id="pos-addon-label">+ Extra Addons (No GST):</span>
+                            <span id="pos-addon-total">+ ₹ 0</span>
                         </div>
                         <div class="flex justify-between text-red-600 text-xs">
-                            <span>ছাড় (Discount):</span>
-                            <span id="pos-disc-display">- ₹ ০</span>
+                            <span>Discount:</span>
+                            <span id="pos-disc-display">- ₹ 0</span>
                         </div>
                         <div class="border-t border-gray-300 pt-2 flex justify-between items-center text-base font-bold text-gray-900">
-                            <span>সর্বমোট প্রদেয় বিল:</span>
-                            <span id="pos-grand-total" class="text-xl text-amber-700">₹ ০</span>
+                            <span>Grand Total Payable:</span>
+                            <span id="pos-grand-total" class="text-xl text-amber-700">₹ 0</span>
                         </div>
                     </div>
 
                     <button type="button" onclick="completeSale()" class="w-full py-3.5 gold-gradient text-white font-bold rounded-xl shadow-md text-base active:scale-[0.99] transition">
-                        <i class="fas fa-check-circle mr-1"></i> বিল সম্পন্ন করুন ও ইনভয়েস দেখুন
+                        <i class="fas fa-check-circle mr-1"></i> Complete Sale & View Invoice
                     </button>
                 </div>
             </section>
@@ -636,11 +636,11 @@
             <!-- 5. SALES HISTORY VIEW -->
             <section id="view-history" class="hidden space-y-4">
                 <div class="flex items-center justify-between gap-2">
-                    <h2 class="font-bold text-lg text-gray-900">বিক্রয় খাতা (Transaction Logs)</h2>
+                    <h2 class="font-bold text-lg text-gray-900">Sales Ledger (Transaction Logs)</h2>
                     <div class="flex items-center gap-2">
-                        <span id="history-count-badge" class="text-xs bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full">0 টি বিল</span>
+                        <span id="history-count-badge" class="text-xs bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full">0 Invoices</span>
                         <button type="button" id="clear-all-sales-btn" onclick="deleteAllSales()" class="owner-only hidden text-xs bg-red-100 hover:bg-red-200 text-red-700 font-bold px-2.5 py-1 rounded-full transition">
-                            <i class="fas fa-trash-alt mr-1"></i> সব মুছুন
+                            <i class="fas fa-trash-alt mr-1"></i> Clear All
                         </button>
                     </div>
                 </div>
@@ -652,53 +652,53 @@
                 <!-- Daily Gold Rates Update -->
                 <div class="bg-white rounded-2xl border border-amber-200 p-4 shadow-sm space-y-3">
                     <h3 class="font-bold text-base text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-coins text-amber-600"></i> আজকের সোনা ও রূপার দর আপডেট (প্রতি ১০ গ্রাম)
+                        <i class="fas fa-coins text-amber-600"></i> Update Today's Gold & Silver Rates (Per 10g)
                     </h3>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">২২ ক্যারেট (১০ গ্রাম ₹)</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">22K Gold (10g ₹)</label>
                             <input type="number" id="set-rate-22k" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-bold text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">১৮ ক্যারেট (১০ গ্রাম ₹)</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">18K Gold (10g ₹)</label>
                             <input type="number" id="set-rate-18k" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-bold text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">৯ ক্যারেট (১০ গ্রাম ₹)</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">9K Gold (10g ₹)</label>
                             <input type="number" id="set-rate-9k" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-bold text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">রুপো ৬০ (১০ গ্রাম ₹)</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Silver 60 (10g ₹)</label>
                             <input type="number" id="set-rate-silver60" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-bold text-sm">
                         </div>
                         <div class="col-span-2">
-                            <label class="block text-xs font-bold text-gray-700 mb-1">রুপো ৭০ (১০ গ্রাম ₹)</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Silver 70 (10g ₹)</label>
                             <input type="number" id="set-rate-silver70" class="w-full px-3 py-2 rounded-xl border border-gray-300 font-bold text-sm">
                         </div>
                         <div class="col-span-2 bg-amber-50 p-2.5 rounded-xl border border-amber-200 space-y-2">
                             <div>
-                                <label class="block text-xs font-bold text-amber-950 mb-1">সোনার গ্লোবাল মজুরি হার (%) — ১ গ্রামের বেশি হলে প্রযোজ্য</label>
+                                <label class="block text-xs font-bold text-amber-950 mb-1">Global Gold Making Charge (%) — Above 1g</label>
                                 <input type="number" step="0.1" id="set-gold-making" class="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white font-bold text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-amber-950 mb-1">১ গ্রাম পর্যন্ত সোনার নির্দিষ্ট মজুরি (₹) — ১g বা কম ওজনে অটোমেটিক</label>
-                                <input type="number" step="1" id="set-gold-1g-making" class="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white font-bold text-sm" placeholder="যেমন: 500">
+                                <label class="block text-xs font-bold text-amber-950 mb-1">Fixed Making Charge for Gold up to 1g (₹)</label>
+                                <input type="number" step="1" id="set-gold-1g-making" class="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white font-bold text-sm" placeholder="e.g. 500">
                             </div>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">দোকানের নাম</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Shop Name</label>
                         <input type="text" id="set-shop-name" class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm font-semibold">
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">দোকানের ঠিকানা</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Shop Address</label>
                             <input type="text" id="set-shop-address" class="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">দোকানের ফোন ও GSTIN</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Shop Phone & GSTIN</label>
                             <div class="grid grid-cols-2 gap-2">
-                                <input type="text" id="set-shop-phone" placeholder="ফোন" class="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs">
+                                <input type="text" id="set-shop-phone" placeholder="Phone" class="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs">
                                 <input type="text" id="set-shop-gstin" placeholder="GSTIN" class="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs uppercase">
                             </div>
                         </div>
@@ -707,31 +707,31 @@
                     <!-- Invoice Custom Logos Upload -->
                     <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2.5">
                         <div class="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                            <i class="fas fa-image text-amber-600"></i> বিলের উপরের লোগো পরিবর্তন করুন (ঐচ্ছিক)
+                            <i class="fas fa-image text-amber-600"></i> Customize Invoice Header Logos (Optional)
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="bg-white p-2.5 rounded-xl border border-gray-200">
-                                <label class="block text-[11px] font-bold text-gray-700 mb-1.5">বামদিকের লোগো (Left Logo)</label>
+                                <label class="block text-[11px] font-bold text-gray-700 mb-1.5">Left Logo</label>
                                 <div class="flex items-center gap-2">
                                     <img id="preview-left-logo" src="" alt="Left Logo" class="hidden w-10 h-10 object-contain rounded border border-gray-200 bg-gray-50">
                                     <label class="flex-1 py-1.5 px-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-semibold text-center cursor-pointer">
-                                        <i class="fas fa-upload mr-1"></i> ছবি বাছুন
+                                        <i class="fas fa-upload mr-1"></i> Choose Image
                                         <input type="file" accept="image/*" onchange="handleLogoUpload(event, 'left')" class="hidden">
                                     </label>
-                                    <button type="button" onclick="resetInvoiceLogo('left')" class="px-2 py-1.5 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-lg text-xs" title="ডিফল্ট লোগো">
+                                    <button type="button" onclick="resetInvoiceLogo('left')" class="px-2 py-1.5 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-lg text-xs" title="Reset Default Logo">
                                         <i class="fas fa-undo"></i>
                                     </button>
                                 </div>
                             </div>
                             <div class="bg-white p-2.5 rounded-xl border border-gray-200">
-                                <label class="block text-[11px] font-bold text-gray-700 mb-1.5">ডানদিকের লোগো (Right Logo)</label>
+                                <label class="block text-[11px] font-bold text-gray-700 mb-1.5">Right Logo</label>
                                 <div class="flex items-center gap-2">
                                     <img id="preview-right-logo" src="" alt="Right Logo" class="hidden w-10 h-10 object-contain rounded border border-gray-200 bg-gray-50">
                                     <label class="flex-1 py-1.5 px-2.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-300 rounded-lg text-xs font-semibold text-center cursor-pointer">
-                                        <i class="fas fa-upload mr-1"></i> ছবি বাছুন
+                                        <i class="fas fa-upload mr-1"></i> Choose Image
                                         <input type="file" accept="image/*" onchange="handleLogoUpload(event, 'right')" class="hidden">
                                     </label>
-                                    <button type="button" onclick="resetInvoiceLogo('right')" class="px-2 py-1.5 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-lg text-xs" title="ডিফল্ট লোগো">
+                                    <button type="button" onclick="resetInvoiceLogo('right')" class="px-2 py-1.5 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-lg text-xs" title="Reset Default Logo">
                                         <i class="fas fa-undo"></i>
                                     </button>
                                 </div>
@@ -740,7 +740,7 @@
                     </div>
 
                     <button type="button" onclick="saveRatesAndShop()" class="w-full py-2.5 bg-amber-600 text-white font-bold rounded-xl text-sm shadow">
-                        দর ও তথ্য সেভ করুন
+                        Save Rates & Shop Info
                     </button>
                 </div>
 
@@ -770,11 +770,11 @@
                 <!-- Staff Management -->
                 <div class="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm space-y-3">
                     <h3 class="font-bold text-base text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-users-cog text-blue-600"></i> স্টাফ ম্যানেজমেন্ট (Staff Access)
+                        <i class="fas fa-users-cog text-blue-600"></i> Staff Management (Staff Access)
                     </h3>
                     <form onsubmit="addStaffAccount(event)" class="grid grid-cols-3 gap-2">
-                        <input type="text" id="new-staff-name" required placeholder="নাম (যেমন: রাহুল)" class="px-2.5 py-2 rounded-xl border border-gray-300 text-xs">
-                        <input type="text" id="new-staff-id" required placeholder="লগইন ID" class="px-2.5 py-2 rounded-xl border border-gray-300 text-xs">
+                        <input type="text" id="new-staff-name" required placeholder="Name (e.g. Rahul)" class="px-2.5 py-2 rounded-xl border border-gray-300 text-xs">
+                        <input type="text" id="new-staff-id" required placeholder="Login ID" class="px-2.5 py-2 rounded-xl border border-gray-300 text-xs">
                         <div class="flex gap-1">
                             <input type="text" id="new-staff-pin" required placeholder="PIN" class="w-full px-2 py-2 rounded-xl border border-gray-300 text-xs">
                             <button type="submit" class="px-3 bg-blue-600 text-white rounded-xl font-bold text-xs">+</button>
@@ -786,15 +786,15 @@
                 <!-- Data Backup & Restore -->
                 <div class="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm space-y-3">
                     <h3 class="font-bold text-base text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-database text-emerald-600"></i> ডেটা ব্যাকআপ ও রিস্টোর (JSON)
+                        <i class="fas fa-database text-emerald-600"></i> Data Backup & Restore (JSON)
                     </h3>
-                    <p class="text-xs text-gray-500">আপনার ফোনের সমস্ত স্টক এবং বিক্রয়ের হিসাব নিরাপদ রাখতে ব্যাকআপ ফাইল ডাউনলোড করে রাখুন।</p>
+                    <p class="text-xs text-gray-500">Download a backup file to keep all your stock and sales records safe.</p>
                     <div class="grid grid-cols-2 gap-2.5">
                         <button type="button" onclick="exportBackupJSON()" class="py-2.5 px-3 bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5">
-                            <i class="fas fa-download"></i> ব্যাকআপ ডাউনলোড
+                            <i class="fas fa-download"></i> Download Backup
                         </button>
                         <label class="py-2.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer border border-gray-300">
-                            <i class="fas fa-upload"></i> ব্যাকআপ রিস্টোর
+                            <i class="fas fa-upload"></i> Restore Backup
                             <input type="file" accept=".json" onchange="importBackupJSON(event)" class="hidden">
                         </label>
                     </div>
@@ -808,27 +808,27 @@
             <div class="max-w-3xl mx-auto flex justify-around items-center py-1.5 px-1">
                 <button type="button" onclick="navigateTo('dashboard')" data-nav="dashboard" class="nav-btn flex flex-col items-center p-2 text-amber-600 font-bold">
                     <i class="fas fa-home text-lg"></i>
-                    <span class="text-[11px] mt-0.5">হোম</span>
+                    <span class="text-[11px] mt-0.5">Home</span>
                 </button>
                 <button type="button" onclick="navigateTo('pos')" data-nav="pos" class="nav-btn flex flex-col items-center p-2 text-gray-500">
                     <i class="fas fa-cash-register text-lg"></i>
-                    <span class="text-[11px] mt-0.5">POS বিল</span>
+                    <span class="text-[11px] mt-0.5">POS Bill</span>
                 </button>
                 <button type="button" onclick="navigateTo('inventory')" data-nav="inventory" class="nav-btn flex flex-col items-center p-2 text-gray-500">
                     <i class="fas fa-gem text-lg"></i>
-                    <span class="text-[11px] mt-0.5">স্টক</span>
+                    <span class="text-[11px] mt-0.5">Stock</span>
                 </button>
                 <button type="button" onclick="navigateTo('calculator')" data-nav="calculator" class="nav-btn flex flex-col items-center p-2 text-gray-500">
                     <i class="fas fa-calculator text-lg"></i>
-                    <span class="text-[11px] mt-0.5">ক্যালকুলেটর</span>
+                    <span class="text-[11px] mt-0.5">Calculator</span>
                 </button>
                 <button type="button" onclick="navigateTo('history')" data-nav="history" class="nav-btn flex flex-col items-center p-2 text-gray-500">
                     <i class="fas fa-receipt text-lg"></i>
-                    <span class="text-[11px] mt-0.5">খাতা</span>
+                    <span class="text-[11px] mt-0.5">Ledger</span>
                 </button>
                 <button type="button" onclick="navigateTo('settings')" data-nav="settings" class="nav-btn owner-only flex flex-col items-center p-2 text-gray-500">
                     <i class="fas fa-cog text-lg"></i>
-                    <span class="text-[11px] mt-0.5">সেটিংস</span>
+                    <span class="text-[11px] mt-0.5">Settings</span>
                 </button>
             </div>
         </nav>
@@ -838,7 +838,7 @@
     <div id="print-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
         <div class="bg-white rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl my-auto">
             <div class="p-3 bg-gray-100 border-b flex justify-between items-center no-print">
-                <span class="font-bold text-sm text-gray-800">প্রিন্ট / ইনভয়েস প্রিভিউ</span>
+                <span class="font-bold text-sm text-gray-800">Print / Invoice Preview</span>
                 <button type="button" onclick="closePrintModal()" class="w-8 h-8 rounded-full bg-white text-gray-600 flex items-center justify-center shadow-sm">
                     <i class="fas fa-times"></i>
                 </button>
@@ -849,10 +849,10 @@
 
             <div class="p-3 bg-gray-50 border-t flex gap-2 no-print">
                 <button type="button" onclick="window.print()" class="flex-1 py-2.5 bg-amber-600 text-white font-bold rounded-xl text-sm shadow">
-                    <i class="fas fa-print mr-1"></i> প্রিন্ট / PDF সেভ
+                    <i class="fas fa-print mr-1"></i> Print / Save PDF
                 </button>
                 <button type="button" id="share-bill-btn" onclick="shareInvoiceText()" class="flex-1 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-sm shadow hidden">
-                    <i class="fas fa-copy mr-1"></i> বিল কপি করুন
+                    <i class="fas fa-copy mr-1"></i> Copy Invoice Text
                 </button>
             </div>
         </div>
@@ -863,15 +863,15 @@
         const STORAGE_KEY = 'jewelry_pos_app_data_v1';
 
         const defaultData = {
-            shopName: 'মা তারা জুয়েলার্স',
-            shopAddress: 'বড় বাজার, কলকাতা - ৭০০০০৭',
+            shopName: 'Maa Tara Jewelers',
+            shopAddress: 'Bara Bazar, Kolkata - 700007',
             shopPhone: '+91 98123 45670',
             shopGstin: '19AAICP1234K1ZP',
             leftLogo: '',
             rightLogo: '',
-            owner: { id: 'admin', pin: '1234', name: 'মালিক (Admin)' },
+            owner: { id: 'admin', pin: '1234', name: 'Owner (Admin)' },
             staffList: [
-                { id: 'মহিত', pin: '1223', name: 'মহিত (Mohit)' }
+                { id: 'mohit', pin: '1223', name: 'Mohit (Staff)' }
             ],
             rates: {
                 '22K': 72000,
@@ -885,8 +885,8 @@
             inventory: [
                 {
                     id: 'JW-1001',
-                    name: 'ময়ূর ডিজাইন সোনার আংটি',
-                    category: 'আংটি',
+                    name: 'Peacock Design Gold Ring',
+                    category: 'Ring',
                     purity: '22K',
                     grossWt: 4.550,
                     netWt: 4.500,
@@ -897,22 +897,22 @@
                     addonName: '',
                     addonPrice: 0,
                     status: 'available',
-                    addedAt: new Date().toLocaleDateString('bn-BD')
+                    addedAt: new Date().toLocaleDateString('en-GB')
                 }
             ],
             sales: [
                 {
                     invoiceNo: 'Inv-1',
                     date: new Date().toLocaleDateString('en-GB'),
-                    customerName: 'অমিত সিং (ডেমো বিল)',
+                    customerName: 'Amit Singh (Demo Bill)',
                     customerPhone: '9876543210',
-                    customerAddress: '৭৮, কলেজ স্ট্রিট, কলকাতা - ৭০০০৭৩',
+                    customerAddress: '78, College Street, Kolkata - 700073',
                     customerGstin: '',
-                    billedBy: 'মালিক (Admin)',
+                    billedBy: 'Owner (Admin)',
                     items: [
                         {
                             id: 'JW-1001',
-                            name: 'ময়ূর ডিজাইন সোনার আংটি',
+                            name: 'Peacock Design Gold Ring',
                             purity: '22K',
                             hsn: '711319',
                             grossWt: 4.550,
@@ -948,8 +948,8 @@
         if (!appData || typeof appData !== 'object') {
             appData = JSON.parse(JSON.stringify(defaultData));
         }
-        if (!appData.owner) appData.owner = { id: 'admin', pin: '1234', name: 'মালিক (Admin)' };
-        if (!Array.isArray(appData.staffList)) appData.staffList = [{ id: 'মহিত', pin: '1223', name: 'মহিত (Mohit)' }];
+        if (!appData.owner) appData.owner = { id: 'admin', pin: '1234', name: 'Owner (Admin)' };
+        if (!Array.isArray(appData.staffList)) appData.staffList = [{ id: 'mohit', pin: '1223', name: 'Mohit (Staff)' }];
         if (!appData.rates) appData.rates = { '22K': 72000, '18K': 58900, '9K': 29500, 'Silver60': 600, 'Silver70': 700 };
         if (!Array.isArray(appData.inventory)) appData.inventory = [];
         if (!Array.isArray(appData.sales)) appData.sales = [];
@@ -958,7 +958,7 @@
         if (!appData.rates.Silver70) appData.rates.Silver70 = 700;
         if (typeof appData.goldMakingPercent === 'undefined') appData.goldMakingPercent = 10;
         if (typeof appData.gold1gMakingFixed === 'undefined') appData.gold1gMakingFixed = 500;
-        if (!appData.shopAddress) appData.shopAddress = 'বড় বাজার, কলকাতা - ৭০০০০৭';
+        if (!appData.shopAddress) appData.shopAddress = 'Bara Bazar, Kolkata - 700007';
         if (!appData.shopPhone) appData.shopPhone = '+91 98123 45670';
         if (!appData.shopGstin) appData.shopGstin = '19AAICP1234K1ZP';
         if (typeof appData.leftLogo === 'undefined') appData.leftLogo = '';
@@ -1022,13 +1022,13 @@
             if (role === 'owner') {
                 tabOwner.className = 'py-2.5 text-sm font-bold rounded-lg bg-amber-600 text-white shadow transition';
                 tabStaff.className = 'py-2.5 text-sm font-bold rounded-lg text-amber-900 hover:bg-amber-200/50 transition';
-                label.textContent = 'মালিকের আইডি (Admin ID)';
-                document.getElementById('login-id').placeholder = 'যেমন: admin';
+                label.textContent = 'Admin Username';
+                document.getElementById('login-id').placeholder = 'e.g. admin';
             } else {
                 tabStaff.className = 'py-2.5 text-sm font-bold rounded-lg bg-blue-600 text-white shadow transition';
                 tabOwner.className = 'py-2.5 text-sm font-bold rounded-lg text-amber-900 hover:bg-amber-200/50 transition';
-                label.textContent = 'স্টাফ আইডি (Staff ID)';
-                document.getElementById('login-id').placeholder = 'যেমন: মহিত';
+                label.textContent = 'Staff Login ID';
+                document.getElementById('login-id').placeholder = 'e.g. mohit';
             }
         }
 
@@ -1038,11 +1038,11 @@
                 document.getElementById('login-id').value = appData.owner.id;
                 document.getElementById('login-pin').value = appData.owner.pin;
             } else {
-                const staff = (appData.staffList && appData.staffList[0]) || { id: 'মহিত', pin: '1223' };
+                const staff = (appData.staffList && appData.staffList[0]) || { id: 'mohit', pin: '1223' };
                 document.getElementById('login-id').value = staff.id;
                 document.getElementById('login-pin').value = staff.pin;
             }
-            showToast('তথ্য বসানো হয়েছে, লগইন বাটনে চাপ দিন');
+            showToast('Credentials auto-filled, click Login button');
         }
 
         function handleLogin(e) {
@@ -1055,7 +1055,7 @@
                     currentUser = { role: 'owner', name: appData.owner.name, id: appData.owner.id };
                     initAppSession();
                 } else {
-                    showToast('ভুল মালিক আইডি বা পিন!', true);
+                    showToast('Invalid Admin Username or Password!', true);
                 }
             } else {
                 const matchedStaff = (appData.staffList || []).find(s => {
@@ -1070,7 +1070,7 @@
                 } else {
                     const hintStaff = (appData.staffList && appData.staffList[0]);
                     const hintText = hintStaff ? ` (ID: ${hintStaff.id} | PIN: ${hintStaff.pin})` : '';
-                    showToast('ভুল স্টাফ আইডি বা পিন!' + hintText, true);
+                    showToast('Invalid Staff ID or PIN!' + hintText, true);
                 }
             }
         }
@@ -1085,16 +1085,16 @@
             const ownerElements = document.querySelectorAll('.owner-only');
 
             if (currentUser.role === 'owner') {
-                badge.textContent = 'মালিক (Admin)';
+                badge.textContent = 'Owner (Admin)';
                 badge.className = 'px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800';
                 ownerElements.forEach(el => el.classList.remove('hidden'));
             } else {
-                badge.textContent = 'স্টাফ (POS)';
+                badge.textContent = 'Staff (POS)';
                 badge.className = 'px-2 py-0.5 rounded-full font-semibold bg-blue-100 text-blue-800';
                 ownerElements.forEach(el => el.classList.add('hidden'));
             }
 
-            showToast(`স্বাগতম, ${currentUser.name}!`);
+            showToast(`Welcome, ${currentUser.name}!`);
             navigateTo('dashboard');
         }
 
@@ -1110,7 +1110,7 @@
         // --- 4. NAVIGATION ---
         function navigateTo(viewName) {
             if (viewName === 'settings' && currentUser && currentUser.role !== 'owner') {
-                showToast('শুধুমাত্র মালিক এই সেকশনে প্রবেশ করতে পারবেন', true);
+                showToast('Only Owner can access Settings', true);
                 return;
             }
 
@@ -1155,8 +1155,8 @@
             const select = document.getElementById('calc-stock-select');
             if (!select) return;
             const currentVal = select.value;
-            select.innerHTML = `<option value="">-- স্টক থেকে গহনা বাছুন (${appData.inventory.length} টি) --</option>` +
-                appData.inventory.map(i => `<option value="${i.id}">${i.id} - ${i.name} (${i.netWt}g | ${getMetalLabel(i.purity)})${i.status === 'sold' ? ' [বিক্রিত]' : ''}</option>`).join('');
+            select.innerHTML = `<option value="">-- Select Jewelry from Stock (${appData.inventory.length} pcs) --</option>` +
+                appData.inventory.map(i => `<option value="${i.id}">${i.id} - ${i.name} (${i.netWt}g | ${getMetalLabel(i.purity)})${i.status === 'sold' ? ' [Sold]' : ''}</option>`).join('');
             if (currentVal && appData.inventory.some(i => i.id === currentVal)) {
                 select.value = currentVal;
             }
@@ -1165,12 +1165,12 @@
         function lookupBarcodeInCalculator() {
             const code = (document.getElementById('calc-barcode-input').value || '').trim().toUpperCase();
             if (!code) {
-                showToast('অনুগ্রহ করে বারকোড আইডি লিখুন', true);
+                showToast('Please enter a Barcode ID', true);
                 return;
             }
             const item = appData.inventory.find(i => i.id.toUpperCase() === code || (i.huid && i.huid.toUpperCase() === code));
             if (!item) {
-                showToast('এই বারকোড বা HUID-এর কোনো গহনা স্টকে নেই!', true);
+                showToast('No item found in stock with this Barcode or HUID!', true);
                 return;
             }
             document.getElementById('calc-stock-select').value = item.id;
@@ -1193,13 +1193,13 @@
             if (banner) {
                 banner.classList.remove('hidden');
                 document.getElementById('calc-loaded-title').textContent = `${item.name} (${item.id})`;
-                document.getElementById('calc-loaded-meta').textContent = `ক্যাটেগরি: ${item.category} • HUID: ${item.huid} • গ্রস: ${item.grossWt}g`;
+                document.getElementById('calc-loaded-meta').textContent = `Category: ${item.category} • HUID: ${item.huid} • Gross Wt: ${item.grossWt}g`;
                 const statusEl = document.getElementById('calc-loaded-status');
                 if (item.status === 'sold') {
-                    statusEl.textContent = 'বিক্রিত (Sold)';
+                    statusEl.textContent = 'Sold';
                     statusEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700';
                 } else {
-                    statusEl.textContent = 'মজুত (Available)';
+                    statusEl.textContent = 'Available';
                     statusEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800';
                 }
             }
@@ -1217,7 +1217,7 @@
             document.getElementById('calc-addon-price').value = item.addonPrice || '';
 
             calculateJewelryPrice();
-            showToast(`${item.name} (${item.id})-এর হিসাব লোড হয়েছে`);
+            showToast(`Estimate loaded for ${item.name} (${item.id})`);
         }
 
         function clearCalculatorStock() {
@@ -1280,7 +1280,7 @@
                 const remAfterAna = remAfterVori % 60;
                 const roti = Math.floor(remAfterAna / 10);
                 const point = remAfterAna % 10;
-                document.getElementById('calc-vori-output').textContent = `${toBengaliDigits(vori)} ভরি ${toBengaliDigits(ana)} আনা ${toBengaliDigits(roti)} রতি ${toBengaliDigits(point)} পয়েন্ট`;
+                document.getElementById('calc-vori-output').textContent = `${vori} Vori ${ana} Ana ${roti} Roti ${point} Point`;
 
                 const isSilver = isSilverPurity(tempItem.purity);
                 const isMisc = isMiscellaneous(tempItem.purity);
@@ -1289,19 +1289,19 @@
                 const sgstAmt = gstAmt / 2;
                 const grandTotal = billing.baseItemCost + gstAmt + addonPrice;
 
-                document.getElementById('calc-est-rate-badge').textContent = isMisc ? 'নির্দিষ্ট দাম' : `রেট: ${fmtExact(billing.ratePerGram)}/গ্রাম`;
+                document.getElementById('calc-est-rate-badge').textContent = isMisc ? 'Fixed Price' : `Rate: ${fmtExact(billing.ratePerGram)}/g`;
                 document.getElementById('calc-est-wt').textContent = `${getMetalLabel(tempItem.purity)} • ${grams.toFixed(3)}g`;
                 document.getElementById('calc-est-rate').textContent = fmtExact(billing.ratePerGram);
 
                 document.getElementById('calc-metal-price').textContent = fmtExact(billing.metalCost);
                 document.getElementById('calc-making-label-row').textContent = isMisc
-                    ? '২. আইটেমের নির্দিষ্ট মূল্য:'
-                    : `২. মেকিং চার্জ / মজুরি (${billing.makingLabel}):`;
+                    ? '2. Fixed Item Price:'
+                    : `2. Making Charges (${billing.makingLabel}):`;
                 document.getElementById('calc-making-price').textContent = fmtExact(billing.makingCost);
                 document.getElementById('calc-taxable-price').textContent = fmtExact(billing.baseItemCost);
 
-                document.getElementById('calc-cgst-label').textContent = (isSilver || isMisc) ? '৩. CGST (০%):' : '৩. CGST (১.৫%):';
-                document.getElementById('calc-sgst-label').textContent = (isSilver || isMisc) ? '৪. SGST (০%):' : '৪. SGST (১.৫%):';
+                document.getElementById('calc-cgst-label').textContent = (isSilver || isMisc) ? '3. CGST (0%):' : '3. CGST (1.5%):';
+                document.getElementById('calc-sgst-label').textContent = (isSilver || isMisc) ? '4. SGST (0%):' : '4. SGST (1.5%):';
                 document.getElementById('calc-cgst-price').textContent = fmtExact(cgstAmt);
                 document.getElementById('calc-sgst-price').textContent = fmtExact(sgstAmt);
 
@@ -1309,7 +1309,7 @@
                 if (addonRow) {
                     if (addonPrice > 0) {
                         addonRow.classList.remove('hidden');
-                        document.getElementById('calc-addon-label').textContent = `+ ${addonName || 'অতিরিক্ত আইটেম'} (GST মুক্ত):`;
+                        document.getElementById('calc-addon-label').textContent = `+ ${addonName || 'Extra Addon'} (No GST):`;
                         document.getElementById('calc-addon-display').textContent = '+ ' + fmtExact(addonPrice);
                     } else {
                         addonRow.classList.add('hidden');
@@ -1333,7 +1333,7 @@
             const roti = Math.floor(remAfterAna / 10);
             const point = remAfterAna % 10;
 
-            document.getElementById('calc-vori-output').textContent = `${toBengaliDigits(vori)} ভরি ${toBengaliDigits(ana)} আনা ${toBengaliDigits(roti)} রতি ${toBengaliDigits(point)} পয়েন্ট`;
+            document.getElementById('calc-vori-output').textContent = `${vori} Vori ${ana} Ana ${roti} Roti ${point} Point`;
 
             const ratePerGram = (appData.rates[purity] || 0) / 10;
             const metalCost = grams * ratePerGram;
@@ -1346,19 +1346,19 @@
             const sgstAmt = gstAmt / 2;
             const totalPrice = taxableCost + gstAmt + addonPrice;
 
-            document.getElementById('calc-est-rate-badge').textContent = `রেট: ${fmtExact(ratePerGram)}/গ্রাম`;
+            document.getElementById('calc-est-rate-badge').textContent = `Rate: ${fmtExact(ratePerGram)}/g`;
             document.getElementById('calc-est-wt').textContent = `${getMetalLabel(purity)} • ${grams.toFixed(3)}g`;
             document.getElementById('calc-est-rate').textContent = fmtExact(ratePerGram);
 
             document.getElementById('calc-metal-price').textContent = fmtExact(metalCost);
             document.getElementById('calc-making-label-row').textContent = isGold1g
-                ? `২. মেকিং চার্জ / মজুরি (১g পর্যন্ত নির্দিষ্ট):`
-                : `২. মেকিং চার্জ / মজুরি (${makingPct}%):`;
+                ? `2. Making Charges (Fixed up to 1g):`
+                : `2. Making Charges (${makingPct}%):`;
             document.getElementById('calc-making-price').textContent = fmtExact(makingCost);
             document.getElementById('calc-taxable-price').textContent = fmtExact(taxableCost);
 
-            document.getElementById('calc-cgst-label').textContent = isSilver ? '৩. CGST (০%):' : '৩. CGST (১.৫%):';
-            document.getElementById('calc-sgst-label').textContent = isSilver ? '৪. SGST (০%):' : '৪. SGST (১.৫%):';
+            document.getElementById('calc-cgst-label').textContent = isSilver ? '3. CGST (0%):' : '3. CGST (1.5%):';
+            document.getElementById('calc-sgst-label').textContent = isSilver ? '4. SGST (0%):' : '4. SGST (1.5%):';
             document.getElementById('calc-cgst-price').textContent = fmtExact(cgstAmt);
             document.getElementById('calc-sgst-price').textContent = fmtExact(sgstAmt);
 
@@ -1366,7 +1366,7 @@
             if (addonRow) {
                 if (addonPrice > 0) {
                     addonRow.classList.remove('hidden');
-                    document.getElementById('calc-addon-label').textContent = `+ ${addonName || 'অতিরিক্ত আইটেম'} (GST মুক্ত):`;
+                    document.getElementById('calc-addon-label').textContent = `+ ${addonName || 'Extra Addon'} (No GST):`;
                     document.getElementById('calc-addon-display').textContent = '+ ' + fmtExact(addonPrice);
                 } else {
                     addonRow.classList.add('hidden');
@@ -1374,11 +1374,6 @@
             }
 
             document.getElementById('calc-total-price').textContent = formatCurrency(totalPrice);
-        }
-
-        function toBengaliDigits(num) {
-            const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-            return String(num).replace(/\d/g, d => bn[d]);
         }
 
         function normalizeDigits(str) {
@@ -1390,15 +1385,15 @@
             const titleEl = document.getElementById('staff-demo-title');
             const infoEl = document.getElementById('staff-demo-info');
             if (!titleEl || !infoEl) return;
-            const staff = (appData.staffList && appData.staffList[0]) || { id: 'মহিত', pin: '1223', name: 'মহিত (Mohit)' };
-            titleEl.textContent = `স্টাফ লগইন (${staff.name})`;
+            const staff = (appData.staffList && appData.staffList[0]) || { id: 'mohit', pin: '1223', name: 'Mohit (Staff)' };
+            titleEl.textContent = `Staff Login (${staff.name})`;
             infoEl.textContent = `ID: ${staff.id} | PIN: ${staff.pin}`;
         }
 
         function getMetalLabel(purity) {
-            if (purity === 'Silver60') return 'রুপো ৬০';
-            if (purity === 'Silver70') return 'রুপো ৭০';
-            if (purity === 'Miscellaneous') return 'অন্যান্য (নির্দিষ্ট টাকা)';
+            if (purity === 'Silver60') return 'Silver 60';
+            if (purity === 'Silver70') return 'Silver 70';
+            if (purity === 'Miscellaneous') return 'Misc (Fixed Price)';
             return purity;
         }
 
@@ -1412,7 +1407,7 @@
 
         function toggleAddStockForm() {
             if (!currentUser || currentUser.role !== 'owner') {
-                showToast('শুধুমাত্র মালিক নতুন স্টক যোগ করতে পারবেন', true);
+                showToast('Only Owner can add new stock items', true);
                 return;
             }
             const card = document.getElementById('add-stock-card');
@@ -1429,25 +1424,25 @@
             const input = document.getElementById('item-making');
 
             if (isMiscellaneous(purity)) {
-                label.textContent = 'আইটেমের মোট নির্দিষ্ট দাম (টাকা ₹) — যেমন: শাখা বা পলা *';
+                label.textContent = 'Fixed Item Price (₹) — e.g. Shakha or Pala *';
                 input.readOnly = false;
                 input.dataset.mode = 'misc';
-                input.placeholder = 'যেমন: 1200';
+                input.placeholder = 'e.g. 1200';
                 input.className = 'w-full px-3 py-2.5 rounded-xl border border-amber-500 bg-white text-gray-900 text-sm font-bold';
             } else if (isSilverPurity(purity)) {
-                label.textContent = 'রুপোর নির্দিষ্ট মজুরি (টাকা ₹) *';
+                label.textContent = 'Fixed Silver Making Charge (₹) *';
                 input.readOnly = false;
                 input.dataset.mode = 'silver';
-                input.placeholder = 'যেমন: 200';
+                input.placeholder = 'e.g. 200';
                 input.className = 'w-full px-3 py-2.5 rounded-xl border border-amber-400 bg-white text-gray-900 text-sm font-bold';
             } else if (netWt > 0 && netWt <= 1) {
-                label.textContent = `১ গ্রাম পর্যন্ত সোনার মজুরি (₹${appData.gold1gMakingFixed}) — অটোমেটিক`;
+                label.textContent = `Gold Making up to 1g (₹${appData.gold1gMakingFixed}) — Auto Applied`;
                 input.readOnly = true;
                 input.dataset.mode = 'gold1g';
                 input.value = appData.gold1gMakingFixed;
                 input.className = 'w-full px-3 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-sm font-bold';
             } else {
-                label.textContent = `সোনার গ্লোবাল মজুরি (${appData.goldMakingPercent}%) — সেটিংস থেকে অটোমেটিক`;
+                label.textContent = `Global Gold Making (${appData.goldMakingPercent}%) — Auto Applied from Settings`;
                 input.readOnly = true;
                 input.dataset.mode = 'gold';
                 input.value = appData.goldMakingPercent;
@@ -1460,7 +1455,7 @@
         function addStockItem(e) {
             e.preventDefault();
             if (!currentUser || currentUser.role !== 'owner') {
-                showToast('শুধুমাত্র মালিক নতুন স্টক যোগ করতে পারবেন', true);
+                showToast('Only Owner can add new stock items', true);
                 return;
             }
             const nextNum = 1001 + appData.inventory.length;
@@ -1489,7 +1484,7 @@
                 addonName: addonName,
                 addonPrice: addonPrice,
                 status: 'available',
-                addedAt: new Date().toLocaleDateString('bn-BD')
+                addedAt: new Date().toLocaleDateString('en-GB')
             };
 
             appData.inventory.unshift(newItem);
@@ -1498,18 +1493,18 @@
             toggleStockMakingField();
             toggleAddStockForm();
             renderInventory();
-            showToast(`নতুন গহনা (${newId}) স্টকে যোগ হয়েছে!`);
+            showToast(`New item (${newId}) added to stock!`);
             openBarcodeModal(newId);
         }
 
         function deleteStockItem(id) {
             if (!currentUser || currentUser.role !== 'owner') return;
-            askConfirm(`আপনি কি নিশ্চিতভাবে ${id} গহনাটি স্টক থেকে মুছে ফেলতে চান?`, () => {
+            askConfirm(`Are you sure you want to delete ${id} from stock?`, () => {
                 appData.inventory = appData.inventory.filter(i => i.id !== id);
                 saveData();
                 renderInventory();
                 updateDashboard();
-                showToast('গহনাটি স্টক থেকে মুছে ফেলা হয়েছে');
+                showToast('Item removed from stock');
             });
         }
 
@@ -1521,10 +1516,10 @@
             const metalStats = getAvailableMetalStats();
             const invGoldTotal = document.getElementById('inv-gold-total');
             if (invGoldTotal) {
-                invGoldTotal.textContent = metalStats.goldWeight.toFixed(3) + ' গ্রাম';
+                invGoldTotal.textContent = metalStats.goldWeight.toFixed(3) + ' g';
                 document.getElementById('inv-gold-sub').textContent = `22K: ${metalStats.w22.toFixed(3)}g | 18K: ${metalStats.w18.toFixed(3)}g | 9K: ${metalStats.w9.toFixed(3)}g`;
-                document.getElementById('inv-silver-total').textContent = metalStats.silverWeight.toFixed(3) + ' গ্রাম';
-                document.getElementById('inv-silver-sub').textContent = `রুপো ৬০: ${metalStats.wS60.toFixed(3)}g | রুপো ৭০: ${metalStats.wS70.toFixed(3)}g`;
+                document.getElementById('inv-silver-total').textContent = metalStats.silverWeight.toFixed(3) + ' g';
+                document.getElementById('inv-silver-sub').textContent = `Silver 60: ${metalStats.wS60.toFixed(3)}g | Silver 70: ${metalStats.wS70.toFixed(3)}g`;
             }
 
             const filtered = appData.inventory.filter(item => {
@@ -1536,7 +1531,7 @@
             });
 
             if (filtered.length === 0) {
-                list.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl border border-gray-200 text-gray-400 text-sm">কোনো গহনা পাওয়া যায়নি</div>`;
+                list.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl border border-gray-200 text-gray-400 text-sm">No items found</div>`;
                 return;
             }
 
@@ -1545,16 +1540,16 @@
                 const isMisc = isMiscellaneous(item.purity);
                 const isSilver = isSilverPurity(item.purity);
                 const isGold1g = !isMisc && !isSilver && parseFloat(item.netWt) > 0 && parseFloat(item.netWt) <= 1;
-                const addonText = (item.addonPrice > 0) ? ` + ${item.addonName || 'অতিরিক্ত'}: ₹${item.addonPrice}` : '';
+                const addonText = (item.addonPrice > 0) ? ` + ${item.addonName || 'Addon'}: ₹${item.addonPrice}` : '';
                 const makingDisplay = isMisc
-                    ? `নির্দিষ্ট দাম: ₹ ${item.fixedPrice || 0}${addonText}`
+                    ? `Fixed Price: ₹ ${item.fixedPrice || 0}${addonText}`
                     : (isSilver
-                        ? `₹ ${item.makingValue ?? 0} (নির্দিষ্ট)${addonText}`
+                        ? `₹ ${item.makingValue ?? 0} (Fixed)${addonText}`
                         : (isGold1g
-                            ? `₹ ${appData.gold1gMakingFixed} (১g অটো)${addonText}`
-                            : `${appData.goldMakingPercent}% (গ্লোবাল)${addonText}`));
+                            ? `₹ ${appData.gold1gMakingFixed} (1g Auto)${addonText}`
+                            : `${appData.goldMakingPercent}% (Global)${addonText}`));
                 const deleteBtn = (currentUser && currentUser.role === 'owner')
-                    ? `<button type="button" onclick="deleteStockItem('${item.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="মুছে ফেলুন"><i class="fas fa-trash-alt"></i></button>`
+                    ? `<button type="button" onclick="deleteStockItem('${item.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Delete"><i class="fas fa-trash-alt"></i></button>`
                     : '';
 
                 return `
@@ -1564,19 +1559,19 @@
                             <div class="flex items-center gap-2">
                                 <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900">${item.id}</span>
                                 <span class="text-xs font-bold px-2 py-0.5 rounded ${isSold ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}">
-                                    ${isSold ? 'বিক্রিত (Sold)' : 'মজুত (Available)'}
+                                    ${isSold ? 'Sold' : 'Available'}
                                 </span>
                                 <span class="text-xs font-semibold text-gray-500">${getMetalLabel(item.purity)}</span>
                             </div>
                             <h4 class="font-bold text-gray-900 text-base mt-1">${item.name} <span class="text-xs font-normal text-gray-500">(${item.category})</span></h4>
                             <div class="text-xs text-gray-600 mt-1 space-y-0.5">
-                                <div>ওজন: <strong class="text-gray-900">${item.netWt.toFixed(3)} গ্রাম</strong></div>
-                                <div>HUID: <span class="font-mono font-semibold">${item.huid}</span> | দাম/মজুরি: <strong>${makingDisplay}</strong></div>
+                                <div>Net Weight: <strong class="text-gray-900">${item.netWt.toFixed(3)} g</strong></div>
+                                <div>HUID: <span class="font-mono font-semibold">${item.huid}</span> | Rate/Making: <strong>${makingDisplay}</strong></div>
                             </div>
                         </div>
                         <div class="flex flex-col items-end gap-1">
                             <button type="button" onclick="openBarcodeModal('${item.id}')" class="px-2.5 py-1.5 bg-gray-900 text-white rounded-xl text-xs font-semibold flex items-center gap-1 shadow-sm">
-                                <i class="fas fa-barcode"></i> ট্যাগ
+                                <i class="fas fa-barcode"></i> Tag
                             </button>
                             ${deleteBtn}
                         </div>
@@ -1584,8 +1579,8 @@
                     <!-- Inline Mini Barcode Preview directly inside Stock Card -->
                     <div class="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between bg-gray-50/80 px-2.5 py-1.5 rounded-xl">
                         <div class="text-[11px] text-gray-600">
-                            <div>ট্যাগ আইডি: <strong class="font-mono text-gray-900">${item.id}</strong></div>
-                            <div>আজকের দর অনুযায়ী আনুমানিক: <strong class="text-amber-800">${formatCurrency(calculateItemBilling(item).totalItemCost)}</strong></div>
+                            <div>Tag ID: <strong class="font-mono text-gray-900">${item.id}</strong></div>
+                            <div>Est. Value Today: <strong class="text-amber-800">${formatCurrency(calculateItemBilling(item).totalItemCost)}</strong></div>
                         </div>
                         <div class="bg-white px-2 py-0.5 rounded border border-gray-200">
                             <svg class="stock-inline-barcode" data-code="${item.id}"></svg>
@@ -1624,15 +1619,15 @@
                 <div class="max-w-xs mx-auto border-2 border-dashed border-gray-400 p-4 rounded-xl text-center bg-white">
                     <div class="text-xs font-extrabold text-amber-900 uppercase">${appData.shopName}</div>
                     <div class="font-bold text-base text-gray-900 mt-0.5">${item.name}</div>
-                    <div class="text-xs text-gray-700 mt-1">ধাতু: <strong>${getMetalLabel(item.purity)}</strong> | নিট ওজন: <strong>${item.netWt.toFixed(3)}g</strong></div>
-                    ${item.grossWt && item.grossWt !== item.netWt ? `<div class="text-[11px] text-gray-600">গ্রস ওজন: ${item.grossWt.toFixed(3)}g</div>` : ''}
+                    <div class="text-xs text-gray-700 mt-1">Metal: <strong>${getMetalLabel(item.purity)}</strong> | Net Wt: <strong>${item.netWt.toFixed(3)}g</strong></div>
+                    ${item.grossWt && item.grossWt !== item.netWt ? `<div class="text-[11px] text-gray-600">Gross Wt: ${item.grossWt.toFixed(3)}g</div>` : ''}
                     ${item.huid && item.huid !== 'N/A' ? `<div class="text-xs font-mono font-bold text-gray-800 mt-0.5">HUID: ${item.huid}</div>` : ''}
-                    ${item.addonPrice > 0 ? `<div class="text-[11px] text-amber-900 font-semibold mt-0.5">+ ${item.addonName || 'অতিরিক্ত'}: ₹${item.addonPrice}</div>` : ''}
+                    ${item.addonPrice > 0 ? `<div class="text-[11px] text-amber-900 font-semibold mt-0.5">+ ${item.addonName || 'Addon'}: ₹${item.addonPrice}</div>` : ''}
                     <div class="my-2.5 flex justify-center bg-white p-1">
                         <svg id="barcode-svg"></svg>
                     </div>
                     <div class="text-[11px] font-bold text-gray-700 border-t border-gray-200 pt-1.5">
-                        আনুমানিক মূল্য: ${formatCurrency(estCalc.totalItemCost)}
+                        Estimated Value: ${formatCurrency(estCalc.totalItemCost)}
                     </div>
                 </div>
             `;
@@ -1667,7 +1662,7 @@
             const totalPoints = (vori * 960) + (ana * 60) + (roti * 10) + point;
             const grams = (totalPoints / 960) * 11.664;
 
-            document.getElementById('calc-gram-output').textContent = grams.toFixed(3) + ' গ্রাম';
+            document.getElementById('calc-gram-output').textContent = grams.toFixed(3) + ' g';
             document.getElementById('calc-grams').value = grams.toFixed(3);
             calculateJewelryPrice();
         }
@@ -1712,35 +1707,35 @@
 
         function updateDashboard() {
             document.getElementById('dash-rate-22k').textContent = formatCurrency(appData.rates['22K']);
-            document.getElementById('dash-vori-22k').textContent = 'ভরি: ' + formatCurrency(appData.rates['22K'] * 1.1664);
+            document.getElementById('dash-vori-22k').textContent = 'Vori: ' + formatCurrency(appData.rates['22K'] * 1.1664);
             document.getElementById('dash-rate-18k').textContent = formatCurrency(appData.rates['18K']);
-            document.getElementById('dash-vori-18k').textContent = 'ভরি: ' + formatCurrency(appData.rates['18K'] * 1.1664);
+            document.getElementById('dash-vori-18k').textContent = 'Vori: ' + formatCurrency(appData.rates['18K'] * 1.1664);
             document.getElementById('dash-rate-9k').textContent = formatCurrency(appData.rates['9K']);
-            document.getElementById('dash-vori-9k').textContent = 'ভরি: ' + formatCurrency(appData.rates['9K'] * 1.1664);
+            document.getElementById('dash-vori-9k').textContent = 'Vori: ' + formatCurrency(appData.rates['9K'] * 1.1664);
             document.getElementById('dash-rate-silver60').textContent = formatCurrency(appData.rates['Silver60']);
-            document.getElementById('dash-vori-silver60').textContent = 'ভরি: ' + formatCurrency(appData.rates['Silver60'] * 1.1664);
+            document.getElementById('dash-vori-silver60').textContent = 'Vori: ' + formatCurrency(appData.rates['Silver60'] * 1.1664);
             document.getElementById('dash-rate-silver70').textContent = formatCurrency(appData.rates['Silver70']);
-            document.getElementById('dash-vori-silver70').textContent = 'ভরি: ' + formatCurrency(appData.rates['Silver70'] * 1.1664);
+            document.getElementById('dash-vori-silver70').textContent = 'Vori: ' + formatCurrency(appData.rates['Silver70'] * 1.1664);
 
             const metalStats = getAvailableMetalStats();
-            document.getElementById('stat-stock-count').textContent = metalStats.availableCount + ' টি';
-            document.getElementById('stat-stock-weight').textContent = 'মোট ওজন: ' + metalStats.totalWeight.toFixed(3) + ' গ্রাম';
+            document.getElementById('stat-stock-count').textContent = metalStats.availableCount + ' pcs';
+            document.getElementById('stat-stock-weight').textContent = 'Total Wt: ' + metalStats.totalWeight.toFixed(3) + ' g';
 
-            document.getElementById('stat-gold-count').textContent = metalStats.goldCount + ' টি';
-            document.getElementById('stat-gold-weight').textContent = metalStats.goldWeight.toFixed(3) + ' গ্রাম';
+            document.getElementById('stat-gold-count').textContent = metalStats.goldCount + ' pcs';
+            document.getElementById('stat-gold-weight').textContent = metalStats.goldWeight.toFixed(3) + ' g';
             document.getElementById('stat-gold-breakdown').textContent = `22K: ${metalStats.w22.toFixed(3)}g | 18K: ${metalStats.w18.toFixed(3)}g | 9K: ${metalStats.w9.toFixed(3)}g`;
 
-            document.getElementById('stat-silver-count').textContent = metalStats.silverCount + ' টি';
-            document.getElementById('stat-silver-weight').textContent = metalStats.silverWeight.toFixed(3) + ' গ্রাম';
-            document.getElementById('stat-silver-breakdown').textContent = `রুপো ৬০: ${metalStats.wS60.toFixed(3)}g | রুপো ৭০: ${metalStats.wS70.toFixed(3)}g`;
+            document.getElementById('stat-silver-count').textContent = metalStats.silverCount + ' pcs';
+            document.getElementById('stat-silver-weight').textContent = metalStats.silverWeight.toFixed(3) + ' g';
+            document.getElementById('stat-silver-breakdown').textContent = `Silver 60: ${metalStats.wS60.toFixed(3)}g | Silver 70: ${metalStats.wS70.toFixed(3)}g`;
 
             const totalSalesAmt = appData.sales.reduce((acc, s) => acc + (s.grandTotal || 0), 0);
             document.getElementById('stat-sales-total').textContent = formatCurrency(totalSalesAmt);
-            document.getElementById('stat-sales-count').textContent = 'মোট বিল: ' + appData.sales.length + ' টি';
+            document.getElementById('stat-sales-count').textContent = 'Total Invoices: ' + appData.sales.length;
 
             const recentContainer = document.getElementById('dash-recent-sales');
             if (appData.sales.length === 0) {
-                recentContainer.innerHTML = `<p class="text-gray-400 text-center py-4 text-xs">এখনও কোনো বিক্রয় রেকর্ড নেই</p>`;
+                recentContainer.innerHTML = `<p class="text-gray-400 text-center py-4 text-xs">No sales records yet</p>`;
             } else {
                 recentContainer.innerHTML = appData.sales.slice(0, 3).map(sale => `
                     <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-100">
@@ -1758,7 +1753,7 @@
         function initPosView() {
             const select = document.getElementById('pos-item-select');
             const available = appData.inventory.filter(i => i.status === 'available' && !posCart.some(c => c.id === i.id));
-            select.innerHTML = `<option value="">-- মজুত গহনা বেছে নিন (${available.length} টি) --</option>` +
+            select.innerHTML = `<option value="">-- Choose Available Item (${available.length} pcs) --</option>` +
                 available.map(i => `<option value="${i.id}">${i.id} - ${i.name} (${i.netWt}g | ${getMetalLabel(i.purity)})</option>`).join('');
             renderPosCart();
         }
@@ -1766,7 +1761,7 @@
         function addSelectedToCart() {
             const id = document.getElementById('pos-item-select').value;
             if (!id) {
-                showToast('অনুগ্রহ করে তালিকা থেকে একটি গহনা বা শাখা বেছে নিন', true);
+                showToast('Please select an item from the list', true);
                 return;
             }
             addItemToPosCart(id);
@@ -1782,21 +1777,21 @@
         function addItemToPosCart(id) {
             const item = appData.inventory.find(i => i.id.toUpperCase() === id.toUpperCase());
             if (!item) {
-                showToast('এই আইডির কোনো গহনা স্টকে নেই!', true);
+                showToast('No item found in stock with this ID!', true);
                 return;
             }
             if (item.status === 'sold') {
-                showToast('এই গহনাটি ইতিমধ্যে বিক্রি হয়ে গেছে!', true);
+                showToast('This item has already been sold!', true);
                 return;
             }
             if (posCart.some(c => c.id === item.id)) {
-                showToast('গহনাটি ইতিমধ্যে বিলে যোগ করা আছে', true);
+                showToast('Item is already added to the bill', true);
                 return;
             }
 
             posCart.push(item);
             initPosView();
-            showToast(`${item.name} বিলে যোগ হয়েছে`);
+            showToast(`${item.name} added to bill`);
         }
 
         function removeFromCart(id) {
@@ -1816,7 +1811,7 @@
                     makingCost: baseFixed,
                     addonName,
                     addonPrice,
-                    makingLabel: `₹${Math.round(baseFixed)} (নির্দিষ্ট দাম)`,
+                    makingLabel: `₹${Math.round(baseFixed)} (Fixed Price)`,
                     baseItemCost: baseFixed,
                     totalItemCost: baseFixed + addonPrice
                 };
@@ -1844,7 +1839,7 @@
                 addonPrice,
                 makingLabel: isSilver
                     ? `₹${Math.round(baseMakingCost)}`
-                    : (hasCustomPct ? `${item.customMakingPct}%` : (isGold1g ? `₹${Math.round(baseMakingCost)} (১g)` : `${appData.goldMakingPercent}%`)),
+                    : (hasCustomPct ? `${item.customMakingPct}%` : (isGold1g ? `₹${Math.round(baseMakingCost)} (1g)` : `${appData.goldMakingPercent}%`)),
                 baseItemCost,
                 totalItemCost: baseItemCost + addonPrice
             };
@@ -1854,12 +1849,12 @@
             const container = document.getElementById('pos-cart-list');
             const addonRow = document.getElementById('pos-addon-row');
             if (posCart.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">বিলে কোনো গহনা যোগ করা হয়নি</p>`;
-                document.getElementById('pos-subtotal').textContent = '₹ ০';
-                document.getElementById('pos-gst').textContent = '₹ ০';
+                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">No items added to bill yet</p>`;
+                document.getElementById('pos-subtotal').textContent = '₹ 0';
+                document.getElementById('pos-gst').textContent = '₹ 0';
                 if (addonRow) addonRow.classList.add('hidden');
-                document.getElementById('pos-disc-display').textContent = '- ₹ ০';
-                document.getElementById('pos-grand-total').textContent = '₹ ০';
+                document.getElementById('pos-disc-display').textContent = '- ₹ 0';
+                document.getElementById('pos-grand-total').textContent = '₹ 0';
                 return;
             }
 
@@ -1873,19 +1868,19 @@
                 baseSubtotal += calc.baseItemCost;
                 totalAddonPrice += calc.addonPrice;
                 if (calc.addonPrice > 0) {
-                    addonNames.push(calc.addonName || 'অতিরিক্ত');
+                    addonNames.push(calc.addonName || 'Addon');
                 }
                 if (!isSilverPurity(item.purity) && !isMiscellaneous(item.purity)) {
                     goldTaxableTotal += calc.baseItemCost;
                 }
                 const addonTag = calc.addonPrice > 0
-                    ? `<div class="text-[11px] font-semibold text-amber-800">+ ${calc.addonName || 'অতিরিক্ত'}: ${formatCurrency(calc.addonPrice)} (GST মুক্ত)</div>`
+                    ? `<div class="text-[11px] font-semibold text-amber-800">+ ${calc.addonName || 'Addon'}: ${formatCurrency(calc.addonPrice)} (No GST)</div>`
                     : '';
                 return `
                 <div class="flex items-center justify-between p-2.5 bg-amber-50/60 border border-amber-200 rounded-xl">
                     <div>
                         <div class="font-bold text-gray-900 text-xs">${item.name} <span class="text-amber-800">(${item.id})</span></div>
-                        <div class="text-[11px] text-gray-600">${getMetalLabel(item.purity)} | ওজন: ${item.netWt}g | গহনার মূল্য: ${formatCurrency(calc.baseItemCost)}</div>
+                        <div class="text-[11px] text-gray-600">${getMetalLabel(item.purity)} | Wt: ${item.netWt}g | Item Value: ${formatCurrency(calc.baseItemCost)}</div>
                         ${addonTag}
                     </div>
                     <div class="flex items-center gap-2">
@@ -1906,7 +1901,7 @@
             if (addonRow) {
                 if (totalAddonPrice > 0) {
                     addonRow.classList.remove('hidden');
-                    document.getElementById('pos-addon-label').textContent = `+ ${addonNames.join(', ')} (GST মুক্ত):`;
+                    document.getElementById('pos-addon-label').textContent = `+ ${addonNames.join(', ')} (No GST):`;
                     document.getElementById('pos-addon-total').textContent = '+ ' + formatCurrency(totalAddonPrice);
                 } else {
                     addonRow.classList.add('hidden');
@@ -1918,17 +1913,17 @@
 
         function completeSale() {
             if (posCart.length === 0) {
-                showToast('বিলে অন্তত একটি গহনা বা শাখা যোগ করুন!', true);
+                showToast('Please add at least one item to the bill!', true);
                 return;
             }
             const custName = document.getElementById('cust-name').value.trim();
             if (!custName) {
-                showToast('ক্রেতার নাম লিখুন!', true);
+                showToast('Please enter Customer Name!', true);
                 return;
             }
 
             const custPhone = document.getElementById('cust-phone').value.trim() || 'N/A';
-            const custAddress = document.getElementById('cust-address').value.trim() || 'স্থানীয় ক্রেতা';
+            const custAddress = document.getElementById('cust-address').value.trim() || 'Local Customer';
             const custGstin = document.getElementById('cust-gstin').value.trim().toUpperCase() || '';
             const discount = parseFloat(document.getElementById('pos-discount').value) || 0;
 
@@ -2011,7 +2006,7 @@
             document.getElementById('cust-gstin').value = '';
             document.getElementById('pos-discount').value = '0';
 
-            showToast('বিল সফলভাবে সম্পন্ন হয়েছে!');
+            showToast('Invoice generated successfully!');
             openInvoiceModal(invoiceRecord);
             initPosView();
         }
@@ -2019,7 +2014,7 @@
         // --- 7. SALES HISTORY & GST INVOICE ---
         function renderSalesHistory() {
             const list = document.getElementById('sales-history-list');
-            document.getElementById('history-count-badge').textContent = `${toBengaliDigits(appData.sales.length)} টি বিল`;
+            document.getElementById('history-count-badge').textContent = `${appData.sales.length} Invoices`;
             const clearAllBtn = document.getElementById('clear-all-sales-btn');
             if (clearAllBtn) {
                 if (currentUser && currentUser.role === 'owner' && appData.sales.length > 0) {
@@ -2030,13 +2025,13 @@
             }
 
             if (appData.sales.length === 0) {
-                list.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl border border-gray-200 text-gray-400 text-sm">কোনো বিক্রয় খাতা পাওয়া যায়নি</div>`;
+                list.innerHTML = `<div class="text-center py-8 bg-white rounded-2xl border border-gray-200 text-gray-400 text-sm">No sales records found</div>`;
                 return;
             }
 
             list.innerHTML = appData.sales.map((sale, index) => {
                 const deleteBillBtn = (currentUser && currentUser.role === 'owner')
-                    ? `<button type="button" onclick="deleteSaleByIndex(${index})" class="mt-1 px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-xs" title="বিল মুছে ফেলুন">
+                    ? `<button type="button" onclick="deleteSaleByIndex(${index})" class="mt-1 px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-xs" title="Delete Invoice">
                         <i class="fas fa-trash-alt"></i>
                        </button>`
                     : '';
@@ -2048,13 +2043,13 @@
                             <span class="text-xs text-gray-500">${sale.date}</span>
                         </div>
                         <h4 class="font-bold text-gray-900 text-base mt-1">${sale.customerName}</h4>
-                        <div class="text-xs text-gray-500">ফোন: ${sale.customerPhone} • ${sale.items.length} টি আইটেম</div>
+                        <div class="text-xs text-gray-500">Phone: ${sale.customerPhone} • ${sale.items.length} Item(s)</div>
                     </div>
                     <div class="text-right">
                         <div class="font-bold text-lg text-gray-900">${formatCurrency(sale.grandTotal)}</div>
                         <div class="flex items-center justify-end gap-1.5">
                             <button type="button" onclick="viewInvoiceByIndex(${index})" class="mt-1 px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-lg text-xs">
-                                <i class="fas fa-file-invoice mr-1"></i> বিল দেখুন
+                                <i class="fas fa-file-invoice mr-1"></i> View Bill
                             </button>
                             ${deleteBillBtn}
                         </div>
@@ -2068,23 +2063,23 @@
             if (!currentUser || currentUser.role !== 'owner') return;
             const sale = appData.sales[idx];
             if (!sale) return;
-            askConfirm(`আপনি কি নিশ্চিতভাবে ${sale.invoiceNo} (${sale.customerName}) বিলটি খাতা থেকে মুছে ফেলতে চান?`, () => {
+            askConfirm(`Are you sure you want to delete invoice ${sale.invoiceNo} (${sale.customerName})?`, () => {
                 appData.sales.splice(idx, 1);
                 saveData();
                 renderSalesHistory();
                 updateDashboard();
-                showToast(`${sale.invoiceNo} বিলটি মুছে ফেলা হয়েছে`);
+                showToast(`Invoice ${sale.invoiceNo} deleted`);
             });
         }
 
         function deleteAllSales() {
             if (!currentUser || currentUser.role !== 'owner') return;
-            askConfirm('আপনি কি নিশ্চিতভাবে খাতার সমস্ত বিল মুছে ফেলতে চান?', () => {
+            askConfirm('Are you sure you want to delete ALL invoices from the sales ledger?', () => {
                 appData.sales = [];
                 saveData();
                 renderSalesHistory();
                 updateDashboard();
-                showToast('খাতার সমস্ত বিল মুছে ফেলা হয়েছে');
+                showToast('All sales records cleared');
             });
         }
 
@@ -2128,7 +2123,7 @@
                 return `
                 <tr class="border-b border-gray-200 text-[11px]">
                     <td class="py-1.5 px-1.5 text-center border-r border-gray-200">${idx + 1}</td>
-                    <td class="py-1.5 px-1.5 font-semibold text-gray-900 border-r border-gray-200">${it.name}${it.huid && it.huid !== 'N/A' ? ` <span class="text-[9px] text-gray-500">(${it.huid})</span>` : ''}${it.addonPrice > 0 ? `<div class="text-[10px] font-normal text-gray-700">+ ${it.addonName || 'অতিরিক্ত'}: ₹${Number(it.addonPrice).toFixed(2)}</div>` : ''}</td>
+                    <td class="py-1.5 px-1.5 font-semibold text-gray-900 border-r border-gray-200">${it.name}${it.huid && it.huid !== 'N/A' ? ` <span class="text-[9px] text-gray-500">(${it.huid})</span>` : ''}${it.addonPrice > 0 ? `<div class="text-[10px] font-normal text-gray-700">+ ${it.addonName || 'Addon'}: ₹${Number(it.addonPrice).toFixed(2)}</div>` : ''}</td>
                     <td class="py-1.5 px-1.5 text-center border-r border-gray-200">${it.hsn || (isSilver ? '711311' : '711319')}</td>
                     <td class="py-1.5 px-1.5 text-center border-r border-gray-200">${getMetalLabel(it.purity)}</td>
                     <td class="py-1.5 px-1.5 text-right border-r border-gray-200">${grossWt.toFixed(3)}</td>
@@ -2182,7 +2177,7 @@
                                 </div>
                                 <div class="p-2.5 text-xs space-y-0.5">
                                     <div class="font-bold text-sm text-gray-900">${sale.customerName}</div>
-                                    <div class="text-gray-600">${sale.customerAddress || 'স্থানীয় ক্রেতা'}</div>
+                                    <div class="text-gray-600">${sale.customerAddress || 'Local Customer'}</div>
                                     <div class="text-gray-700"><span class="font-semibold">Contact:</span> ${sale.customerPhone}</div>
                                     ${sale.customerGstin ? `<div class="text-gray-700"><span class="font-semibold">GSTIN:</span> ${sale.customerGstin}</div>` : ''}
                                 </div>
@@ -2258,7 +2253,7 @@
                             <table class="w-full text-xs">
                                 <tbody>
                                     <tr class="border-b border-gray-200">
-                                        <td class="py-1 text-gray-700">Taxable Value (গহনার মূল্য)</td>
+                                        <td class="py-1 text-gray-700">Taxable Value</td>
                                         <td class="py-1 text-right font-semibold">₹ ${(sale.subtotal || sumTaxable).toFixed(2)}</td>
                                     </tr>
                                     <tr class="border-b border-gray-200">
@@ -2273,7 +2268,7 @@
                                         const addonItems = sale.items.filter(it => Number(it.addonPrice) > 0);
                                         return addonItems.map(it => `
                                             <tr class="border-b border-gray-200 text-amber-900 bg-amber-50/70">
-                                                <td class="py-1 font-bold">+ ${it.addonName || 'অতিরিক্ত আইটেম'} (No GST)</td>
+                                                <td class="py-1 font-bold">+ ${it.addonName || 'Addon'} (No GST)</td>
                                                 <td class="py-1 text-right font-bold">+ ₹ ${Number(it.addonPrice).toFixed(2)}</td>
                                             </tr>
                                         `).join('');
@@ -2288,7 +2283,7 @@
                                         <td class="py-1 text-right">₹ ${roundOff.toFixed(2)}</td>
                                     </tr>
                                     <tr class="border-b-2 border-gray-800 font-bold text-sm bg-amber-50">
-                                        <td class="py-1.5 px-1 text-gray-900">Total (সর্বমোট বিল)</td>
+                                        <td class="py-1.5 px-1 text-gray-900">Grand Total</td>
                                         <td class="py-1.5 px-1 text-right text-gray-900">₹ ${Number(sale.grandTotal).toFixed(2)}</td>
                                     </tr>
                                 </tbody>
@@ -2303,9 +2298,9 @@
                 </div>
             `;
 
-            lastInvoiceText = `${appData.shopName}\nGST Invoice: ${sale.invoiceNo}\nতারিখ: ${sale.date}\nক্রেতা: ${sale.customerName} (${sale.customerPhone})\n` +
+            lastInvoiceText = `${appData.shopName}\nGST Invoice: ${sale.invoiceNo}\nDate: ${sale.date}\nCustomer: ${sale.customerName} (${sale.customerPhone})\n` +
                 sale.items.map(i => `- ${i.name} (${i.netWt}g): ₹${Math.round(i.totalWithGst || i.price)}`).join('\n') +
-                `\nসর্বমোট বিল: ₹${sale.grandTotal}`;
+                `\nGrand Total: ₹${sale.grandTotal}`;
 
             const modal = document.getElementById('print-modal');
             modal.classList.remove('hidden');
@@ -2326,7 +2321,7 @@
             tempInput.select();
             document.execCommand('copy');
             document.body.removeChild(tempInput);
-            showToast('বিলের বিবরণ ক্লিপবোর্ডে কপি হয়েছে!');
+            showToast('Invoice summary copied to clipboard!');
         }
 
         // --- 8. OWNER SETTINGS & STAFF MANAGEMENT ---
@@ -2420,7 +2415,7 @@
                     }
                     saveData();
                     updateLogoPreviews();
-                    showToast('বিলের লোগো আপডেট হয়েছে!');
+                    showToast('Invoice logo updated!');
                 };
                 img.src = e.target.result;
             };
@@ -2435,7 +2430,7 @@
             }
             saveData();
             updateLogoPreviews();
-            showToast('ডিফল্ট লোগো সেট করা হয়েছে');
+            showToast('Default logo restored');
         }
 
         function saveRatesAndShop() {
@@ -2446,20 +2441,20 @@
             appData.rates['Silver70'] = parseFloat(document.getElementById('set-rate-silver70').value) || 700;
             appData.goldMakingPercent = parseFloat(document.getElementById('set-gold-making').value) || 0;
             appData.gold1gMakingFixed = parseFloat(document.getElementById('set-gold-1g-making').value) || 0;
-            appData.shopName = document.getElementById('set-shop-name').value.trim() || 'মা তারা জুয়েলার্স';
-            appData.shopAddress = document.getElementById('set-shop-address').value.trim() || 'বড় বাজার, কলকাতা - ৭০০০০৭';
+            appData.shopName = document.getElementById('set-shop-name').value.trim() || 'Maa Tara Jewelers';
+            appData.shopAddress = document.getElementById('set-shop-address').value.trim() || 'Bara Bazar, Kolkata - 700007';
             appData.shopPhone = document.getElementById('set-shop-phone').value.trim() || '+91 98123 45670';
             appData.shopGstin = document.getElementById('set-shop-gstin').value.trim().toUpperCase() || '19AAICP1234K1ZP';
 
             saveData();
             document.getElementById('shop-header-name').textContent = appData.shopName;
-            showToast('দর এবং দোকানের তথ্য আপডেট হয়েছে!');
+            showToast('Rates and shop information updated!');
         }
 
         function renderStaffList() {
             const container = document.getElementById('staff-list-container');
             if (appData.staffList.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400">কোনো স্টাফ অ্যাকাউন্ট নেই</p>`;
+                container.innerHTML = `<p class="text-xs text-gray-400">No staff accounts created yet</p>`;
                 return;
             }
             container.innerHTML = appData.staffList.map((st, idx) => `
@@ -2482,7 +2477,7 @@
             const pin = document.getElementById('new-staff-pin').value.trim();
 
             if (appData.staffList.some(s => s.id.toLowerCase() === id.toLowerCase())) {
-                showToast('এই লগইন ID ইতিমধ্যে আছে!', true);
+                showToast('This Login ID already exists!', true);
                 return;
             }
 
@@ -2491,16 +2486,16 @@
             e.target.reset();
             renderStaffList();
             updateStaffLoginHint();
-            showToast('নতুন স্টাফ অ্যাকাউন্ট তৈরি হয়েছে');
+            showToast('New staff account created');
         }
 
         function removeStaff(idx) {
-            askConfirm('আপনি কি এই স্টাফ অ্যাকাউন্টটি মুছে ফেলতে চান?', () => {
+            askConfirm('Are you sure you want to remove this staff account?', () => {
                 appData.staffList.splice(idx, 1);
                 saveData();
                 renderStaffList();
                 updateStaffLoginHint();
-                showToast('স্টাফ অ্যাকাউন্ট মুছে ফেলা হয়েছে');
+                showToast('Staff account removed');
             });
         }
 
@@ -2513,7 +2508,7 @@
             document.body.appendChild(dlAnchor);
             dlAnchor.click();
             dlAnchor.remove();
-            showToast('ব্যাকআপ ফাইল ডাউনলোড শুরু হয়েছে');
+            showToast('Backup file download started');
         }
 
         function importBackupJSON(event) {
@@ -2527,12 +2522,12 @@
                         appData = parsed;
                         saveData();
                         loadSettingsView();
-                        showToast('ব্যাকআপ সফলভাবে রিস্টোর হয়েছে!');
+                        showToast('Backup restored successfully!');
                     } else {
-                        showToast('সঠিক ব্যাকআপ ফাইল নয়!', true);
+                        showToast('Invalid backup file!', true);
                     }
                 } catch (err) {
-                    showToast('ফাইল পড়তে সমস্যা হয়েছে!', true);
+                    showToast('Error reading backup file!', true);
                 }
             };
             reader.readAsText(file);
