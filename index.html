@@ -46,11 +46,30 @@
                 left: 0;
                 top: 0;
                 width: 100%;
-                padding: 15px;
+                padding: 0;
+                margin: 0;
                 background: white;
             }
             .no-print {
                 display: none !important;
+            }
+            /* Specific styling for 100mm x 15mm rat-tail jewelry thermal tag */
+            body.printing-tag #printable-area {
+                width: 100mm;
+                height: 15mm;
+                overflow: hidden;
+            }
+            body.printing-tag .rat-tail-tag-print {
+                width: 48mm !important;
+                height: 14mm !important;
+                margin: 0.5mm 1mm !important;
+                padding: 0 !important;
+                border: none !important;
+                border-radius: 0 !important;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: space-between !important;
             }
         }
     </style>
@@ -1576,11 +1595,11 @@
                             ${deleteBtn}
                         </div>
                     </div>
-                    <!-- Inline Mini Barcode Preview directly inside Stock Card -->
+                    <!-- Inline Mini Barcode Preview directly inside Stock Card (Price-Free) -->
                     <div class="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between bg-gray-50/80 px-2.5 py-1.5 rounded-xl">
                         <div class="text-[11px] text-gray-600">
                             <div>Tag ID: <strong class="font-mono text-gray-900">${item.id}</strong></div>
-                            <div>Est. Value Today: <strong class="text-amber-800">${formatCurrency(calculateItemBilling(item).totalItemCost)}</strong></div>
+                            <div>Net Wt: <strong class="text-amber-800">${item.netWt.toFixed(3)}g</strong> (${getMetalLabel(item.purity)})</div>
                         </div>
                         <div class="bg-white px-2 py-0.5 rounded border border-gray-200">
                             <svg class="stock-inline-barcode" data-code="${item.id}"></svg>
@@ -1607,29 +1626,30 @@
                 });
             }
         }
+
+        // Updated Price-Free 100mm x 15mm Rat-tail Jewelry Tag Modal
         function openBarcodeModal(id) {
             const item = appData.inventory.find(i => i.id === id);
             if (!item) return;
+            document.body.classList.add('printing-tag');
             const shareBtn = document.getElementById('share-bill-btn');
             shareBtn.classList.add('hidden');
-            const estCalc = calculateItemBilling(item);
 
             const area = document.getElementById('printable-area');
             area.innerHTML = `
-                <div class="max-w-xs mx-auto border-2 border-dashed border-gray-400 p-4 rounded-xl text-center bg-white">
-                    <div class="text-xs font-extrabold text-amber-900 uppercase">${appData.shopName}</div>
-                    <div class="font-bold text-base text-gray-900 mt-0.5">${item.name}</div>
-                    <div class="text-xs text-gray-700 mt-1">Metal: <strong>${getMetalLabel(item.purity)}</strong> | Net Wt: <strong>${item.netWt.toFixed(3)}g</strong></div>
-                    ${item.grossWt && item.grossWt !== item.netWt ? `<div class="text-[11px] text-gray-600">Gross Wt: ${item.grossWt.toFixed(3)}g</div>` : ''}
-                    ${item.huid && item.huid !== 'N/A' ? `<div class="text-xs font-mono font-bold text-gray-800 mt-0.5">HUID: ${item.huid}</div>` : ''}
-                    ${item.addonPrice > 0 ? `<div class="text-[11px] text-amber-900 font-semibold mt-0.5">+ ${item.addonName || 'Addon'}: ₹${item.addonPrice}</div>` : ''}
-                    <div class="my-2.5 flex justify-center bg-white p-1">
+                <div class="rat-tail-tag-print max-w-xs mx-auto border-2 border-dashed border-gray-400 p-3 rounded-xl bg-white flex items-center justify-between gap-2">
+                    <div class="text-left overflow-hidden" style="max-width: 23mm;">
+                        <div class="font-extrabold text-[10px] leading-tight text-gray-900 truncate">${item.name}</div>
+                        <div class="text-[9px] font-bold text-gray-800 leading-tight mt-0.5">Wt: ${item.netWt.toFixed(3)}g</div>
+                        <div class="text-[8px] font-semibold text-gray-700 leading-tight">${getMetalLabel(item.purity)} | ${item.id}</div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center bg-white" style="max-width: 24mm;">
                         <svg id="barcode-svg"></svg>
                     </div>
-                    <div class="text-[11px] font-bold text-gray-700 border-t border-gray-200 pt-1.5">
-                        Estimated Value: ${formatCurrency(estCalc.totalItemCost)}
-                    </div>
                 </div>
+                <p class="text-[11px] text-center text-gray-500 mt-3 no-print">
+                    100mm × 15mm Rat-tail Thermal Tag Preview (No Price — Name, Weight & Barcode Only)
+                </p>
             `;
 
             const modal = document.getElementById('print-modal');
@@ -1640,12 +1660,10 @@
                 try {
                     JsBarcode('#barcode-svg', item.id, {
                         format: 'CODE128',
-                        width: 2.2,
-                        height: 55,
-                        displayValue: true,
-                        fontSize: 15,
-                        fontOptions: 'bold',
-                        margin: 4
+                        width: 1.1,
+                        height: 28,
+                        displayValue: false,
+                        margin: 0
                     });
                 } catch (err) {
                     console.warn('Barcode render error:', err);
@@ -2089,6 +2107,7 @@
         }
 
         function openInvoiceModal(sale) {
+            document.body.classList.remove('printing-tag');
             const shareBtn = document.getElementById('share-bill-btn');
             shareBtn.classList.remove('hidden');
 
@@ -2308,6 +2327,7 @@
         }
 
         function closePrintModal() {
+            document.body.classList.remove('printing-tag');
             const modal = document.getElementById('print-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
