@@ -65,7 +65,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
             apiKey: "AIzaSyDu8qy-CZgI685qhFFCiZ135TecXQ2Aux8",
             authDomain: "jewellery-6de28.firebaseapp.com",
@@ -125,7 +124,7 @@
                 if (typeof window.refreshActiveUI === 'function') {
                     window.refreshActiveUI();
                 }
-            } else if (window.appData) {
+            } else if (window.appData && (!cloudData || !cloudData.branches)) {
                 window.syncToCloud(window.appData);
             }
         });
@@ -781,7 +780,8 @@
     <script>
         const STORAGE_KEY = 'jewelry_pos_multibranch_v3';
 
-        window.appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+        // ডিফল্ট স্ট্রাকচার (ফায়ারবেস থেকে ডেটা না পাওয়া গেলে এটি দেখাবে)
+        const defaultAppData = {
             owner: { id: 'admin', pin: '1234' },
             activeBranchId: 'main',
             branches: {
@@ -802,6 +802,9 @@
                 }
             }
         };
+
+        // লোকাল স্টোরেজ বা ডিফল্ট থেকে ইনিশিয়ালাইজ করা হলো
+        window.appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData;
 
         let currentUser = JSON.parse(localStorage.getItem('jewelry_session_v2')) || null;
         let selectedLoginRole = 'owner';
