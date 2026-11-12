@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d97706">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link id="pwa-manifest" rel="manifest">
     <title>Jewelry Store Management & POS</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -136,6 +140,13 @@
                     Login <i class="fas fa-arrow-right ml-1"></i>
                 </button>
             </form>
+
+            <!-- Install App Button on Login Screen -->
+            <div id="login-install-box" class="mt-4 pt-4 border-t border-amber-100 text-center">
+                <button type="button" onclick="triggerInstallApp()" class="w-full py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition shadow-sm">
+                    <i class="fas fa-mobile-alt text-amber-700 text-base"></i> Install Android / Mobile App
+                </button>
+            </div>
         </div>
     </div>
 
@@ -158,9 +169,14 @@
                     </div>
                 </div>
             </div>
-            <button type="button" onclick="logout()" class="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition" title="Logout">
-                <i class="fas fa-sign-out-alt text-lg"></i>
-            </button>
+            <div class="flex items-center gap-1.5">
+                <button type="button" id="header-install-btn" onclick="triggerInstallApp()" class="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-xl text-xs flex items-center gap-1 shadow-sm transition" title="Install App">
+                    <i class="fas fa-download text-amber-700"></i> <span class="hidden sm:inline">Install App</span>
+                </button>
+                <button type="button" onclick="logout()" class="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition" title="Logout">
+                    <i class="fas fa-sign-out-alt text-lg"></i>
+                </button>
+            </div>
         </header>
 
         <main class="p-4 space-y-5">
@@ -1716,7 +1732,52 @@
             reader.readAsText(file);
         }
 
+        // --- PWA MANIFEST & INSTALL APP LOGIC ---
+        let deferredInstallPrompt = null;
+
+        function setupPWA() {
+            const manifestObj = {
+                name: "Jewelry Store POS",
+                short_name: "Jewelry POS",
+                start_url: window.location.href,
+                display: "standalone",
+                background_color: "#fdfbf7",
+                theme_color: "#d97706",
+                icons: [
+                    {
+                        src: "https://cdn-icons-png.flaticon.com/512/2530/2530992.png",
+                        sizes: "512x512",
+                        type: "image/png"
+                    }
+                ]
+            };
+            const stringManifest = JSON.stringify(manifestObj);
+            const blob = new Blob([stringManifest], { type: 'application/json' });
+            const manifestURL = URL.createObjectURL(blob);
+            const manifestLink = document.getElementById('pwa-manifest');
+            if (manifestLink) manifestLink.setAttribute('href', manifestURL);
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+        });
+
+        async function triggerInstallApp() {
+            if (deferredInstallPrompt) {
+                deferredInstallPrompt.prompt();
+                const { outcome } = await deferredInstallPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    showToast('অ্যাপটি ইনস্টল হচ্ছে! হোম স্ক্রিনে চেক করুন।');
+                }
+                deferredInstallPrompt = null;
+            } else {
+                showToast('ইনস্টল করতে ব্রাউজারের ওপরের (⋮) মেনু থেকে "Install app" বা "Add to Home screen" চাপুন!');
+            }
+        }
+
         window.onload = function() {
+            setupPWA();
             if (currentUser) initAppSession();
         };
     </script>
