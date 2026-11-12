@@ -59,6 +59,80 @@
             }
         }
     </style>
+
+    <!-- FIREBASE REALTIME DATABASE CONNECTION -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDu8qy-CZgI685qhFFCiZ135TecXQ2Aux8",
+            authDomain: "jewellery-6de28.firebaseapp.com",
+            databaseURL: "https://jewellery-6de28-default-rtdb.firebaseio.com",
+            projectId: "jewellery-6de28",
+            storageBucket: "jewellery-6de28.firebasestorage.app",
+            messagingSenderId: "66516103504",
+            appId: "1:66516103504:web:5b4d637abcd316721cbc55",
+            measurementId: "G-DRYB7Z9C2J"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const posDataRef = ref(db, 'jewelry_pos_data');
+
+        window.syncToCloud = function(data) {
+            set(posDataRef, data)
+                .then(() => {
+                    const statusEl = document.getElementById('sync-status-dot');
+                    if (statusEl) {
+                        statusEl.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block";
+                        statusEl.title = "Online Synced";
+                    }
+                })
+                .catch((err) => {
+                    console.error("Cloud Sync Error:", err);
+                    const statusEl = document.getElementById('sync-status-dot');
+                    if (statusEl) {
+                        statusEl.className = "w-2 h-2 rounded-full bg-red-500 inline-block";
+                        statusEl.title = "Sync Error - Check Firebase Rules";
+                    }
+                });
+        };
+
+        // Listen for real-time updates from any device
+        onValue(posDataRef, (snapshot) => {
+            const cloudData = snapshot.val();
+            const statusEl = document.getElementById('sync-status-dot');
+            if (statusEl) {
+                statusEl.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block";
+                statusEl.title = "Live Connected";
+            }
+
+            if (cloudData && cloudData.branches) {
+                // Preserve current user's selected branch if valid
+                const currentBranch = window.appData ? window.appData.activeBranchId : cloudData.activeBranchId;
+                window.appData = cloudData;
+                if (currentBranch && window.appData.branches[currentBranch]) {
+                    window.appData.activeBranchId = currentBranch;
+                }
+                
+                // Ensure arrays exist (Firebase removes empty arrays)
+                Object.keys(window.appData.branches).forEach(bk => {
+                    if (!window.appData.branches[bk].inventory) window.appData.branches[bk].inventory = [];
+                    if (!window.appData.branches[bk].sales) window.appData.branches[bk].sales = [];
+                    if (!window.appData.branches[bk].staffList) window.appData.branches[bk].staffList = [];
+                });
+
+                localStorage.setItem('jewelry_pos_multibranch_v3', JSON.stringify(window.appData));
+                if (typeof window.refreshActiveUI === 'function') {
+                    window.refreshActiveUI();
+                }
+            } else if (window.appData) {
+                // First time push local data to cloud
+                window.syncToCloud(window.appData);
+            }
+        });
+    </script>
 </head>
 <body class="antialiased selection:bg-amber-200 selection:text-amber-900">
 
@@ -115,7 +189,7 @@
                     <i class="fas fa-gem text-3xl text-white"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-gray-900">Jewelry Store POS</h1>
-                <p class="text-sm text-gray-500 mt-1">Multi-Store Management System</p>
+                <p class="text-sm text-gray-500 mt-1">Multi-Store Cloud Sync System</p>
             </div>
 
             <div class="grid grid-cols-2 gap-2 p-1 bg-amber-100/70 rounded-xl mb-6">
@@ -164,6 +238,7 @@
                         </select>
                     </div>
                     <div class="flex items-center gap-1.5 text-xs mt-0.5">
+                        <span id="sync-status-dot" class="w-2 h-2 rounded-full bg-amber-400 inline-block" title="Connecting..."></span>
                         <span id="user-name-display" class="text-gray-600 font-medium">Owner</span>
                         <span id="user-badge" class="px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800">Owner</span>
                     </div>
@@ -710,7 +785,7 @@
     <script>
         const STORAGE_KEY = 'jewelry_pos_multibranch_v3';
 
-        let appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+        window.appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
             owner: { id: 'admin', pin: '1234' },
             activeBranchId: 'main',
             branches: {
@@ -736,25 +811,8 @@
         let selectedLoginRole = 'owner';
         let posCart = [];
 
-        function getActiveBranch() {
-            if (!appData.branches[appData.activeBranchId]) appData.activeBranchId = Object.keys(appData.branches)[0];
-            return appData.branches[appData.activeBranchId];
-        }
-
-        function updateBranchDropdown() {
-            const sel = document.getElementById('top-branch-selector');
-            if (!sel) return;
-            sel.innerHTML = Object.keys(appData.branches).map(id => 
-                `<option value="${id}" ${id === appData.activeBranchId ? 'selected' : ''}>${appData.branches[id].name}</option>`
-            ).join('');
-        }
-
-        function switchBranch(branchId) {
-            if (currentUser && currentUser.role === 'staff') return;
-            if (!appData.branches[branchId]) return;
-            appData.activeBranchId = branchId;
-            posCart = [];
-            saveData();
+        window.refreshActiveUI = function() {
+            if (!currentUser) return;
             updateBranchDropdown();
             updateDashboard();
             if (!document.getElementById('view-inventory').classList.contains('hidden')) renderInventory();
@@ -762,11 +820,38 @@
             if (!document.getElementById('view-calculator').classList.contains('hidden')) initCalcView();
             if (!document.getElementById('view-history').classList.contains('hidden')) renderSalesHistory();
             if (!document.getElementById('view-settings').classList.contains('hidden')) loadSettingsView();
-            showToast(`Switched to ${appData.branches[branchId].name}`);
+        };
+
+        function getActiveBranch() {
+            if (!window.appData.branches[window.appData.activeBranchId]) {
+                window.appData.activeBranchId = Object.keys(window.appData.branches)[0];
+            }
+            return window.appData.branches[window.appData.activeBranchId];
         }
 
-        function saveData() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        function updateBranchDropdown() {
+            const sel = document.getElementById('top-branch-selector');
+            if (!sel) return;
+            sel.innerHTML = Object.keys(window.appData.branches).map(id => 
+                `<option value="${id}" ${id === window.appData.activeBranchId ? 'selected' : ''}>${window.appData.branches[id].name}</option>`
+            ).join('');
+        }
+
+        function switchBranch(branchId) {
+            if (currentUser && currentUser.role === 'staff') return;
+            if (!window.appData.branches[branchId]) return;
+            window.appData.activeBranchId = branchId;
+            posCart = [];
+            saveData(false); // Only local branch switch, no need to overwrite cloud activeBranchId
+            window.refreshActiveUI();
+            showToast(`Switched to ${window.appData.branches[branchId].name}`);
+        }
+
+        function saveData(pushCloud = true) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(window.appData));
+            if (pushCloud && typeof window.syncToCloud === 'function') {
+                window.syncToCloud(window.appData);
+            }
         }
 
         function showToast(msg) {
@@ -787,15 +872,15 @@
             e.preventDefault();
             const id = document.getElementById('login-id').value.trim();
             const pin = document.getElementById('login-pin').value.trim();
-            if (selectedLoginRole === 'owner' && id === appData.owner.id && pin === appData.owner.pin) {
+            if (selectedLoginRole === 'owner' && id === window.appData.owner.id && pin === window.appData.owner.pin) {
                 currentUser = { role: 'owner', name: 'Owner', canBill: true };
             } else {
                 let found = null;
-                for (const bk of Object.keys(appData.branches)) {
-                    const st = (appData.branches[bk].staffList || []).find(s => s.id === id && s.pin === pin);
+                for (const bk of Object.keys(window.appData.branches)) {
+                    const st = (window.appData.branches[bk].staffList || []).find(s => s.id === id && s.pin === pin);
                     if (st) {
                         found = { role: 'staff', id: st.id, name: st.name, branchId: bk, canBill: st.canBill !== false };
-                        appData.activeBranchId = bk;
+                        window.appData.activeBranchId = bk;
                         break;
                     }
                 }
@@ -823,7 +908,7 @@
             document.getElementById('user-badge').textContent = currentUser.role === 'owner' ? 'Owner' : 'Staff';
             
             if (currentUser.role === 'staff' && currentUser.branchId) {
-                appData.activeBranchId = currentUser.branchId;
+                window.appData.activeBranchId = currentUser.branchId;
             }
 
             document.querySelectorAll('.owner-only').forEach(el => el.classList.toggle('hidden', currentUser.role !== 'owner'));
@@ -840,6 +925,7 @@
             updateBranchDropdown();
             navigateTo('dashboard');
         }
+
         function canUserBill() {
             if (!currentUser) return false;
             if (currentUser.role === 'owner') return true;
@@ -875,8 +961,8 @@
 
             const av = (b.inventory || []).filter(i => i.status === 'available');
             document.getElementById('stat-stock-count').textContent = av.length + ' pcs';
-            document.getElementById('stat-stock-weight').textContent = 'Total Wt: ' + av.reduce((a, c) => a + c.netWt, 0).toFixed(3) + ' g';
-            const totSales = (b.sales || []).reduce((a, c) => a + c.grandTotal, 0);
+            document.getElementById('stat-stock-weight').textContent = 'Total Wt: ' + av.reduce((a, c) => a + Number(c.netWt || 0), 0).toFixed(3) + ' g';
+            const totSales = (b.sales || []).reduce((a, c) => a + Number(c.grandTotal || 0), 0);
             document.getElementById('stat-sales-total').textContent = '₹ ' + totSales.toLocaleString();
             document.getElementById('stat-sales-count').textContent = 'Total Invoices: ' + (b.sales || []).length;
         }
@@ -1080,7 +1166,7 @@
             document.getElementById('add-stock-card').classList.add('hidden');
             renderInventory();
             updateDashboard();
-            showToast('Item added to stock successfully!');
+            showToast('Item added & synced live!');
 
             if (printTag) {
                 printSingleBarcode(itemId);
@@ -1144,6 +1230,7 @@
             saveData();
             renderInventory();
             updateDashboard();
+            showToast('Item deleted!');
         }
 
         function initPosView() {
@@ -1303,6 +1390,7 @@
                 customerName: name,
                 customerPhone: document.getElementById('cust-phone').value.trim() || 'N/A',
                 customerAddress: document.getElementById('cust-address').value.trim() || 'Local',
+                billedBy: currentUser ? currentUser.name : 'Staff',
                 items, subtotal: sub, gst: totalGst, discount: disc, grandTotal: grand
             };
 
@@ -1311,7 +1399,10 @@
             saveData();
             posCart = [];
             document.getElementById('cust-name').value = '';
-            showToast('Sale completed!');
+            document.getElementById('cust-phone').value = '';
+            document.getElementById('cust-address').value = '';
+            document.getElementById('pos-discount').value = '0';
+            showToast('Sale completed & synced!');
             openInvoiceModal(sale);
             initPosView();
             updateDashboard();
@@ -1322,22 +1413,22 @@
             const leftHtml = b.leftLogo ? `<img src="${b.leftLogo}" class="w-14 h-14 object-contain">` : `<div class="w-12 h-12 rounded-full bg-amber-50 border flex items-center justify-center text-amber-700 font-bold">LOGO</div>`;
             const rightHtml = b.rightLogo ? `<img src="${b.rightLogo}" class="w-14 h-14 object-contain ml-auto">` : `<div class="w-12 h-12 rounded-lg bg-blue-50 border flex items-center justify-center text-blue-800 font-bold ml-auto text-[10px]">HALLMARK</div>`;
 
-            const rows = sale.items.map((it, idx) => `
+            const rows = (sale.items || []).map((it, idx) => `
                 <tr class="border-b text-xs">
                     <td class="py-2 px-1 text-center">${idx + 1}</td>
                     <td class="py-2 px-1 font-bold">
                         ${it.name} (${it.netWt}g - ${it.purity})
-                        ${it.addonName ? `<br><span class="text-[10px] text-amber-900 font-medium">+ ${it.addonName}: ₹${it.addonVal.toFixed(0)}</span>` : ''}
+                        ${it.addonName ? `<br><span class="text-[10px] text-amber-900 font-medium">+ ${it.addonName}: ₹${Number(it.addonVal).toFixed(0)}</span>` : ''}
                     </td>
-                    <td class="py-2 px-1 text-right">₹ ${it.metalVal.toFixed(0)}</td>
-                    <td class="py-2 px-1 text-right">₹ ${it.makingVal.toFixed(0)}</td>
-                    <td class="py-2 px-1 text-right">₹ ${it.addonVal > 0 ? it.addonVal.toFixed(0) : '-'}</td>
-                    <td class="py-2 px-1 text-right">₹ ${it.gstVal.toFixed(0)}</td>
-                    <td class="py-2 px-1 text-right font-bold">₹ ${it.totalWithGst.toFixed(0)}</td>
+                    <td class="py-2 px-1 text-right">₹ ${Number(it.metalVal).toFixed(0)}</td>
+                    <td class="py-2 px-1 text-right">₹ ${Number(it.makingVal).toFixed(0)}</td>
+                    <td class="py-2 px-1 text-right">₹ ${it.addonVal > 0 ? Number(it.addonVal).toFixed(0) : '-'}</td>
+                    <td class="py-2 px-1 text-right">₹ ${Number(it.gstVal).toFixed(0)}</td>
+                    <td class="py-2 px-1 text-right font-bold">₹ ${Number(it.totalWithGst).toFixed(0)}</td>
                 </tr>`).join('');
 
-            const cgstVal = sale.gst / 2;
-            const sgstVal = sale.gst / 2;
+            const cgstVal = Number(sale.gst || 0) / 2;
+            const sgstVal = Number(sale.gst || 0) / 2;
 
             document.getElementById('printable-area').innerHTML = `
                 <div class="border-2 border-amber-300 p-4 bg-white text-gray-900 rounded-xl">
@@ -1375,11 +1466,11 @@
                     </table>
                     <div class="flex justify-end pt-2">
                         <div class="w-64 space-y-1 text-xs bg-gray-50 p-3 rounded-xl border">
-                            <div class="flex justify-between"><span>Subtotal:</span><span>₹ ${sale.subtotal.toFixed(0)}</span></div>
+                            <div class="flex justify-between"><span>Subtotal:</span><span>₹ ${Number(sale.subtotal).toFixed(0)}</span></div>
                             <div class="flex justify-between"><span>CGST (1.5%):</span><span>₹ ${cgstVal.toFixed(2)}</span></div>
                             <div class="flex justify-between"><span>SGST (1.5%):</span><span>₹ ${sgstVal.toFixed(2)}</span></div>
-                            ${sale.discount > 0 ? `<div class="flex justify-between text-red-600"><span>Discount:</span><span>- ₹ ${sale.discount.toFixed(0)}</span></div>` : ''}
-                            <div class="flex justify-between border-t pt-1 font-bold text-amber-950 text-sm"><span>Grand Total Payable:</span><span>₹ ${sale.grandTotal.toLocaleString('en-IN')}</span></div>
+                            ${sale.discount > 0 ? `<div class="flex justify-between text-red-600"><span>Discount:</span><span>- ₹ ${Number(sale.discount).toFixed(0)}</span></div>` : ''}
+                            <div class="flex justify-between border-t pt-1 font-bold text-amber-950 text-sm"><span>Grand Total Payable:</span><span>₹ ${Number(sale.grandTotal).toLocaleString('en-IN')}</span></div>
                         </div>
                     </div>
                 </div>`;
@@ -1392,6 +1483,12 @@
             document.getElementById('print-modal').classList.remove('flex');
         }
 
+        function clearGstDateFilter() {
+            document.getElementById('gst-from-date').value = '';
+            document.getElementById('gst-to-date').value = '';
+            renderSalesHistory();
+        }
+
         function getFilteredSales() {
             const b = getActiveBranch();
             const fromStr = document.getElementById('gst-from-date')?.value;
@@ -1399,7 +1496,7 @@
             
             return (b.sales || []).map((s, originalIdx) => ({ ...s, originalIdx })).filter(s => {
                 if (!fromStr && !toStr) return true;
-                const parts = s.date.split('/');
+                const parts = (s.date || '').split('/');
                 if (parts.length !== 3) return true;
                 const isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
                 if (fromStr && isoDate < fromStr) return false;
@@ -1407,6 +1504,46 @@
                 return true;
             });
         }
+
+        function renderSalesHistory() {
+            const filtered = getFilteredSales();
+            const listEl = document.getElementById('sales-history-list');
+
+            let sumTaxable = 0, sumGst = 0;
+            filtered.forEach(s => {
+                const gstAmt = Number(s.gst) || 0;
+                const taxable = gstAmt > 0 ? (gstAmt / 0.03) : (Number(s.subtotal) || 0);
+                sumTaxable += taxable;
+                sumGst += gstAmt;
+            });
+
+            document.getElementById('gst-sum-taxable').textContent = '₹ ' + sumTaxable.toFixed(0);
+            document.getElementById('gst-sum-cgst').textContent = '₹ ' + (sumGst / 2).toFixed(2);
+            document.getElementById('gst-sum-sgst').textContent = '₹ ' + (sumGst / 2).toFixed(2);
+            document.getElementById('gst-sum-total').textContent = '₹ ' + sumGst.toFixed(2);
+
+            listEl.innerHTML = filtered.map(s => `
+                <div class="bg-white rounded-2xl border p-3.5 flex justify-between items-center text-xs shadow-sm">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded">INV-${1000 + s.originalIdx}</span>
+                            <span class="text-gray-500 font-medium">${s.date}</span>
+                            ${s.billedBy ? `<span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">By: ${s.billedBy}</span>` : ''}
+                        </div>
+                        <div class="font-bold text-gray-900 text-sm">${s.customerName} <span class="text-xs font-normal text-gray-500">(${s.customerPhone})</span></div>
+                        <div class="text-gray-600">${(s.items || []).map(i => `${i.name} (${i.netWt}g)`).join(', ')}</div>
+                    </div>
+                    <div class="text-right space-y-2">
+                        <div class="font-extrabold text-base text-amber-800">₹ ${Number(s.grandTotal).toLocaleString('en-IN')}</div>
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button type="button" onclick="viewInvoice(${s.originalIdx})" class="px-2.5 py-1.5 bg-amber-100 text-amber-900 font-bold rounded-xl hover:bg-amber-200"><i class="fas fa-print"></i> Bill</button>
+                            ${currentUser.role === 'owner' ? `<button type="button" onclick="confirmDeleteSale(${s.originalIdx})" class="text-red-500 p-1.5 hover:bg-red-50 rounded-xl"><i class="fas fa-trash"></i></button>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('') || '<div class="text-center py-6 text-gray-400 text-xs bg-white rounded-xl border border-dashed">No sales records found</div>';
+        }
+
         function buildGSTCSVContent() {
             const filtered = getFilteredSales();
             if (filtered.length === 0) return null;
@@ -1522,8 +1659,8 @@
             document.getElementById('rate-set-silver70').value = b.rates['Silver70'] || 0;
             document.getElementById('rate-set-making').value = b.rates['making'] || 10;
             document.getElementById('rate-set-making-flat').value = b.rates['makingFlat'] || 0;
-            document.getElementById('set-owner-id').value = appData.owner.id;
-            document.getElementById('set-owner-pin').value = appData.owner.pin;
+            document.getElementById('set-owner-id').value = window.appData.owner.id;
+            document.getElementById('set-owner-pin').value = window.appData.owner.pin;
             renderBranchStaffList();
             updateLogosPreview();
         }
@@ -1533,8 +1670,8 @@
             const newId = document.getElementById('set-owner-id').value.trim();
             const newPin = document.getElementById('set-owner-pin').value.trim();
             if (!newId || !newPin) return showToast('Please enter valid username and password!');
-            appData.owner.id = newId;
-            appData.owner.pin = newPin;
+            window.appData.owner.id = newId;
+            window.appData.owner.pin = newPin;
             saveData();
             showToast('Admin password updated successfully!');
         }
@@ -1551,7 +1688,7 @@
             
             saveData();
             updateDashboard();
-            showToast('Daily rates & making charges updated successfully!');
+            showToast('Daily rates & making charges updated & synced!');
         }
 
         function renderBranchStaffList() {
@@ -1606,7 +1743,7 @@
             e.target.reset();
             document.getElementById('new-staff-can-bill').checked = true;
             renderBranchStaffList();
-            showToast('Staff added successfully!');
+            showToast('Staff added & synced!');
         }
 
         function removeBranchStaff(idx) {
@@ -1653,7 +1790,7 @@
             saveData();
             updateBranchDropdown();
             updateDashboard();
-            showToast('Branch details saved!');
+            showToast('Branch details saved & synced!');
         }
 
         function addNewBranch(e) {
@@ -1664,11 +1801,11 @@
                 showToast('Please enter both Branch ID and Name!');
                 return;
             }
-            if (appData.branches[id]) {
+            if (window.appData.branches[id]) {
                 showToast('Branch ID already exists!');
                 return;
             }
-            appData.branches[id] = {
+            window.appData.branches[id] = {
                 name: name,
                 address: '',
                 phone: '',
@@ -1679,18 +1816,18 @@
                 leftLogo: '', rightLogo: '',
                 inventory: [], sales: []
             };
-            appData.activeBranchId = id;
+            window.appData.activeBranchId = id;
             saveData();
             e.target.reset();
             updateBranchDropdown();
             loadSettingsView();
             updateDashboard();
-            showToast('New branch created successfully!');
+            showToast('New branch created & synced!');
         }
 
         function downloadFullBackup() {
             try {
-                const backupStr = JSON.stringify(appData, null, 2);
+                const backupStr = JSON.stringify(window.appData, null, 2);
                 const dateTag = new Date().toISOString().slice(0, 10);
                 const fileName = `Jewelry_POS_Full_Backup_${dateTag}.json`;
                 const encodedUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(backupStr);
@@ -1715,7 +1852,7 @@
                 try {
                     const parsed = JSON.parse(evt.target.result);
                     if (parsed && parsed.branches && parsed.owner) {
-                        appData = parsed;
+                        window.appData = parsed;
                         saveData();
                         updateBranchDropdown();
                         loadSettingsView();
