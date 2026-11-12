@@ -60,10 +60,11 @@
         }
     </style>
 
-    <!-- FIREBASE REALTIME DATABASE CONNECTION -->
+    <!-- FIREBASE REALTIME DATABASE & ANALYTICS CONNECTION (v13.3.0) -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-analytics.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDu8qy-CZgI685qhFFCiZ135TecXQ2Aux8",
@@ -77,6 +78,7 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
         const db = getDatabase(app);
         const posDataRef = ref(db, 'jewelry_pos_data');
 
