@@ -65,6 +65,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
             apiKey: "AIzaSyDu8qy-CZgI685qhFFCiZ135TecXQ2Aux8",
             authDomain: "jewellery-6de28.firebaseapp.com",
@@ -99,7 +100,6 @@
                 });
         };
 
-        // Listen for real-time updates from any device
         onValue(posDataRef, (snapshot) => {
             const cloudData = snapshot.val();
             const statusEl = document.getElementById('sync-status-dot');
@@ -109,14 +109,12 @@
             }
 
             if (cloudData && cloudData.branches) {
-                // Preserve current user's selected branch if valid
                 const currentBranch = window.appData ? window.appData.activeBranchId : cloudData.activeBranchId;
                 window.appData = cloudData;
                 if (currentBranch && window.appData.branches[currentBranch]) {
                     window.appData.activeBranchId = currentBranch;
                 }
                 
-                // Ensure arrays exist (Firebase removes empty arrays)
                 Object.keys(window.appData.branches).forEach(bk => {
                     if (!window.appData.branches[bk].inventory) window.appData.branches[bk].inventory = [];
                     if (!window.appData.branches[bk].sales) window.appData.branches[bk].sales = [];
@@ -128,7 +126,6 @@
                     window.refreshActiveUI();
                 }
             } else if (window.appData) {
-                // First time push local data to cloud
                 window.syncToCloud(window.appData);
             }
         });
@@ -215,7 +212,6 @@
                 </button>
             </form>
 
-            <!-- Install App Button on Login Screen -->
             <div id="login-install-box" class="mt-4 pt-4 border-t border-amber-100 text-center">
                 <button type="button" onclick="triggerInstallApp()" class="w-full py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition shadow-sm">
                     <i class="fas fa-mobile-alt text-amber-700 text-base"></i> Install Android / Mobile App
@@ -842,7 +838,7 @@
             if (!window.appData.branches[branchId]) return;
             window.appData.activeBranchId = branchId;
             posCart = [];
-            saveData(false); // Only local branch switch, no need to overwrite cloud activeBranchId
+            saveData(false);
             window.refreshActiveUI();
             showToast(`Switched to ${window.appData.branches[branchId].name}`);
         }
@@ -1869,7 +1865,6 @@
             reader.readAsText(file);
         }
 
-        // --- PWA MANIFEST & INSTALL APP LOGIC ---
         let deferredInstallPrompt = null;
 
         function setupPWA() {
