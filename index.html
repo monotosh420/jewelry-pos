@@ -620,6 +620,22 @@
                         </form>
                     </div>
 
+                    <div class="space-y-3 bg-purple-50/60 p-3 rounded-xl border border-purple-200">
+                        <h4 class="font-bold text-xs text-purple-950 flex items-center gap-1.5">
+                            <i class="fas fa-database text-purple-600"></i> Full Data Backup & Restore (স্টক, বিল ও স্টাফ সেভ রাখুন)
+                        </h4>
+                        <p class="text-[11px] text-gray-600">কোড আপডেট করার আগে নিচের বাটনে ক্লিক করে ব্যাকআপ সেভ করে রাখুন, এবং আপডেটের পর Restore করুন।</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="downloadFullBackup()" class="py-2.5 px-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow flex items-center justify-center gap-1.5">
+                                <i class="fas fa-download"></i> Save Backup
+                            </button>
+                            <label class="py-2.5 px-3 bg-white border-2 border-purple-300 text-purple-900 hover:bg-purple-100 font-bold rounded-xl text-xs shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i class="fas fa-upload"></i> Restore Backup
+                                <input type="file" accept=".json,application/json" onchange="restoreFullBackup(event)" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="space-y-3 bg-red-50/50 p-3 rounded-xl border border-red-200">
                         <h4 class="font-bold text-xs text-red-950">Change Owner (Admin) Password</h4>
                         <form onsubmit="changeOwnerPassword(event)" class="space-y-2">
@@ -1654,6 +1670,50 @@
             loadSettingsView();
             updateDashboard();
             showToast('New branch created successfully!');
+        }
+
+        function downloadFullBackup() {
+            try {
+                const backupStr = JSON.stringify(appData, null, 2);
+                const dateTag = new Date().toISOString().slice(0, 10);
+                const fileName = `Jewelry_POS_Full_Backup_${dateTag}.json`;
+                const encodedUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(backupStr);
+                const link = document.createElement('a');
+                link.setAttribute('href', encodedUri);
+                link.setAttribute('download', fileName);
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('সম্পূর্ণ ব্যাকআপ ফাইল ডাউনলোড হয়েছে!');
+            } catch (err) {
+                showToast('ব্যাকআপ তৈরি করতে সমস্যা হয়েছে!');
+            }
+        }
+
+        function restoreFullBackup(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    if (parsed && parsed.branches && parsed.owner) {
+                        appData = parsed;
+                        saveData();
+                        updateBranchDropdown();
+                        loadSettingsView();
+                        updateDashboard();
+                        showToast('আগের সব স্টক, বিল ও স্টাফ তথ্য সফলভাবে ফিরে এসেছে!');
+                    } else {
+                        showToast('সঠিক ব্যাকআপ ফাইল সিলেক্ট করুন!');
+                    }
+                } catch (err) {
+                    showToast('ফাইলটি পড়া যাচ্ছে না!');
+                }
+                e.target.value = '';
+            };
+            reader.readAsText(file);
         }
 
         window.onload = function() {
