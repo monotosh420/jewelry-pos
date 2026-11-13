@@ -10,6 +10,9 @@
     <title>Jewelry Store Management & POS</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs (App & Realtime Database) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     <!-- JsBarcode CDN for automated barcode generation -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <!-- Google Fonts: Inter -->
@@ -59,78 +62,6 @@
             }
         }
     </style>
-
-    <!-- FIREBASE REALTIME DATABASE & ANALYTICS CONNECTION (v13.3.0) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-analytics.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDu8qy-CZgI685qhFFCiZ135TecXQ2Aux8",
-            authDomain: "jewellery-6de28.firebaseapp.com",
-            databaseURL: "https://jewellery-6de28-default-rtdb.firebaseio.com",
-            projectId: "jewellery-6de28",
-            storageBucket: "jewellery-6de28.firebasestorage.app",
-            messagingSenderId: "66516103504",
-            appId: "1:66516103504:web:5b4d637abcd316721cbc55",
-            measurementId: "G-DRYB7Z9C2J"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getDatabase(app);
-        const posDataRef = ref(db, 'jewelry_pos_data');
-
-        window.syncToCloud = function(data) {
-            set(posDataRef, data)
-                .then(() => {
-                    const statusEl = document.getElementById('sync-status-dot');
-                    if (statusEl) {
-                        statusEl.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block";
-                        statusEl.title = "Online Synced";
-                    }
-                })
-                .catch((err) => {
-                    console.error("Cloud Sync Error:", err);
-                    const statusEl = document.getElementById('sync-status-dot');
-                    if (statusEl) {
-                        statusEl.className = "w-2 h-2 rounded-full bg-red-500 inline-block";
-                        statusEl.title = "Sync Error - Check Firebase Rules";
-                    }
-                });
-        };
-
-        onValue(posDataRef, (snapshot) => {
-            const cloudData = snapshot.val();
-            const statusEl = document.getElementById('sync-status-dot');
-            if (statusEl) {
-                statusEl.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block";
-                statusEl.title = "Live Connected";
-            }
-
-            if (cloudData && cloudData.branches) {
-                const currentBranch = window.appData ? window.appData.activeBranchId : cloudData.activeBranchId;
-                window.appData = cloudData;
-                if (currentBranch && window.appData.branches[currentBranch]) {
-                    window.appData.activeBranchId = currentBranch;
-                }
-                
-                Object.keys(window.appData.branches).forEach(bk => {
-                    if (!window.appData.branches[bk].inventory) window.appData.branches[bk].inventory = [];
-                    if (!window.appData.branches[bk].sales) window.appData.branches[bk].sales = [];
-                    if (!window.appData.branches[bk].staffList) window.appData.branches[bk].staffList = [];
-                });
-
-                localStorage.setItem('jewelry_pos_multibranch_v3', JSON.stringify(window.appData));
-                if (typeof window.refreshActiveUI === 'function') {
-                    window.refreshActiveUI();
-                }
-            } else if (window.appData && (!cloudData || !cloudData.branches)) {
-                window.syncToCloud(window.appData);
-            }
-        });
-    </script>
 </head>
 <body class="antialiased selection:bg-amber-200 selection:text-amber-900">
 
@@ -187,7 +118,7 @@
                     <i class="fas fa-gem text-3xl text-white"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-gray-900">Jewelry Store POS</h1>
-                <p class="text-sm text-gray-500 mt-1">Multi-Store Cloud Sync System</p>
+                <p class="text-sm text-gray-500 mt-1">Multi-Store Management System</p>
             </div>
 
             <div class="grid grid-cols-2 gap-2 p-1 bg-amber-100/70 rounded-xl mb-6">
@@ -235,9 +166,11 @@
                         </select>
                     </div>
                     <div class="flex items-center gap-1.5 text-xs mt-0.5">
-                        <span id="sync-status-dot" class="w-2 h-2 rounded-full bg-amber-400 inline-block" title="Connecting..."></span>
                         <span id="user-name-display" class="text-gray-600 font-medium">Owner</span>
                         <span id="user-badge" class="px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800">Owner</span>
+                        <span id="cloud-sync-badge" class="px-2 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600 text-[10px]">
+                            <i class="fas fa-database mr-0.5"></i> Offline
+                        </span>
                     </div>
                 </div>
             </div>
@@ -323,7 +256,7 @@
                         </button>
                         <button type="button" onclick="navigateTo('history')" class="p-3.5 bg-white border border-gray-200 text-gray-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
                             <i class="fas fa-history text-xl text-purple-600"></i>
-                            <span class="text-xs font-bold">Sales Ledger</span>
+                            <span class="text-xs font-bold">Sales History</span>
                         </button>
                     </div>
                 </div>
@@ -399,7 +332,7 @@
                     <div class="grid grid-cols-2 gap-3.5 pt-1">
                         <div>
                             <label class="block text-sm font-bold text-gray-800 mb-1.5">Purity</label>
-                            <select id="calc-purity" onchange="calculateJewelryPrice()" class="w-full px-3.5 py-3 rounded-xl border-2 border-gray-200 text-sm font-bold bg-white">
+                            <select id="calc-purity" onchange="onCalcPurityChange()" class="w-full px-3.5 py-3 rounded-xl border-2 border-gray-200 text-sm font-bold bg-white">
                                 <option value="22K">22K Gold</option>
                                 <option value="18K">18K Gold</option>
                                 <option value="9K">9K Gold</option>
@@ -408,8 +341,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-800 mb-1.5">Making Charge</label>
-                            <input type="number" id="calc-making-val" value="10" oninput="calculateJewelryPrice()" class="w-full px-3.5 py-3 rounded-xl border-2 border-gray-200 text-base font-extrabold">
+                            <label id="calc-making-label" class="block text-sm font-bold text-gray-800 mb-1.5">Making Charge (₹/g Auto)</label>
+                            <input type="number" id="calc-making-val" oninput="calculateJewelryPrice()" class="w-full px-3.5 py-3 rounded-xl border-2 border-gray-200 text-base font-extrabold" placeholder="Auto from Settings">
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-800 mb-1.5">Addon Name</label>
@@ -520,13 +453,25 @@
                     <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200/80 space-y-2.5">
                         <label class="block text-xs font-bold text-amber-950">Scan or Enter Barcode / Search Item:</label>
                         <div class="flex gap-2">
-                            <input type="text" id="pos-barcode-input" onkeydown="handleBarcodeScan(event)" placeholder="Scan Barcode or Type ID..." class="flex-1 px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-sm font-bold">
+                            <input type="text" id="pos-barcode-input" onkeydown="handleBarcodeScan(event)" oninput="filterPosDropdown(this.value)" placeholder="Scan Barcode or Search Item Name/ID..." class="flex-1 px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-sm font-bold">
                             <button type="button" onclick="addScannedItemToCart()" class="px-4 py-2.5 bg-amber-600 text-white font-bold rounded-xl text-sm shadow-sm active:scale-95">Add</button>
                         </div>
                         <div class="text-[11px] text-gray-500">Or choose from list:</div>
-                        <select id="pos-item-select" onchange="document.getElementById('pos-barcode-input').value = this.value; addScannedItemToCart();" class="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-medium">
+                        <select id="pos-item-select" onchange="if(this.value){ document.getElementById('pos-barcode-input').value = this.value; addScannedItemToCart(); }" class="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-medium">
                             <option value="">-- Choose Available Item --</option>
                         </select>
+                    </div>
+
+                    <!-- Instant Making Charge & Addon Override per Bill -->
+                    <div class="grid grid-cols-2 gap-2 bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs">
+                        <div>
+                            <label class="block font-bold text-amber-950 mb-1">আজকের মেকিং চার্জ (₹ প্রতি গ্রাম)</label>
+                            <input type="number" id="pos-override-making" oninput="renderPosCart()" class="w-full px-2.5 py-1.5 rounded-lg border font-bold bg-white" placeholder="যেমন: ১০০">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-amber-950 mb-1">অতিরিক্ত খরচ/ছাঁকা (₹)</label>
+                            <input type="number" id="pos-override-addon" oninput="renderPosCart()" class="w-full px-2.5 py-1.5 rounded-lg border font-bold bg-white" value="0" placeholder="0">
+                        </div>
                     </div>
 
                     <div id="pos-cart-list" class="space-y-2">
@@ -562,51 +507,17 @@
                 </div>
             </section>
 
-            <!-- 5. SALES HISTORY & GST REPORT -->
+            <!-- 5. SALES HISTORY -->
             <section id="view-history" class="hidden space-y-4">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <h2 class="font-bold text-lg text-gray-900">Branch Sales Ledger & GST</h2>
-                    <div class="flex items-center gap-2">
-                        <button type="button" onclick="copyGSTReportData()" class="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-xl text-xs shadow-sm flex items-center gap-1.5">
-                            <i class="fas fa-copy"></i> Copy Data
-                        </button>
-                        <button type="button" onclick="exportGSTReportCSV()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow flex items-center gap-1.5">
-                            <i class="fas fa-file-excel"></i> Export Tally / GST CSV
-                        </button>
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold text-lg text-gray-900">Branch Sales History & Invoices</h2>
+                    <div class="flex items-center gap-1.5 text-xs">
+                        <input type="date" id="history-from-date" onchange="renderSalesHistory()" class="px-2 py-1.5 border rounded-lg text-xs font-medium bg-white">
+                        <span class="text-gray-400">to</span>
+                        <input type="date" id="history-to-date" onchange="renderSalesHistory()" class="px-2 py-1.5 border rounded-lg text-xs font-medium bg-white">
+                        <button type="button" onclick="clearHistoryDateFilter()" class="text-xs text-amber-700 font-bold px-1 bg-amber-100 rounded">All</button>
                     </div>
                 </div>
-
-                <!-- GST Summary Box for Govt Tax Return -->
-                <div class="bg-white rounded-2xl border border-amber-200 p-3.5 shadow-sm space-y-3">
-                    <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-2">
-                        <span class="text-xs font-bold text-amber-950"><i class="fas fa-landmark text-amber-600 mr-1"></i> Govt. Tax & GST Summary</span>
-                        <div class="flex items-center gap-1.5 text-xs">
-                            <input type="date" id="gst-from-date" onchange="renderSalesHistory()" class="px-2 py-1 border rounded-lg text-[11px] font-medium">
-                            <span class="text-gray-400">to</span>
-                            <input type="date" id="gst-to-date" onchange="renderSalesHistory()" class="px-2 py-1 border rounded-lg text-[11px] font-medium">
-                            <button type="button" onclick="clearGstDateFilter()" class="text-[11px] text-amber-700 font-bold px-1.5">All</button>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                        <div class="bg-gray-50 p-2.5 rounded-xl border">
-                            <div class="text-[10px] text-gray-500 font-semibold">Taxable Amount</div>
-                            <div id="gst-sum-taxable" class="font-bold text-gray-900 text-sm">₹ 0</div>
-                        </div>
-                        <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200/70">
-                            <div class="text-[10px] text-amber-800 font-semibold">CGST (1.5%)</div>
-                            <div id="gst-sum-cgst" class="font-bold text-amber-900 text-sm">₹ 0</div>
-                        </div>
-                        <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200/70">
-                            <div class="text-[10px] text-amber-800 font-semibold">SGST (1.5%)</div>
-                            <div id="gst-sum-sgst" class="font-bold text-amber-900 text-sm">₹ 0</div>
-                        </div>
-                        <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
-                            <div class="text-[10px] text-emerald-800 font-semibold">Total Govt. GST</div>
-                            <div id="gst-sum-total" class="font-bold text-emerald-700 text-sm">₹ 0</div>
-                        </div>
-                    </div>
-                </div>
-
                 <div id="sales-history-list" class="space-y-3"></div>
             </section>
 
@@ -618,15 +529,14 @@
                     </h3>
                     
                     <div class="space-y-3 bg-amber-50/50 p-3 rounded-xl border border-amber-200">
-                        <h4 class="font-bold text-xs text-amber-950">Update Daily Metal Rates (per 10g) & Making Charge (% and ₹)</h4>
+                        <h4 class="font-bold text-xs text-amber-950">Update Daily Metal Rates & Making Charge (₹ per Gram)</h4>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            <div><label class="block text-[11px] font-bold text-gray-700">22K Gold (₹)</label><input type="number" id="rate-set-22k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
-                            <div><label class="block text-[11px] font-bold text-gray-700">18K Gold (₹)</label><input type="number" id="rate-set-18k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
-                            <div><label class="block text-[11px] font-bold text-gray-700">9K Gold (₹)</label><input type="number" id="rate-set-9k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
-                            <div><label class="block text-[11px] font-bold text-gray-700">Silver 60 (₹)</label><input type="number" id="rate-set-silver60" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
-                            <div><label class="block text-[11px] font-bold text-gray-700">Silver 70 (₹)</label><input type="number" id="rate-set-silver70" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
-                            <div><label class="block text-[11px] font-bold text-gray-700">Making Charge (%)</label><input type="number" step="0.01" id="rate-set-making" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold text-amber-800"></div>
-                            <div><label class="block text-[11px] font-bold text-gray-700">Making Charge (₹ Flat)</label><input type="number" step="0.01" id="rate-set-making-flat" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold text-amber-800"></div>
+                            <div><label class="block text-[11px] font-bold text-gray-700">22K Gold (10g)</label><input type="number" id="rate-set-22k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
+                            <div><label class="block text-[11px] font-bold text-gray-700">18K Gold (10g)</label><input type="number" id="rate-set-18k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
+                            <div><label class="block text-[11px] font-bold text-gray-700">9K Gold (10g)</label><input type="number" id="rate-set-9k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
+                            <div><label class="block text-[11px] font-bold text-gray-700">Silver 60 (10g)</label><input type="number" id="rate-set-silver60" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold" placeholder="রূপার রেট নিজে দিন"></div>
+                            <div><label class="block text-[11px] font-bold text-gray-700">Silver 70 (10g)</label><input type="number" id="rate-set-silver70" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold" placeholder="রূপার রেট নিজে দিন"></div>
+                            <div class="col-span-2"><label class="block text-[11px] font-bold text-gray-700">Gold Making Charge (₹ per Gram)</label><input type="number" step="0.01" id="rate-set-making" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold text-amber-800" placeholder="সোনার প্রতি গ্রাম মজুরি"></div>
                         </div>
                         <button type="button" onclick="saveDailyRates()" class="w-full py-2 bg-amber-600 text-white font-bold rounded-xl text-xs shadow">Save Rates & Making Charge</button>
                     </div>
@@ -710,9 +620,8 @@
 
                     <div class="space-y-3 bg-purple-50/60 p-3 rounded-xl border border-purple-200">
                         <h4 class="font-bold text-xs text-purple-950 flex items-center gap-1.5">
-                            <i class="fas fa-database text-purple-600"></i> Full Data Backup & Restore (স্টক, বিল ও স্টাফ সেভ রাখুন)
+                            <i class="fas fa-database text-purple-600"></i> Full Data Backup & Restore
                         </h4>
-                        <p class="text-[11px] text-gray-600">কোড আপডেট করার আগে নিচের বাটনে ক্লিক করে ব্যাকআপ সেভ করে রাখুন, এবং আপডেটের পর Restore করুন।</p>
                         <div class="grid grid-cols-2 gap-2">
                             <button type="button" onclick="downloadFullBackup()" class="py-2.5 px-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow flex items-center justify-center gap-1.5">
                                 <i class="fas fa-download"></i> Save Backup
@@ -721,6 +630,26 @@
                                 <i class="fas fa-upload"></i> Restore Backup
                                 <input type="file" accept=".json,application/json" onchange="restoreFullBackup(event)" class="hidden">
                             </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 bg-orange-50/70 p-3 rounded-xl border border-orange-200">
+                        <h4 class="font-bold text-xs text-orange-950 flex items-center gap-1.5">
+                            <i class="fas fa-fire text-orange-600"></i> Firebase Online Cloud Sync (সব ডিভাইসে লাইভ ডাটা)
+                        </h4>
+                        <p class="text-[11px] text-gray-600">আপনার প্রজেক্ট (<strong>jewellery-6de28</strong>) ডিফল্টভাবে যুক্ত করা আছে। প্রয়োজনে নিচের তথ্য পরিবর্তন করতে পারেন:</p>
+                        <div class="space-y-2">
+                            <input type="text" id="fb-api-key" placeholder="Firebase API Key (AIzaSy...)" class="w-full px-3 py-2 rounded-xl border text-xs bg-white font-mono">
+                            <input type="text" id="fb-db-url" placeholder="Database URL (https://jewellery-6de28-default-rtdb.firebaseio.com)" class="w-full px-3 py-2 rounded-xl border text-xs bg-white font-mono">
+                            <input type="text" id="fb-project-id" placeholder="Project ID (jewellery-6de28)" class="w-full px-3 py-2 rounded-xl border text-xs bg-white font-mono">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="saveFirebaseConfig()" class="py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-xs shadow">
+                                <i class="fas fa-cloud-upload-alt mr-1"></i> Connect Online
+                            </button>
+                            <button type="button" onclick="disconnectFirebase()" class="py-2 bg-white border border-orange-300 text-orange-900 font-bold rounded-xl text-xs">
+                                Reset Default
+                            </button>
                         </div>
                     </div>
 
@@ -769,7 +698,7 @@
                 </button>
                 <button type="button" onclick="navigateTo('history')" class="flex flex-col items-center p-2 text-gray-600 hover:text-amber-700 transition">
                     <i class="fas fa-file-invoice text-lg"></i>
-                    <span class="text-[10px] font-bold mt-0.5">Ledger</span>
+                    <span class="text-[10px] font-bold mt-0.5">Invoices</span>
                 </button>
                 <button type="button" onclick="navigateTo('settings')" class="owner-only flex flex-col items-center p-2 text-gray-600 hover:text-amber-700 transition">
                     <i class="fas fa-cog text-lg"></i>
@@ -782,8 +711,7 @@
     <script>
         const STORAGE_KEY = 'jewelry_pos_multibranch_v3';
 
-        // ডিফল্ট স্ট্রাকচার (ফায়ারবেস থেকে ডেটা না পাওয়া গেলে এটি দেখাবে)
-        const defaultAppData = {
+        let appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
             owner: { id: 'admin', pin: '1234' },
             activeBranchId: 'main',
             branches: {
@@ -805,1118 +733,96 @@
             }
         };
 
-        // লোকাল স্টোরেজ বা ডিফল্ট থেকে ইনিশিয়ালাইজ করা হলো
-        window.appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultAppData;
-
         let currentUser = JSON.parse(localStorage.getItem('jewelry_session_v2')) || null;
         let selectedLoginRole = 'owner';
         let posCart = [];
 
-        window.refreshActiveUI = function() {
-            if (!currentUser) return;
-            updateBranchDropdown();
-            updateDashboard();
-            if (!document.getElementById('view-inventory').classList.contains('hidden')) renderInventory();
-            if (!document.getElementById('view-pos').classList.contains('hidden')) initPosView();
-            if (!document.getElementById('view-calculator').classList.contains('hidden')) initCalcView();
-            if (!document.getElementById('view-history').classList.contains('hidden')) renderSalesHistory();
-            if (!document.getElementById('view-settings').classList.contains('hidden')) loadSettingsView();
-        };
-
         function getActiveBranch() {
-            if (!window.appData.branches[window.appData.activeBranchId]) {
-                window.appData.activeBranchId = Object.keys(window.appData.branches)[0];
-            }
-            return window.appData.branches[window.appData.activeBranchId];
+            if (!appData.branches[appData.activeBranchId]) appData.activeBranchId = Object.keys(appData.branches)[0];
+            return appData.branches[appData.activeBranchId];
         }
 
         function updateBranchDropdown() {
             const sel = document.getElementById('top-branch-selector');
             if (!sel) return;
-            sel.innerHTML = Object.keys(window.appData.branches).map(id => 
-                `<option value="${id}" ${id === window.appData.activeBranchId ? 'selected' : ''}>${window.appData.branches[id].name}</option>`
+            sel.innerHTML = Object.keys(appData.branches).map(id => 
+                `<option value="${id}" ${id === appData.activeBranchId ? 'selected' : ''}>${appData.branches[id].name}</option>`
             ).join('');
         }
 
         function switchBranch(branchId) {
             if (currentUser && currentUser.role === 'staff') return;
-            if (!window.appData.branches[branchId]) return;
-            window.appData.activeBranchId = branchId;
+            if (!appData.branches[branchId]) return;
+            appData.activeBranchId = branchId;
             posCart = [];
-            saveData(false);
-            window.refreshActiveUI();
-            showToast(`Switched to ${window.appData.branches[branchId].name}`);
-        }
-
-        function saveData(pushCloud = true) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(window.appData));
-            if (pushCloud && typeof window.syncToCloud === 'function') {
-                window.syncToCloud(window.appData);
-            }
-        }
-
-        function showToast(msg) {
-            const box = document.getElementById('toast-box');
-            document.getElementById('toast-msg').textContent = msg;
-            box.classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => box.classList.add('opacity-0', 'pointer-events-none'), 2500);
-        }
-
-        function switchLoginRole(role) {
-            selectedLoginRole = role;
-            document.getElementById('tab-owner').className = role === 'owner' ? 'py-2.5 text-sm font-bold rounded-lg bg-amber-600 text-white shadow' : 'py-2.5 text-sm font-bold rounded-lg text-amber-900';
-            document.getElementById('tab-staff').className = role === 'staff' ? 'py-2.5 text-sm font-bold rounded-lg bg-blue-600 text-white shadow' : 'py-2.5 text-sm font-bold rounded-lg text-amber-900';
-            document.getElementById('login-id-label').textContent = role === 'owner' ? 'Admin Username' : 'Staff ID';
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const id = document.getElementById('login-id').value.trim();
-            const pin = document.getElementById('login-pin').value.trim();
-            if (selectedLoginRole === 'owner' && id === window.appData.owner.id && pin === window.appData.owner.pin) {
-                currentUser = { role: 'owner', name: 'Owner', canBill: true };
-            } else {
-                let found = null;
-                for (const bk of Object.keys(window.appData.branches)) {
-                    const st = (window.appData.branches[bk].staffList || []).find(s => s.id === id && s.pin === pin);
-                    if (st) {
-                        found = { role: 'staff', id: st.id, name: st.name, branchId: bk, canBill: st.canBill !== false };
-                        window.appData.activeBranchId = bk;
-                        break;
-                    }
-                }
-                if (found) currentUser = found;
-            }
-            if (currentUser) {
-                localStorage.setItem('jewelry_session_v2', JSON.stringify(currentUser));
-                initAppSession();
-            } else {
-                showToast('Invalid credentials!');
-            }
-        }
-
-        function logout() {
-            currentUser = null;
-            localStorage.removeItem('jewelry_session_v2');
-            document.getElementById('app-container').classList.add('hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
-        }
-
-        function initAppSession() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-container').classList.remove('hidden');
-            document.getElementById('user-name-display').textContent = currentUser.name;
-            document.getElementById('user-badge').textContent = currentUser.role === 'owner' ? 'Owner' : 'Staff';
-            
-            if (currentUser.role === 'staff' && currentUser.branchId) {
-                window.appData.activeBranchId = currentUser.branchId;
-            }
-
-            document.querySelectorAll('.owner-only').forEach(el => el.classList.toggle('hidden', currentUser.role !== 'owner'));
-            
-            const branchSel = document.getElementById('top-branch-selector');
-            if (currentUser.role === 'staff') {
-                branchSel.disabled = true;
-                branchSel.classList.add('opacity-75', 'cursor-not-allowed');
-            } else {
-                branchSel.disabled = false;
-                branchSel.classList.remove('opacity-75', 'cursor-not-allowed');
-            }
-
-            updateBranchDropdown();
-            navigateTo('dashboard');
-        }
-
-        function canUserBill() {
-            if (!currentUser) return false;
-            if (currentUser.role === 'owner') return true;
-            const b = getActiveBranch();
-            const st = (b.staffList || []).find(s => s.id === currentUser.id);
-            return st ? (st.canBill !== false) : (currentUser.canBill !== false);
-        }
-
-        function navigateTo(v) {
-            if (v === 'pos' && !canUserBill()) {
-                showToast('আপনার বিল (POS) করার অনুমতি নেই! মালিকের সাথে যোগাযোগ করুন।');
-                return;
-            }
-            ['dashboard', 'calculator', 'inventory', 'pos', 'history', 'settings'].forEach(s => document.getElementById(`view-${s}`).classList.add('hidden'));
-            document.getElementById(`view-${v}`).classList.remove('hidden');
-            if (v === 'dashboard') updateDashboard();
-            if (v === 'inventory') renderInventory();
-            if (v === 'pos') initPosView();
-            if (v === 'calculator') initCalcView();
-            if (v === 'history') renderSalesHistory();
-            if (v === 'settings') loadSettingsView();
-        }
-
-        function updateDashboard() {
-            const b = getActiveBranch();
-            document.getElementById('shop-header-name').textContent = b.name;
-            document.getElementById('dash-branch-badge').textContent = b.name;
-            document.getElementById('dash-rate-22k').textContent = '₹ ' + (b.rates['22K'] || 0).toLocaleString();
-            document.getElementById('dash-rate-18k').textContent = '₹ ' + (b.rates['18K'] || 0).toLocaleString();
-            document.getElementById('dash-rate-9k').textContent = '₹ ' + (b.rates['9K'] || 0).toLocaleString();
-            document.getElementById('dash-rate-silver60').textContent = '₹ ' + (b.rates['Silver60'] || 0).toLocaleString();
-            document.getElementById('dash-rate-silver70').textContent = '₹ ' + (b.rates['Silver70'] || 0).toLocaleString();
-
-            const av = (b.inventory || []).filter(i => i.status === 'available');
-            document.getElementById('stat-stock-count').textContent = av.length + ' pcs';
-            document.getElementById('stat-stock-weight').textContent = 'Total Wt: ' + av.reduce((a, c) => a + Number(c.netWt || 0), 0).toFixed(3) + ' g';
-            const totSales = (b.sales || []).reduce((a, c) => a + Number(c.grandTotal || 0), 0);
-            document.getElementById('stat-sales-total').textContent = '₹ ' + totSales.toLocaleString();
-            document.getElementById('stat-sales-count').textContent = 'Total Invoices: ' + (b.sales || []).length;
-        }
-
-        function setCalcMode(m) {
-            document.getElementById('calc-gram-box').classList.toggle('hidden', m === 'v2g');
-            document.getElementById('calc-vori-box').classList.toggle('hidden', m === 'g2v');
-            document.getElementById('calc-mode-g2v').className = m === 'g2v' ? 'py-3 text-sm font-extrabold rounded-xl bg-white text-amber-800 shadow transition' : 'py-3 text-sm font-extrabold rounded-xl text-gray-600 transition';
-            document.getElementById('calc-mode-v2g').className = m === 'v2g' ? 'py-3 text-sm font-extrabold rounded-xl bg-white text-amber-800 shadow transition' : 'py-3 text-sm font-extrabold rounded-xl text-gray-600 transition';
-        }
-
-        function initCalcView() {
-            const b = getActiveBranch();
-            const avail = (b.inventory || []).filter(i => i.status === 'available');
-            document.getElementById('calc-item-select').innerHTML = `<option value="">-- Or Choose From Stock --</option>` +
-                avail.map(i => `<option value="${i.id}">${i.id} - ${i.name} (${i.netWt}g | ${i.purity})</option>`).join('');
-            document.getElementById('calc-barcode-input').value = '';
-            document.getElementById('calc-item-info-box').classList.add('hidden');
-            calculateJewelryPrice();
-        }
-
-        function handleCalcBarcodeScan(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                loadCalcItemByBarcode();
-            }
-        }
-
-        function loadCalcItemByBarcode() {
-            const code = document.getElementById('calc-barcode-input').value.trim();
-            if (!code) return;
-
-            const b = getActiveBranch();
-            const item = (b.inventory || []).find(i => i.id.toLowerCase() === code.toLowerCase());
-            if (!item) {
-                showToast('Item not found in stock!');
-                return;
-            }
-
-            document.getElementById('calc-item-info-box').classList.remove('hidden');
-            document.getElementById('calc-info-name').textContent = item.name;
-            document.getElementById('calc-info-id').textContent = item.id;
-            document.getElementById('calc-info-purity').textContent = item.purity;
-            document.getElementById('calc-info-wt').textContent = item.netWt + ' g';
-            
-            const totalPoints = (item.netWt / 11.664) * 960;
-            const v = Math.floor(totalPoints / 960);
-            const rem1 = totalPoints % 960;
-            const a = Math.floor(rem1 / 60);
-            const rem2 = rem1 % 60;
-            const r = Math.floor(rem2 / 10);
-            document.getElementById('calc-info-trad').textContent = `${v}V ${a}A ${r}R`;
-
-            document.getElementById('calc-grams').value = item.netWt;
-            document.getElementById('calc-purity').value = item.purity;
-            document.getElementById('calc-making-val').value = item.customMaking || (b.rates.making !== undefined ? b.rates.making : 10);
-            document.getElementById('calc-addon-name').value = item.addonName || '';
-            document.getElementById('calc-addon-price').value = item.addonPrice || 0;
-            document.getElementById('calc-barcode-input').value = '';
-            calculateJewelryPrice();
-            showToast('Item loaded successfully!');
-        }
-
-        function convertVoriToGram() {
-            const v = parseFloat(document.getElementById('in-vori').value) || 0;
-            const a = parseFloat(document.getElementById('in-ana').value) || 0;
-            const r = parseFloat(document.getElementById('in-roti').value) || 0;
-            const p = parseFloat(document.getElementById('in-point').value) || 0;
-            const g = ((v * 960) + (a * 60) + (r * 10) + p) / 960 * 11.664;
-            document.getElementById('calc-grams').value = g.toFixed(3);
-            calculateJewelryPrice();
-        }
-
-        function calculateJewelryPrice() {
-            const b = getActiveBranch();
-            const grams = parseFloat(document.getElementById('calc-grams').value) || 0;
-            const purity = document.getElementById('calc-purity').value;
-            const makingInput = parseFloat(document.getElementById('calc-making-val').value) || 0;
-            const addonName = document.getElementById('calc-addon-name').value.trim();
-            const addonPrice = parseFloat(document.getElementById('calc-addon-price').value) || 0;
-
-            const totalPoints = (grams / 11.664) * 960;
-            const v = Math.floor(totalPoints / 960);
-            const rem1 = totalPoints % 960;
-            const a = Math.floor(rem1 / 60);
-            const rem2 = rem1 % 60;
-            const r = Math.floor(rem2 / 10);
-            const pnt = (rem2 % 10).toFixed(0);
-            document.getElementById('calc-vori-output').textContent = `${v} Vori ${a} Ana ${r} Roti ${pnt} Pt`;
-            document.getElementById('calc-breakdown-wt').textContent = grams.toFixed(3) + 'g';
-
-            const ratePer10g = b.rates[purity] || 0;
-            const ratePerGram = ratePer10g / 10;
-            const metalVal = grams * ratePerGram;
-
-            const calcWtForMaking = grams < 1 ? 1 : grams;
-            let makingVal = 0;
-            if (purity.startsWith('Silver')) {
-                makingVal = makingInput;
-            } else {
-                const baseMetalForMaking = calcWtForMaking * ratePerGram;
-                const pctVal = baseMetalForMaking * (makingInput / 100);
-                const flatVal = (b.rates.makingFlat !== undefined ? b.rates.makingFlat : 0);
-                makingVal = pctVal + flatVal;
-            }
-
-            const taxableVal = metalVal + makingVal + addonPrice;
-            const gstVal = purity.startsWith('Silver') ? 0 : (taxableVal * 0.03);
-            const grandTotal = Math.round(taxableVal + gstVal);
-
-            document.getElementById('calc-res-metal').textContent = '₹ ' + metalVal.toFixed(0);
-            document.getElementById('calc-res-making').textContent = '₹ ' + makingVal.toFixed(0) + (grams < 1 ? ' (1g auto)' : '');
-            
-            const addonRow = document.getElementById('calc-res-addon-row');
-            if (addonPrice > 0) {
-                addonRow.classList.remove('hidden');
-                document.getElementById('calc-res-addon-label').textContent = (addonName || 'Addon') + ':';
-                document.getElementById('calc-res-addon').textContent = '₹ ' + addonPrice;
-            } else {
-                addonRow.classList.add('hidden');
-            }
-
-            const gstRow = document.getElementById('calc-res-gst-row');
-            if (purity.startsWith('Silver')) {
-                gstRow.classList.add('hidden');
-            } else {
-                gstRow.classList.remove('hidden');
-                document.getElementById('calc-res-gst').textContent = '₹ ' + gstVal.toFixed(0);
-            }
-
-            document.getElementById('calc-res-total').textContent = '₹ ' + grandTotal.toLocaleString('en-IN');
-        }
-
-        let currentInventoryFilter = 'all';
-
-        function filterInventory(status) {
-            currentInventoryFilter = status;
-            ['all', 'avail', 'sold'].forEach(s => {
-                const btn = document.getElementById(`filter-inv-${s}`);
-                if (btn) {
-                    const match = (s === 'all' && status === 'all') || (s === 'avail' && status === 'available') || (s === 'sold' && status === 'sold');
-                    btn.className = match ? 'flex-1 py-1.5 text-xs font-bold rounded-lg bg-amber-600 text-white shadow transition' : 'flex-1 py-1.5 text-xs font-bold rounded-lg text-gray-600 hover:bg-gray-100 transition';
-                }
-            });
-            renderInventory();
-        }
-
-        function toggleAddStockForm() {
-            const card = document.getElementById('add-stock-card');
-            card.classList.toggle('hidden');
-        }
-
-        function addStockItem(e) {
-            e.preventDefault();
-            const b = getActiveBranch();
-            const customIdInput = document.getElementById('item-custom-id').value.trim();
-            const name = document.getElementById('item-name').value.trim();
-            const purity = document.getElementById('item-purity').value;
-            const netWt = parseFloat(document.getElementById('item-net-wt').value) || 0;
-            const size = document.getElementById('item-size').value.trim();
-            const customMaking = parseFloat(document.getElementById('item-custom-making').value) || 0;
-            const addonName = document.getElementById('item-addon-name').value.trim();
-            const addonPrice = parseFloat(document.getElementById('item-addon-price').value) || 0;
-
-            if (!name || netWt <= 0) {
-                showToast('Please enter valid item name and weight!');
-                return;
-            }
-
-            let itemId = customIdInput;
-            if (!itemId) {
-                const prefix = purity.startsWith('Silver') ? 'SIL' : 'GLD';
-                const randomNum = Math.floor(1000 + Math.random() * 9000);
-                itemId = `${prefix}-${randomNum}`;
-            }
-
-            if (!b.inventory) b.inventory = [];
-            if (b.inventory.some(i => i.id === itemId)) {
-                return showToast('This Barcode / Item ID already exists! Please use a unique ID.');
-            }
-
-            const newItem = {
-                id: itemId,
-                name: name,
-                purity: purity,
-                netWt: netWt,
-                size: size,
-                customMaking: customMaking,
-                addonName: addonName,
-                addonPrice: addonPrice,
-                status: 'available'
-            };
-
-            b.inventory.unshift(newItem);
-            saveData();
-            
-            const submitter = e.submitter;
-            const printTag = submitter && submitter.value === 'print';
-
-            e.target.reset();
-            document.getElementById('add-stock-card').classList.add('hidden');
-            renderInventory();
-            updateDashboard();
-            showToast('Item added & synced live!');
-
-            if (printTag) {
-                printSingleBarcode(itemId);
-            }
-        }
-
-        function renderInventory() {
-            const b = getActiveBranch();
-            const listEl = document.getElementById('inventory-list');
-            const items = (b.inventory || []).filter(i => {
-                if (currentInventoryFilter === 'available') return i.status === 'available';
-                if (currentInventoryFilter === 'sold') return i.status === 'sold';
-                return true;
-            });
-
-            listEl.innerHTML = items.map(i => `
-                <div class="bg-white rounded-2xl border p-3 flex justify-between items-center text-xs shadow-sm">
-                    <div>
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <span class="font-mono font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-[11px]">${i.id}</span>
-                            <span class="px-2 py-0.5 rounded-full font-semibold text-[10px] ${i.status === 'available' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${i.status === 'available' ? 'AVAILABLE' : 'SOLD OUT'}</span>
-                        </div>
-                        <strong>${i.name}</strong> (${i.netWt}g - ${i.purity}) ${i.size ? `| Size: ${i.size}` : ''}
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <button type="button" onclick="printSingleBarcode('${i.id}')" class="px-2.5 py-1.5 bg-amber-100 text-amber-900 font-bold rounded-xl hover:bg-amber-250"><i class="fas fa-barcode"></i> Tag</button>
-                        ${currentUser.role === 'owner' ? `<button type="button" onclick="deleteItem('${i.id}')" class="text-red-500 p-1.5 hover:bg-red-50 rounded-xl"><i class="fas fa-trash"></i></button>` : ''}
-                    </div>
-                </div>
-            `).join('') || '<div class="text-center py-6 text-gray-400 text-xs bg-white rounded-xl border border-dashed">No items found</div>';
-        }
-
-        function printSingleBarcode(id) {
-            const b = getActiveBranch();
-            const item = (b.inventory || []).find(i => i.id === id);
-            if (!item) return;
-
-            document.getElementById('printable-area').innerHTML = `
-                <div class="p-3 bg-white text-gray-900 rounded border border-gray-400 max-w-[200px] mx-auto text-center space-y-1">
-                    <div class="text-[11px] font-bold uppercase text-amber-950 truncate">${b.name}</div>
-                    <div class="text-xs font-extrabold text-gray-800">Wt: ${item.netWt}g ${item.size ? `| Sz: ${item.size}` : ''}</div>
-                    <div class="py-1 bg-gray-50 rounded flex flex-col items-center justify-center">
-                        <svg id="barcode-svg-${item.id}"></svg>
-                        <span class="text-xs font-mono font-bold mt-0.5">${item.id}</span>
-                    </div>
-                </div>`;
-            
-            document.getElementById('print-modal').classList.remove('hidden');
-            document.getElementById('print-modal').classList.add('flex');
-            
-            setTimeout(() => {
-                try {
-                    JsBarcode(`#barcode-svg-${item.id}`, item.id, { format: "CODE128", width: 1.5, height: 40, displayValue: false });
-                } catch(e) {}
-            }, 100);
-        }
-
-        function deleteItem(id) {
-            const b = getActiveBranch();
-            b.inventory = b.inventory.filter(i => i.id !== id);
-            saveData();
-            renderInventory();
-            updateDashboard();
-            showToast('Item deleted!');
-        }
-
-        function initPosView() {
-            const b = getActiveBranch();
-            const avail = (b.inventory || []).filter(i => i.status === 'available' && !posCart.some(c => c.id === i.id));
-            document.getElementById('pos-item-select').innerHTML = `<option value="">-- Choose Available Item --</option>` +
-                avail.map(i => `<option value="${i.id}">${i.id} - ${i.name} (${i.netWt}g | ${i.purity})</option>`).join('');
-            document.getElementById('pos-barcode-input').value = '';
-            renderPosCart();
-        }
-
-        function handleBarcodeScan(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                addScannedItemToCart();
-            }
-        }
-
-        function addScannedItemToCart() {
-            const inputEl = document.getElementById('pos-barcode-input');
-            const code = inputEl.value.trim();
-            if (!code) return;
-
-            const b = getActiveBranch();
-            const item = (b.inventory || []).find(i => i.id.toLowerCase() === code.toLowerCase() && i.status === 'available');
-            
-            if (!item) {
-                showToast('Item not found or already sold out!');
-                return;
-            }
-
-            if (posCart.some(c => c.id === item.id)) {
-                showToast('Item already added in cart!');
-                inputEl.value = '';
-                return;
-            }
-
-            posCart.push(item);
-            inputEl.value = '';
-            initPosView();
-            showToast('Item added to bill!');
-        }
-
-        function removeFromCart(id) {
-            posCart = posCart.filter(i => i.id !== id);
-            initPosView();
-        }
-
-        function renderPosCart() {
-            const b = getActiveBranch();
-            if (posCart.length === 0) {
-                document.getElementById('pos-cart-list').innerHTML = `<p class="text-xs text-gray-400 text-center py-4 bg-gray-50 rounded-xl border">Cart empty</p>`;
-                document.getElementById('pos-subtotal').textContent = '₹ 0';
-                document.getElementById('pos-cgst').textContent = '₹ 0';
-                document.getElementById('pos-sgst').textContent = '₹ 0';
-                document.getElementById('pos-grand-total').textContent = '₹ 0';
-                return;
-            }
-
-            let sub = 0, totalGst = 0;
-            document.getElementById('pos-cart-list').innerHTML = posCart.map(item => {
-                const rate = (b.rates[item.purity] || 0) / 10;
-                const calcWtForMaking = item.netWt < 1 ? 1 : item.netWt;
-                const metal = item.netWt * rate;
-                
-                let making = 0;
-                if (item.purity.startsWith('Silver')) {
-                    making = item.customMaking || 0;
-                } else {
-                    const baseMetalForMaking = calcWtForMaking * rate;
-                    const pctVal = baseMetalForMaking * ((b.rates.making !== undefined ? b.rates.making : 10) / 100);
-                    const flatVal = (b.rates.makingFlat !== undefined ? b.rates.makingFlat : 0);
-                    making = (item.customMaking > 0) ? item.customMaking : (pctVal + flatVal);
-                }
-
-                const aPrice = item.addonPrice || 0;
-                const itemTaxable = metal + making;
-                const tGst = (item.purity.startsWith('Silver')) ? 0 : (itemTaxable * 0.03);
-                
-                const totalItemPrice = metal + making + aPrice + tGst;
-                sub += (metal + making + aPrice);
-                totalGst += tGst;
-
-                return `<div class="p-2.5 bg-amber-50 rounded-xl text-xs space-y-1">
-                    <div class="flex justify-between font-bold text-gray-900">
-                        <span>${item.name} (${item.netWt}g)</span>
-                        <div class="flex items-center gap-2"><span>₹ ${totalItemPrice.toFixed(0)}</span><button type="button" onclick="removeFromCart('${item.id}')" class="text-red-500"><i class="fas fa-times"></i></button></div>
-                    </div>
-                    <div class="text-[11px] text-gray-600 flex flex-wrap gap-x-3 gap-y-0.5 border-t border-amber-200/60 pt-1">
-                        <span>Metal: ₹${metal.toFixed(0)}</span>
-                        <span>Making: ₹${making.toFixed(0)} ${item.netWt < 1 ? '(1g auto)' : ''}</span>
-                        ${aPrice > 0 ? `<span>${item.addonName || 'Addon'}: ₹${aPrice}</span>` : ''}
-                        ${!item.purity.startsWith('Silver') ? `<span>GST (3%): ₹${tGst.toFixed(0)}</span>` : '<span class="text-gray-400">No GST</span>'}
-                    </div>
-                </div>`;
-            }).join('');
-
-            const disc = parseFloat(document.getElementById('pos-discount').value) || 0;
-            const grand = Math.max(0, sub + totalGst - disc);
-            document.getElementById('pos-subtotal').textContent = '₹ ' + sub.toFixed(2);
-            document.getElementById('pos-cgst').textContent = '₹ ' + (totalGst / 2).toFixed(2);
-            document.getElementById('pos-sgst').textContent = '₹ ' + (totalGst / 2).toFixed(2);
-            document.getElementById('pos-grand-total').textContent = '₹ ' + grand.toFixed(0);
-        }
-
-        function completeSale() {
-            if (!canUserBill()) return showToast('আপনার বিল (POS) করার অনুমতি নেই!');
-            if (posCart.length === 0) return showToast('Cart is empty!');
-            const name = document.getElementById('cust-name').value.trim();
-            if (!name) return showToast('Enter customer name!');
-
-            const b = getActiveBranch();
-            let sub = 0, totalGst = 0;
-            const items = posCart.map(item => {
-                const rate = (b.rates[item.purity] || 0) / 10;
-                const calcWtForMaking = item.netWt < 1 ? 1 : item.netWt;
-                const metal = item.netWt * rate;
-                
-                let making = 0;
-                if (item.purity.startsWith('Silver')) {
-                    making = item.customMaking || 0;
-                } else {
-                    const baseMetalForMaking = calcWtForMaking * rate;
-                    const pctVal = baseMetalForMaking * ((b.rates.making !== undefined ? b.rates.making : 10) / 100);
-                    const flatVal = (b.rates.makingFlat !== undefined ? b.rates.makingFlat : 0);
-                    making = (item.customMaking > 0) ? item.customMaking : (pctVal + flatVal);
-                }
-
-                const aPrice = item.addonPrice || 0;
-                const itemTaxable = metal + making;
-                const tGst = (item.purity.startsWith('Silver')) ? 0 : (itemTaxable * 0.03);
-                
-                sub += (metal + making + aPrice);
-                totalGst += tGst;
-
-                const invIdx = b.inventory.findIndex(i => i.id === item.id);
-                if (invIdx !== -1) b.inventory[invIdx].status = 'sold';
-
-                return {
-                    name: item.name,
-                    addonName: item.addonName || '',
-                    purity: item.purity,
-                    netWt: item.netWt,
-                    metalVal: metal,
-                    makingVal: making,
-                    gstVal: tGst,
-                    addonVal: aPrice,
-                    totalWithGst: metal + making + aPrice + tGst
-                };
-            });
-
-            const disc = parseFloat(document.getElementById('pos-discount').value) || 0;
-            const grand = Math.round(Math.max(0, sub + totalGst - disc));
-
-            const sale = {
-                date: new Date().toLocaleDateString('en-GB'),
-                customerName: name,
-                customerPhone: document.getElementById('cust-phone').value.trim() || 'N/A',
-                customerAddress: document.getElementById('cust-address').value.trim() || 'Local',
-                billedBy: currentUser ? currentUser.name : 'Staff',
-                items, subtotal: sub, gst: totalGst, discount: disc, grandTotal: grand
-            };
-
-            if (!b.sales) b.sales = [];
-            b.sales.unshift(sale);
-            saveData();
-            posCart = [];
-            document.getElementById('cust-name').value = '';
-            document.getElementById('cust-phone').value = '';
-            document.getElementById('cust-address').value = '';
-            document.getElementById('pos-discount').value = '0';
-            showToast('Sale completed & synced!');
-            openInvoiceModal(sale);
-            initPosView();
-            updateDashboard();
-        }
-
-        function openInvoiceModal(sale) {
-            const b = getActiveBranch();
-            const leftHtml = b.leftLogo ? `<img src="${b.leftLogo}" class="w-14 h-14 object-contain">` : `<div class="w-12 h-12 rounded-full bg-amber-50 border flex items-center justify-center text-amber-700 font-bold">LOGO</div>`;
-            const rightHtml = b.rightLogo ? `<img src="${b.rightLogo}" class="w-14 h-14 object-contain ml-auto">` : `<div class="w-12 h-12 rounded-lg bg-blue-50 border flex items-center justify-center text-blue-800 font-bold ml-auto text-[10px]">HALLMARK</div>`;
-
-            const rows = (sale.items || []).map((it, idx) => `
-                <tr class="border-b text-xs">
-                    <td class="py-2 px-1 text-center">${idx + 1}</td>
-                    <td class="py-2 px-1 font-bold">
-                        ${it.name} (${it.netWt}g - ${it.purity})
-                        ${it.addonName ? `<br><span class="text-[10px] text-amber-900 font-medium">+ ${it.addonName}: ₹${Number(it.addonVal).toFixed(0)}</span>` : ''}
-                    </td>
-                    <td class="py-2 px-1 text-right">₹ ${Number(it.metalVal).toFixed(0)}</td>
-                    <td class="py-2 px-1 text-right">₹ ${Number(it.makingVal).toFixed(0)}</td>
-                    <td class="py-2 px-1 text-right">₹ ${it.addonVal > 0 ? Number(it.addonVal).toFixed(0) : '-'}</td>
-                    <td class="py-2 px-1 text-right">₹ ${Number(it.gstVal).toFixed(0)}</td>
-                    <td class="py-2 px-1 text-right font-bold">₹ ${Number(it.totalWithGst).toFixed(0)}</td>
-                </tr>`).join('');
-
-            const cgstVal = Number(sale.gst || 0) / 2;
-            const sgstVal = Number(sale.gst || 0) / 2;
-
-            document.getElementById('printable-area').innerHTML = `
-                <div class="border-2 border-amber-300 p-4 bg-white text-gray-900 rounded-xl">
-                    <div class="flex justify-between items-center border-b-2 border-amber-200 pb-3 mb-3">
-                        <div class="w-16">${leftHtml}</div>
-                        <div class="text-center flex-1 px-2 space-y-0.5">
-                            <h2 class="text-lg font-extrabold text-amber-950 uppercase tracking-wide leading-tight">${b.name}</h2>
-                            ${b.address ? `<p class="text-[11px] text-gray-700 font-medium">${b.address}</p>` : ''}
-                            <div class="text-[11px] text-gray-700 font-semibold flex flex-wrap justify-center gap-x-3">
-                                ${b.phone ? `<span>Ph: ${b.phone}</span>` : ''}
-                                ${b.email ? `<span>Email: ${b.email}</span>` : ''}
-                                ${b.gstNumber ? `<span>GSTIN: ${b.gstNumber}</span>` : ''}
-                            </div>
-                            <p class="text-[10px] font-bold text-amber-800 uppercase tracking-widest pt-1">TAX INVOICE / CASH MEMO</p>
-                        </div>
-                        <div class="w-16 text-right">${rightHtml}</div>
-                    </div>
-                    <div class="flex justify-between bg-amber-50/60 p-2.5 rounded-xl border text-xs mb-3">
-                        <div><strong>Customer:</strong> ${sale.customerName} (${sale.customerPhone})</div>
-                        <div><strong>Date:</strong> ${sale.date}</div>
-                    </div>
-                    <table class="w-full border-collapse mb-4 text-xs">
-                        <thead>
-                            <tr class="bg-amber-100 text-amber-950 font-bold border-b">
-                                <th class="py-2 px-1 text-center">#</th>
-                                <th class="py-2 px-1 text-left">Item Description</th>
-                                <th class="py-2 px-1 text-right">Metal Price</th>
-                                <th class="py-2 px-1 text-right">Making</th>
-                                <th class="py-2 px-1 text-right">Addon</th>
-                                <th class="py-2 px-1 text-right">GST (3%)</th>
-                                <th class="py-2 px-1 text-right">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                    <div class="flex justify-end pt-2">
-                        <div class="w-64 space-y-1 text-xs bg-gray-50 p-3 rounded-xl border">
-                            <div class="flex justify-between"><span>Subtotal:</span><span>₹ ${Number(sale.subtotal).toFixed(0)}</span></div>
-                            <div class="flex justify-between"><span>CGST (1.5%):</span><span>₹ ${cgstVal.toFixed(2)}</span></div>
-                            <div class="flex justify-between"><span>SGST (1.5%):</span><span>₹ ${sgstVal.toFixed(2)}</span></div>
-                            ${sale.discount > 0 ? `<div class="flex justify-between text-red-600"><span>Discount:</span><span>- ₹ ${Number(sale.discount).toFixed(0)}</span></div>` : ''}
-                            <div class="flex justify-between border-t pt-1 font-bold text-amber-950 text-sm"><span>Grand Total Payable:</span><span>₹ ${Number(sale.grandTotal).toLocaleString('en-IN')}</span></div>
-                        </div>
-                    </div>
-                </div>`;
-            document.getElementById('print-modal').classList.remove('hidden');
-            document.getElementById('print-modal').classList.add('flex');
-        }
-
-        function closePrintModal() {
-            document.getElementById('print-modal').classList.add('hidden');
-            document.getElementById('print-modal').classList.remove('flex');
-        }
-
-        function clearGstDateFilter() {
-            document.getElementById('gst-from-date').value = '';
-            document.getElementById('gst-to-date').value = '';
-            renderSalesHistory();
-        }
-
-        function getFilteredSales() {
-            const b = getActiveBranch();
-            const fromStr = document.getElementById('gst-from-date')?.value;
-            const toStr = document.getElementById('gst-to-date')?.value;
-            
-            return (b.sales || []).map((s, originalIdx) => ({ ...s, originalIdx })).filter(s => {
-                if (!fromStr && !toStr) return true;
-                const parts = (s.date || '').split('/');
-                if (parts.length !== 3) return true;
-                const isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                if (fromStr && isoDate < fromStr) return false;
-                if (toStr && isoDate > toStr) return false;
-                return true;
-            });
-        }
-
-        function renderSalesHistory() {
-            const filtered = getFilteredSales();
-            const listEl = document.getElementById('sales-history-list');
-
-            let sumTaxable = 0, sumGst = 0;
-            filtered.forEach(s => {
-                const gstAmt = Number(s.gst) || 0;
-                const taxable = gstAmt > 0 ? (gstAmt / 0.03) : (Number(s.subtotal) || 0);
-                sumTaxable += taxable;
-                sumGst += gstAmt;
-            });
-
-            document.getElementById('gst-sum-taxable').textContent = '₹ ' + sumTaxable.toFixed(0);
-            document.getElementById('gst-sum-cgst').textContent = '₹ ' + (sumGst / 2).toFixed(2);
-            document.getElementById('gst-sum-sgst').textContent = '₹ ' + (sumGst / 2).toFixed(2);
-            document.getElementById('gst-sum-total').textContent = '₹ ' + sumGst.toFixed(2);
-
-            listEl.innerHTML = filtered.map(s => `
-                <div class="bg-white rounded-2xl border p-3.5 flex justify-between items-center text-xs shadow-sm">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="font-mono font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded">INV-${1000 + s.originalIdx}</span>
-                            <span class="text-gray-500 font-medium">${s.date}</span>
-                            ${s.billedBy ? `<span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">By: ${s.billedBy}</span>` : ''}
-                        </div>
-                        <div class="font-bold text-gray-900 text-sm">${s.customerName} <span class="text-xs font-normal text-gray-500">(${s.customerPhone})</span></div>
-                        <div class="text-gray-600">${(s.items || []).map(i => `${i.name} (${i.netWt}g)`).join(', ')}</div>
-                    </div>
-                    <div class="text-right space-y-2">
-                        <div class="font-extrabold text-base text-amber-800">₹ ${Number(s.grandTotal).toLocaleString('en-IN')}</div>
-                        <div class="flex items-center justify-end gap-1.5">
-                            <button type="button" onclick="viewInvoice(${s.originalIdx})" class="px-2.5 py-1.5 bg-amber-100 text-amber-900 font-bold rounded-xl hover:bg-amber-200"><i class="fas fa-print"></i> Bill</button>
-                            ${currentUser.role === 'owner' ? `<button type="button" onclick="confirmDeleteSale(${s.originalIdx})" class="text-red-500 p-1.5 hover:bg-red-50 rounded-xl"><i class="fas fa-trash"></i></button>` : ''}
-                        </div>
-                    </div>
-                </div>
-            `).join('') || '<div class="text-center py-6 text-gray-400 text-xs bg-white rounded-xl border border-dashed">No sales records found</div>';
-        }
-
-        function buildGSTCSVContent() {
-            const filtered = getFilteredSales();
-            if (filtered.length === 0) return null;
-
-            const rows = [
-                ['Invoice No', 'Date', 'Customer Name', 'Phone', 'Items', 'Taxable Gold Value', 'CGST (1.5%)', 'SGST (1.5%)', 'Total GST (3%)', 'Discount', 'Grand Total']
-            ];
-
-            filtered.forEach(s => {
-                const invNo = `INV-${1000 + s.originalIdx}`;
-                const itemNames = (s.items || []).map(i => `${i.name} (${i.netWt}g - ${i.purity})`).join(' | ');
-                const gstAmt = Number(s.gst) || 0;
-                const taxable = gstAmt > 0 ? (gstAmt / 0.03) : (Number(s.subtotal) || 0);
-                const cgst = gstAmt / 2;
-                const sgst = gstAmt / 2;
-                const disc = Number(s.discount) || 0;
-
-                rows.push([
-                    invNo,
-                    s.date || '',
-                    s.customerName || '',
-                    s.customerPhone || '',
-                    itemNames,
-                    taxable.toFixed(2),
-                    cgst.toFixed(2),
-                    sgst.toFixed(2),
-                    gstAmt.toFixed(2),
-                    disc.toFixed(2),
-                    (Number(s.grandTotal) || 0).toFixed(2)
-                ]);
-            });
-
-            return rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
-        }
-
-        function exportGSTReportCSV() {
-            const csvContent = buildGSTCSVContent();
-            if (!csvContent) return showToast('কোনো বিলের তথ্য পাওয়া যায়নি!');
-
-            const b = getActiveBranch();
-            const fileName = `${(b.name || 'Store').replace(/[^a-zA-Z0-9]/g, '_')}_GST_Tally_Report.csv`;
-            const bom = '\uFEFF';
-            const fullCsv = bom + csvContent;
-
-            try {
-                const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(fullCsv);
-                const link = document.createElement('a');
-                link.setAttribute('href', encodedUri);
-                link.setAttribute('download', fileName);
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showToast('GST & Tally CSV ফাইল ডাউনলোড হয়েছে!');
-            } catch (err) {
-                showToast('ডাউনলোডে সমস্যা হলে Copy Data বাটন ব্যবহার করুন।');
-            }
-        }
-
-        function copyGSTReportData() {
-            const csvContent = buildGSTCSVContent();
-            if (!csvContent) return showToast('কোনো বিলের তথ্য পাওয়া যায়নি!');
-
-            const tsvContent = csvContent.replace(/","/g, '\t').replace(/^"|"$/gm, '');
-            const textarea = document.createElement('textarea');
-            textarea.value = tsvContent;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            showToast('সব হিসাব কপি হয়েছে! এখন Excel বা Google Sheets-এ Paste করুন।');
-        }
-
-        let pendingDeleteSaleIdx = null;
-        function confirmDeleteSale(idx) {
-            pendingDeleteSaleIdx = idx;
-            document.getElementById('confirm-text').textContent = "Are you sure you want to delete this bill record?";
-            const modal = document.getElementById('confirm-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeConfirmModal(confirmed) {
-            const modal = document.getElementById('confirm-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            if (confirmed && pendingDeleteSaleIdx !== null) {
-                const b = getActiveBranch();
-                b.sales.splice(pendingDeleteSaleIdx, 1);
-                saveData();
-                renderSalesHistory();
-                updateDashboard();
-                showToast('Bill deleted successfully!');
-            }
-            pendingDeleteSaleIdx = null;
-        }
-
-        function viewInvoice(idx) {
-            openInvoiceModal(getActiveBranch().sales[idx]);
-        }
-
-        function loadSettingsView() {
-            const b = getActiveBranch();
-            document.getElementById('set-branch-name').value = b.name;
-            document.getElementById('set-branch-address').value = b.address || '';
-            document.getElementById('set-branch-phone').value = b.phone || '';
-            document.getElementById('set-branch-email').value = b.email || '';
-            document.getElementById('set-branch-gst').value = b.gstNumber || '';
-            document.getElementById('rate-set-22k').value = b.rates['22K'] || 0;
-            document.getElementById('rate-set-18k').value = b.rates['18K'] || 0;
-            document.getElementById('rate-set-9k').value = b.rates['9K'] || 0;
-            document.getElementById('rate-set-silver60').value = b.rates['Silver60'] || 0;
-            document.getElementById('rate-set-silver70').value = b.rates['Silver70'] || 0;
-            document.getElementById('rate-set-making').value = b.rates['making'] || 10;
-            document.getElementById('rate-set-making-flat').value = b.rates['makingFlat'] || 0;
-            document.getElementById('set-owner-id').value = window.appData.owner.id;
-            document.getElementById('set-owner-pin').value = window.appData.owner.pin;
-            renderBranchStaffList();
-            updateLogosPreview();
-        }
-
-        function changeOwnerPassword(e) {
-            e.preventDefault();
-            const newId = document.getElementById('set-owner-id').value.trim();
-            const newPin = document.getElementById('set-owner-pin').value.trim();
-            if (!newId || !newPin) return showToast('Please enter valid username and password!');
-            window.appData.owner.id = newId;
-            window.appData.owner.pin = newPin;
-            saveData();
-            showToast('Admin password updated successfully!');
-        }
-
-        function saveDailyRates() {
-            const b = getActiveBranch();
-            b.rates['22K'] = parseFloat(document.getElementById('rate-set-22k').value) || 0;
-            b.rates['18K'] = parseFloat(document.getElementById('rate-set-18k').value) || 0;
-            b.rates['9K'] = parseFloat(document.getElementById('rate-set-9k').value) || 0;
-            b.rates['Silver60'] = parseFloat(document.getElementById('rate-set-silver60').value) || 0;
-            b.rates['Silver70'] = parseFloat(document.getElementById('rate-set-silver70').value) || 0;
-            b.rates['making'] = parseFloat(document.getElementById('rate-set-making').value) || 0;
-            b.rates['makingFlat'] = parseFloat(document.getElementById('rate-set-making-flat').value) || 0;
-            
-            saveData();
-            updateDashboard();
-            showToast('Daily rates & making charges updated & synced!');
-        }
-
-        function renderBranchStaffList() {
-            const b = getActiveBranch();
-            const listEl = document.getElementById('branch-staff-list');
-            if (!b.staffList || b.staffList.length === 0) {
-                listEl.innerHTML = '<p class="text-[11px] text-gray-500 italic">No staff added to this branch yet.</p>';
-                return;
-            }
-            listEl.innerHTML = b.staffList.map((st, idx) => {
-                const hasPerm = st.canBill !== false;
-                return `
-                <div class="flex justify-between items-center bg-white p-2.5 rounded-xl border text-xs shadow-sm">
-                    <div>
-                        <strong>${st.name}</strong> <span class="text-gray-400">(ID: ${st.id})</span>
-                        <div class="mt-1">
-                            <button type="button" onclick="toggleStaffBillingPermission(${idx})" class="px-2 py-0.5 rounded-full text-[10px] font-bold transition ${hasPerm ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-700 border border-red-300'}">
-                                <i class="fas ${hasPerm ? 'fa-check-circle' : 'fa-ban'} mr-1"></i>${hasPerm ? 'POS Bill: Allowed' : 'POS Bill: Blocked'}
-                            </button>
-                        </div>
-                    </div>
-                    <button type="button" onclick="removeBranchStaff(${idx})" class="text-red-500 hover:text-red-700 p-1.5"><i class="fas fa-trash"></i></button>
-                </div>
-            `}).join('');
-        }
-
-        function toggleStaffBillingPermission(idx) {
-            const b = getActiveBranch();
-            if (!b.staffList[idx]) return;
-            const current = b.staffList[idx].canBill !== false;
-            b.staffList[idx].canBill = !current;
-            saveData();
-            renderBranchStaffList();
-            showToast(!current ? 'বিল করার অনুমতি দেওয়া হয়েছে!' : 'বিল করার অনুমতি বন্ধ করা হয়েছে!');
-        }
-
-        function addStaffToBranch(e) {
-            e.preventDefault();
-            const b = getActiveBranch();
-            const id = document.getElementById('new-staff-id').value.trim();
-            const pin = document.getElementById('new-staff-pin').value.trim();
-            const name = document.getElementById('new-staff-name').value.trim();
-            const canBill = document.getElementById('new-staff-can-bill').checked;
-
-            if (!b.staffList) b.staffList = [];
-            if (b.staffList.some(s => s.id === id)) {
-                return showToast('Staff ID already exists in this branch!');
-            }
-
-            b.staffList.push({ id, pin, name, canBill });
-            saveData();
-            e.target.reset();
-            document.getElementById('new-staff-can-bill').checked = true;
-            renderBranchStaffList();
-            showToast('Staff added & synced!');
-        }
-
-        function removeBranchStaff(idx) {
-            const b = getActiveBranch();
-            b.staffList.splice(idx, 1);
-            saveData();
-            renderBranchStaffList();
-            showToast('Staff removed');
-        }
-
-        function updateLogosPreview() {
-            const b = getActiveBranch();
-            const setImg = (id, val) => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                if (val) { el.src = val; el.classList.remove('hidden'); } else { el.classList.add('hidden'); }
-            };
-            setImg('preview-left-logo', b.leftLogo);
-            setImg('preview-right-logo', b.rightLogo);
-        }
-
-        function handleLogoUpload(e, type) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const b = getActiveBranch();
-                if (type === 'left') b.leftLogo = evt.target.result;
-                if (type === 'right') b.rightLogo = evt.target.result;
-                saveData();
-                updateLogosPreview();
-                showToast('Image uploaded successfully');
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function saveShopSettings() {
-            const b = getActiveBranch();
-            b.name = document.getElementById('set-branch-name').value.trim() || b.name;
-            b.address = document.getElementById('set-branch-address').value.trim();
-            b.phone = document.getElementById('set-branch-phone').value.trim();
-            b.email = document.getElementById('set-branch-email').value.trim();
-            b.gstNumber = document.getElementById('set-branch-gst').value.trim().toUpperCase();
             saveData();
             updateBranchDropdown();
             updateDashboard();
-            showToast('Branch details saved & synced!');
+            if (!document.getElementById('view-inventory').classList.contains('hidden')) renderInventory();
+            if (!document.getElementById('view-pos').classList.contains('hidden')) initPosView();
+            if (!document.getElementById('view-calculator').classList.contains('hidden')) initCalcView();
+            if (!document.getElementById('view-settings').classList.contains('hidden')) loadSettingsView();
+            showToast(`Switched to ${appData.branches[branchId].name}`);
         }
 
-        function addNewBranch(e) {
-            e.preventDefault();
-            const id = document.getElementById('new-branch-id').value.trim().toLowerCase().replace(/\s+/g, '_');
-            const name = document.getElementById('new-branch-name').value.trim();
-            if (!id || !name) {
-                showToast('Please enter both Branch ID and Name!');
-                return;
-            }
-            if (window.appData.branches[id]) {
-                showToast('Branch ID already exists!');
-                return;
-            }
-            window.appData.branches[id] = {
-                name: name,
-                address: '',
-                phone: '',
-                email: '',
-                gstNumber: '',
-                staffList: [],
-                rates: { '22K': 72000, '18K': 58900, '9K': 29500, 'Silver60': 600, 'Silver70': 700, 'making': 10, 'makingFlat': 0 },
-                leftLogo: '', rightLogo: '',
-                inventory: [], sales: []
-            };
-            window.appData.activeBranchId = id;
-            saveData();
-            e.target.reset();
-            updateBranchDropdown();
-            loadSettingsView();
-            updateDashboard();
-            showToast('New branch created & synced!');
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+            syncToFirebase();
         }
 
-        function downloadFullBackup() {
-            try {
-                const backupStr = JSON.stringify(window.appData, null, 2);
-                const dateTag = new Date().toISOString().slice(0, 10);
-                const fileName = `Jewelry_POS_Full_Backup_${dateTag}.json`;
-                const encodedUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(backupStr);
-                const link = document.createElement('a');
-                link.setAttribute('href', encodedUri);
-                link.setAttribute('download', fileName);
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showToast('সম্পূর্ণ ব্যাকআপ ফাইল ডাউনলোড হয়েছে!');
-            } catch (err) {
-                showToast('ব্যাকআপ তৈরি করতে সমস্যা হয়েছে!');
-            }
-        }
-
-        function restoreFullBackup(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                try {
-                    const parsed = JSON.parse(evt.target.result);
-                    if (parsed && parsed.branches && parsed.owner) {
-                        window.appData = parsed;
-                        saveData();
-                        updateBranchDropdown();
-                        loadSettingsView();
-                        updateDashboard();
-                        showToast('আগের সব স্টক, বিল ও স্টাফ তথ্য সফলভাবে ফিরে এসেছে!');
-                    } else {
-                        showToast('সঠিক ব্যাকআপ ফাইল সিলেক্ট করুন!');
-                    }
-                } catch (err) {
-                    showToast('ফাইলটি পড়া যাচ্ছে না!');
-                }
-                e.target.value = '';
-            };
-            reader.readAsText(file);
-        }
-
-        let deferredInstallPrompt = null;
-
-        function setupPWA() {
-            const manifestObj = {
-                name: "Jewelry Store POS",
-                short_name: "Jewelry POS",
-                start_url: window.location.href,
-                display: "standalone",
-                background_color: "#fdfbf7",
-                theme_color: "#d97706",
-                icons: [
-                    {
-                        src: "https://cdn-icons-png.flaticon.com/512/2530/2530992.png",
-                        sizes: "512x512",
-                        type: "image/png"
-                    }
-                ]
-            };
-            const stringManifest = JSON.stringify(manifestObj);
-            const blob = new Blob([stringManifest], { type: 'application/json' });
-            const manifestURL = URL.createObjectURL(blob);
-            const manifestLink = document.getElementById('pwa-manifest');
-            if (manifestLink) manifestLink.setAttribute('href', manifestURL);
-        }
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredInstallPrompt = e;
-        });
-
-        async function triggerInstallApp() {
-            if (deferredInstallPrompt) {
-                deferredInstallPrompt.prompt();
-                const { outcome } = await deferredInstallPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    showToast('অ্যাপটি ইনস্টল হচ্ছে! হোম স্ক্রিনে চেক করুন।');
-                }
-                deferredInstallPrompt = null;
-            } else {
-                showToast('ইনস্টল করতে ব্রাউজারের ওপরের (⋮) মেনু থেকে "Install app" বা "Add to Home screen" চাপুন!');
-            }
-        }
-
-        window.onload = function() {
-            setupPWA();
-            if (currentUser) initAppSession();
+        // --- FIREBASE REALTIME CLOUD SYNC ---
+        const FB_CONFIG_KEY = 'jewelry_pos_firebase_cfg_v1';
+        const DEFAULT_FB_CONFIG = {
+            apiKey: "AIzaSyDu8qy-CZgIG85qhFFcIZ135TecXQ2Aux8",
+            authDomain: "jewellery-6de28.firebaseapp.com",
+            databaseURL: "https://jewellery-6de28-default-rtdb.firebaseio.com",
+            projectId: "jewellery-6de28",
+            storageBucket: "jewellery-6de28.firebasestorage.app",
+            messagingSenderId: "66516103504",
+            appId: "1:66516103504:web:5b4d637abcd316721cbc55"
         };
-    </script>
-</body>
-</html>
+        let fbDbRef = null;
+        let isApplyingRemoteUpdate = false;
+
+        function getEffectiveFbConfig() {
+            const saved = JSON.parse(localStorage.getItem(FB_CONFIG_KEY) || 'null');
+            if (saved && saved.databaseURL) return saved;
+            return DEFAULT_FB_CONFIG;
+        }
+
+        function updateSyncBadge(status) {
+// ... existing code ... -->
+        function initFirebaseCloud() {
+            const savedCfg = getEffectiveFbConfig();
+            if (!savedCfg || !savedCfg.databaseURL) {
+                updateSyncBadge('offline');
+                return;
+            }
+            try {
+                updateSyncBadge('connecting');
+                if (!firebase.apps.length) {
+                    firebase.initializeApp({
+                        apiKey: savedCfg.apiKey,
+                        authDomain: savedCfg.authDomain || `${savedCfg.projectId}.firebaseapp.com`,
+                        databaseURL: savedCfg.databaseURL,
+                        projectId: savedCfg.projectId
+                    });
+                }
+                fbDbRef = firebase.database().ref('jewelry_store_data');
+// ... existing code ... -->
+        function disconnectFirebase() {
+            localStorage.removeItem(FB_CONFIG_KEY);
+            showToast('ডিফল্ট Firebase কনফিগারেশনে রিসেট করা হয়েছে।');
+            setTimeout(() => location.reload(), 600);
+        }
+// ... existing code ... -->
+            document.getElementById('set-owner-id').value = appData.owner.id;
+            document.getElementById('set-owner-pin').value = appData.owner.pin;
+            const savedCfg = getEffectiveFbConfig();
+            if (document.getElementById('fb-api-key')) {
+                document.getElementById('fb-api-key').value = savedCfg.apiKey || '';
+                document.getElementById('fb-db-url').value = savedCfg.databaseURL || '';
+                document.getElementById('fb-project-id').value = savedCfg.projectId || '';
+            }
+            renderBranchStaffList();
+// ... existing code ... -->
