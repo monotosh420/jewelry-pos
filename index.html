@@ -268,17 +268,17 @@
                             <h2 class="font-extrabold text-xl sm:text-2xl text-gray-900 leading-tight">
                                 Vori-Ana & Price Calculator
                             </h2>
-                            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">সোনার মেকিং চার্জ অটোমেটিক ও ১ গ্রামের নিচে ১ গ্রাম মজুরি ধরা হবে।</p>
+                            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">নাম লিখে বা ড্রপডাউন থেকে সিলেক্ট করে খুব সহজেই স্টক থেকে মাল খুঁজুন।</p>
                         </div>
                     </div>
 
                     <div class="bg-amber-50/90 p-4 rounded-2xl border border-amber-300 space-y-3">
-                        <label class="block text-sm font-bold text-amber-950">Scan / Select Item from Stock:</label>
+                        <label class="block text-sm font-bold text-amber-950">Search Item by Name / Barcode / ID:</label>
                         <div class="flex gap-2.5">
-                            <input type="text" id="calc-barcode-input" onkeydown="handleCalcBarcodeScan(event)" placeholder="Scan Barcode or Type ID..." class="flex-1 px-4 py-3 rounded-xl border-2 border-amber-300 bg-white text-base font-bold focus:border-amber-600 outline-none">
+                            <input type="text" id="calc-barcode-input" onkeydown="handleCalcBarcodeScan(event)" oninput="filterCalcDropdown(this.value)" placeholder="Type item name or scan barcode..." class="flex-1 px-4 py-3 rounded-xl border-2 border-amber-300 bg-white text-base font-bold focus:border-amber-600 outline-none">
                             <button type="button" onclick="loadCalcItemByBarcode()" class="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-base shadow active:scale-95 transition">Load</button>
                         </div>
-                        <select id="calc-item-select" onchange="document.getElementById('calc-barcode-input').value = this.value; loadCalcItemByBarcode();" class="w-full px-4 py-3 rounded-xl border border-amber-300 bg-white text-sm font-semibold">
+                        <select id="calc-item-select" onchange="if(this.value){ document.getElementById('calc-barcode-input').value = this.value; loadCalcItemByBarcode(); }" class="w-full px-4 py-3 rounded-xl border border-amber-300 bg-white text-sm font-semibold">
                             <option value="">-- Or Choose From Stock --</option>
                         </select>
                     </div>
@@ -1055,11 +1055,17 @@
 
         function initCalcView() {
             const branch = getActiveBranch();
+            filterCalcDropdown('');
+            onCalcPurityChange();
+        }
+
+        function filterCalcDropdown(query) {
+            const branch = getActiveBranch();
+            const q = (query || '').trim().toLowerCase();
+            const avail = (branch.inventory || []).filter(i => i.status === 'available' && (!q || i.id.toLowerCase().includes(q) || i.name.toLowerCase().includes(q)));
             const sel = document.getElementById('calc-item-select');
-            const avail = (branch.inventory || []).filter(i => i.status === 'available');
             sel.innerHTML = `<option value="">-- Or Choose From Stock (${avail.length}) --</option>` +
                 avail.map(i => `<option value="${i.id}">${i.id} - ${i.name} (${i.purity}, ${i.netWt}g)</option>`).join('');
-            onCalcPurityChange();
         }
 
         function onCalcPurityChange() {
@@ -1094,7 +1100,7 @@
             const code = document.getElementById('calc-barcode-input').value.trim().toLowerCase();
             if (!code) return;
             const branch = getActiveBranch();
-            const item = (branch.inventory || []).find(i => i.id.toLowerCase() === code || i.name.toLowerCase().includes(code));
+            const item = (branch.inventory || []).find(i => i.status === 'available' && (i.id.toLowerCase() === code || i.name.toLowerCase().includes(code)));
             if (!item) return showToast('Item not found in stock', true);
 
             document.getElementById('calc-item-info-box').classList.remove('hidden');
