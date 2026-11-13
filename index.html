@@ -576,11 +576,14 @@
                                 <input type="text" id="new-staff-pin" required placeholder="Password / PIN" class="w-full px-3 py-2 rounded-xl border text-xs bg-white">
                             </div>
                             <input type="text" id="new-staff-name" required placeholder="Staff Full Name" class="w-full px-3 py-2 rounded-xl border text-xs bg-white">
-                            <label class="flex items-center gap-2 text-xs font-bold text-blue-950 bg-white px-3 py-2 rounded-xl border cursor-pointer">
-                                <input type="checkbox" id="new-staff-can-bill" checked class="w-4 h-4 accent-blue-600 rounded">
-                                <span>Allow POS Billing Permission</span>
-                            </label>
-                            <button type="submit" class="w-full py-2 bg-blue-600 text-white font-bold rounded-xl text-xs shadow">+ Add Staff to Branch</button>
+                            <div class="bg-white p-3 rounded-xl border border-blue-300 flex items-center justify-between shadow-sm">
+                                <div>
+                                    <span class="text-xs font-extrabold text-blue-950 block">POS Billing Permission</span>
+                                    <span class="text-[10px] text-gray-500 block">টিক দিলে এই স্টাফ বিল করতে পারবে</span>
+                                </div>
+                                <input type="checkbox" id="new-staff-can-bill" checked class="w-6 h-6 accent-amber-600 rounded cursor-pointer">
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs shadow">+ Add Staff to Branch</button>
                         </form>
                         <div id="branch-staff-list" class="space-y-1.5 pt-2"></div>
                     </div>
@@ -1273,6 +1276,26 @@
         // --- POS BILLING ---
         function initPosView() {
             const branch = getActiveBranch();
+            
+            // Check if staff has billing permission
+            if (currentUser && currentUser.role === 'staff') {
+                const currentStaffObj = (branch.staffList || []).find(s => s.id === currentUser.id);
+                const hasPermission = currentStaffObj ? (currentStaffObj.canBill !== false) : (currentUser.canBill !== false);
+                
+                if (!hasPermission) {
+                    document.getElementById('view-pos').innerHTML = `
+                        <div class="bg-red-50 border-2 border-red-300 rounded-3xl p-8 text-center space-y-3 my-10 max-w-md mx-auto shadow-sm">
+                            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-3xl">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-red-900">অনুমতি নেই (Access Denied)</h3>
+                            <p class="text-sm text-red-700">আপনার অ্যাকাউন্টটিতে বিল করার অনুমতি নেই। ওনার (Owner) আপনাকে শুধুমাত্র দেখার অনুমতি দিয়েছেন।</p>
+                        </div>
+                    `;
+                    return;
+                }
+            }
+
             document.getElementById('pos-override-making').value = branch.rates.making || 0;
             filterPosDropdown('');
             renderPosCart();
@@ -1381,8 +1404,13 @@
         }
 
         function completeSale() {
-            if (currentUser && currentUser.role === 'staff' && currentUser.canBill === false) {
-                return showToast('আপনার বিল করার অনুমতি নেই!', true);
+            if (currentUser && currentUser.role === 'staff') {
+                const branch = getActiveBranch();
+                const currentStaffObj = (branch.staffList || []).find(s => s.id === currentUser.id);
+                const hasPermission = currentStaffObj ? (currentStaffObj.canBill !== false) : (currentUser.canBill !== false);
+                if (!hasPermission) {
+                    return showToast('আপনার বিল করার অনুমতি নেই!', true);
+                }
             }
             if (!posCart.length) return showToast('Please add at least 1 item to bill', true);
             const custName = document.getElementById('cust-name').value.trim();
@@ -1610,14 +1638,30 @@
             const list = document.getElementById('branch-staff-list');
             const staff = branch.staffList || [];
             list.innerHTML = staff.map(s => `
-                <div class="bg-white px-3 py-2 rounded-xl border flex items-center justify-between text-xs">
+                <div class="bg-white px-3 py-2.5 rounded-xl border flex items-center justify-between text-xs gap-2">
                     <div>
-                        <b>${s.name}</b> (ID: <span class="font-mono">${s.id}</span> | PIN: ${s.pin})
-                        <span class="ml-1 px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px]">${s.canBill !== false ? 'Can Bill' : 'View Only'}</span>
+                        <div class="font-bold text-gray-900">${s.name} <span class="font-mono text-gray-500">(${s.id})</span></div>
+                        <div class="text-[11px] text-gray-500">PIN: ${s.pin}</div>
                     </div>
-                    <button type="button" onclick="removeStaff('${s.id}')" class="text-red-600 font-bold px-2"><i class="fas fa-trash"></i></button>
+                    <div class="flex items-center gap-2">
+                        <label class="flex items-center gap-1 cursor-pointer bg-amber-50 px-2 py-1 rounded-lg border border-amber-200">
+                            <input type="checkbox" ${s.canBill !== false ? 'checked' : ''} onchange="toggleStaffBillingPermission('${s.id}', this.checked)" class="w-4 h-4 accent-amber-600 rounded">
+                            <span class="text-[10px] font-bold text-amber-900">POS Bill</span>
+                        </label>
+                        <button type="button" onclick="removeStaff('${s.id}')" class="text-red-600 font-bold px-2 py-1 hover:bg-red-50 rounded"><i class="fas fa-trash"></i></button>
+                    </div>
                 </div>
             `).join('');
+        }
+
+        function toggleStaffBillingPermission(staffId, canBill) {
+            const branch = getActiveBranch();
+            const st = (branch.staffList || []).find(s => s.id === staffId);
+            if (st) {
+                st.canBill = canBill;
+                saveData();
+                showToast(`Permission updated for ${st.name}`);
+            }
         }
 
         function removeStaff(id) {
