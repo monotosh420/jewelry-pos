@@ -396,42 +396,43 @@
                 </div>
 
                 <div id="add-stock-card" class="owner-only hidden bg-white rounded-2xl border border-amber-200 p-4 shadow-sm space-y-3">
-                    <h3 class="font-bold text-sm text-gray-900 border-b pb-2">Add New Jewelry Item</h3>
+                    <h3 class="font-bold text-sm text-gray-900 border-b pb-2">Add New Jewelry or Miscellaneous Item</h3>
                     <form onsubmit="addStockItem(event)" class="space-y-3">
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Barcode / Item ID (Editable)</label>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Barcode / Item ID</label>
                                 <input type="text" id="item-custom-id" placeholder="Leave empty for auto" class="w-full px-3 py-2.5 rounded-xl border text-sm font-bold bg-amber-50/40">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Item Name *</label>
-                                <input type="text" id="item-name" required placeholder="e.g. Gold Ring" class="w-full px-3 py-2.5 rounded-xl border text-sm">
+                                <input type="text" id="item-name" required placeholder="e.g. Stone Ring / Pearl" class="w-full px-3 py-2.5 rounded-xl border text-sm">
                             </div>
                         </div>
                         <div class="grid grid-cols-3 gap-2">
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Purity</label>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Category / Type</label>
                                 <select id="item-purity" class="w-full px-2 py-2.5 rounded-xl border bg-white text-xs font-semibold">
                                     <option value="22K">22K Gold</option>
                                     <option value="18K">18K Gold</option>
                                     <option value="9K">9K Gold</option>
                                     <option value="Silver60">Silver 60</option>
                                     <option value="Silver70">Silver 70</option>
+                                    <option value="FixedPrice">Fixed Price Item (অন্যান্য)</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Net Weight (g) *</label>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Weight (g) / Qty</label>
                                 <input type="number" step="0.001" id="item-net-wt" required placeholder="0.000" class="w-full px-2 py-2.5 rounded-xl border text-xs font-bold">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Size</label>
-                                <input type="text" id="item-size" placeholder="e.g. 2.4" class="w-full px-2 py-2.5 rounded-xl border text-xs font-bold bg-amber-50/40">
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Fixed Selling Price (₹)</label>
+                                <input type="number" id="item-fixed-price" placeholder="For Fixed Price" class="w-full px-2 py-2.5 rounded-xl border text-xs font-bold bg-amber-50/60" value="0">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Custom Making (₹)</label>
-                                <input type="number" id="item-custom-making" value="0" placeholder="For Silver / Custom" class="w-full px-3 py-2.5 rounded-xl border text-sm font-bold bg-amber-50/50">
+                                <input type="number" id="item-custom-making" value="0" placeholder="Making Charge" class="w-full px-3 py-2.5 rounded-xl border text-sm font-bold bg-amber-50/50">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Addon Name</label>
@@ -1221,7 +1222,8 @@
             const name = document.getElementById('item-name').value.trim();
             const purity = document.getElementById('item-purity').value;
             const netWt = Number(document.getElementById('item-net-wt').value || 0);
-            const size = document.getElementById('item-size').value.trim();
+            const fixedPrice = Number(document.getElementById('item-fixed-price').value || 0);
+            const size = document.getElementById('item-size') ? document.getElementById('item-size').value.trim() : '';
             const customMaking = Number(document.getElementById('item-custom-making').value || 0);
             const addonName = document.getElementById('item-addon-name').value.trim();
             const addonPrice = Number(document.getElementById('item-addon-price').value || 0);
@@ -1231,7 +1233,7 @@
                 return showToast('Item ID already exists!', true);
             }
 
-            const newItem = { id, name, purity, netWt, size, customMaking, addonName, addonPrice, status: 'available' };
+            const newItem = { id, name, purity, netWt, fixedPrice, size, customMaking, addonName, addonPrice, status: 'available' };
             branch.inventory = branch.inventory || [];
             branch.inventory.unshift(newItem);
             saveData();
@@ -1383,6 +1385,11 @@
 
         function calculateItemBillDetails(item) {
             const branch = getActiveBranch();
+            if (item.purity === 'FixedPrice' || Number(item.fixedPrice || 0) > 0) {
+                const fp = Number(item.fixedPrice || 0);
+                return { metalValue: fp, makingCharge: 0, addon: 0, totalBeforeGst: fp, gst: 0, isSilver: false };
+            }
+
             const isSilver = item.purity.startsWith('Silver');
             const rate10g = Number(branch.rates[item.purity] || 0);
             const grams = Number(item.netWt || 0);
@@ -1396,14 +1403,12 @@
             
             const addon = Number(item.addonPrice || 0);
             
-            // 3% GST ONLY on Gold & Making. Shakha/Addon GST is strictly 0.
             const goldTotalForGst = metalValue + makingCharge;
             const gstGold = isSilver ? 0 : goldTotalForGst * 0.03;
-            const totalGst = gstGold;
 
             const totalBeforeGst = goldTotalForGst + addon;
 
-            return { metalValue, makingCharge, addon, totalBeforeGst, gst: totalGst, isSilver };
+            return { metalValue, makingCharge, addon, totalBeforeGst, gst: gstGold, isSilver };
         }
 
         function renderPosCart() {
@@ -1525,88 +1530,93 @@
 
             const area = document.getElementById('printable-area');
             area.innerHTML = `
-                <div class="bg-white p-8 border border-gray-400 text-gray-900 space-y-6 text-sm max-w-[210mm] mx-auto font-sans" style="min-height: 297mm;">
-                    <!-- Shop Header -->
-                    <div class="text-center border-b-2 border-amber-600 pb-4 space-y-1">
-                        <h1 class="text-2xl font-black uppercase text-amber-900 tracking-wider">${branch.name}</h1>
-                        <p class="text-sm font-medium text-gray-700">${branch.address || ''} | Phone: ${branch.phone || ''}</p>
-                        ${branch.email ? `<p class="text-xs text-gray-600">Email: ${branch.email}</p>` : ''}
-                        ${branch.gstNumber ? `<p class="font-mono text-xs font-bold text-gray-800 mt-0.5">GSTIN: ${branch.gstNumber}</p>` : ''}
-                        <div class="inline-block px-4 py-1 bg-amber-100 text-amber-900 font-bold rounded-full text-xs mt-2 uppercase tracking-widest">Tax Invoice / Estimate</div>
+                <div class="bg-white p-8 border border-gray-200 text-gray-900 space-y-6 text-sm max-w-[210mm] mx-auto font-sans shadow-sm" style="min-height: 297mm;">
+                    <!-- Modern Header -->
+                    <div class="flex justify-between items-start border-b-2 border-amber-500 pb-6">
+                        <div class="space-y-1">
+                            <h1 class="text-3xl font-black uppercase tracking-tight text-amber-950">${branch.name}</h1>
+                            <p class="text-xs font-medium text-gray-600">${branch.address || ''}</p>
+                            <p class="text-xs font-medium text-gray-600">Phone: ${branch.phone || ''} ${branch.email ? `| Email: ${branch.email}` : ''}</p>
+                            ${branch.gstNumber ? `<p class="font-mono text-xs font-bold text-gray-800 mt-1">GSTIN: ${branch.gstNumber}</p>` : ''}
+                        </div>
+                        <div class="text-right space-y-1">
+                            <div class="inline-block px-3 py-1 bg-amber-600 text-white font-black rounded-lg text-xs uppercase tracking-widest shadow-sm">TAX INVOICE</div>
+                            <div class="text-sm font-bold font-mono text-gray-800 mt-2">${inv.invoiceNo}</div>
+                            <div class="text-xs text-gray-500 font-medium">Date: ${new Date(inv.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                        </div>
                     </div>
 
-                    <!-- Customer & Invoice Meta -->
-                    <div class="grid grid-cols-2 gap-4 text-xs bg-amber-50/50 p-4 rounded-xl border border-amber-200">
+                    <!-- Customer & Staff Info Grid -->
+                    <div class="grid grid-cols-2 gap-4 text-xs bg-gray-50/80 p-4 rounded-2xl border border-gray-200">
                         <div class="space-y-1">
-                            <div class="font-bold text-amber-950 text-sm">Customer Details:</div>
-                            <div><b>Name:</b> ${inv.custName}</div>
-                            ${inv.custPhone ? `<div><b>Phone:</b> ${inv.custPhone}</div>` : ''}
-                            ${inv.custAddress ? `<div><b>Address:</b> ${inv.custAddress}</div>` : ''}
+                            <div class="font-bold text-amber-900 uppercase tracking-wide text-[11px]">Billed To:</div>
+                            <div class="text-base font-bold text-gray-900">${inv.custName}</div>
+                            ${inv.custPhone ? `<div class="text-gray-600"><b>Phone:</b> ${inv.custPhone}</div>` : ''}
+                            ${inv.custAddress ? `<div class="text-gray-600"><b>Address:</b> ${inv.custAddress}</div>` : ''}
                         </div>
                         <div class="space-y-1 text-right">
-                            <div class="font-bold text-amber-950 text-sm">Invoice Meta:</div>
-                            <div><b>Invoice No:</b> <span class="font-mono">${inv.invoiceNo}</span></div>
-                            <div><b>Date:</b> ${new Date(inv.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
-                            <div><b>Billed By:</b> ${inv.billedBy || 'Owner'}</div>
+                            <div class="font-bold text-amber-900 uppercase tracking-wide text-[11px]">Store Assistant:</div>
+                            <div class="text-sm font-bold text-gray-800">${inv.billedBy || 'Owner'}</div>
+                            <div class="text-gray-500 text-[11px] mt-2">Original Customer Copy</div>
                         </div>
                     </div>
 
-                    <!-- Items Table -->
-                    <table class="w-full border-collapse border border-gray-400 text-xs text-left">
+                    <!-- Modern Items Table -->
+                    <table class="w-full border-collapse text-xs text-left">
                         <thead>
-                            <tr class="bg-amber-600 text-white font-bold">
-                                <th class="border border-gray-400 p-2.5">#</th>
-                                <th class="border border-gray-400 p-2.5">Item Name & Description</th>
-                                <th class="border border-gray-400 p-2.5">Purity</th>
-                                <th class="border border-gray-400 p-2.5 text-center">Net Wt (g)</th>
-                                <th class="border border-gray-400 p-2.5 text-right">Metal Value</th>
-                                <th class="border border-gray-400 p-2.5 text-right">Making</th>
-                                <th class="border border-gray-400 p-2.5 text-right">Total (₹)</th>
+                            <tr class="bg-gray-900 text-white font-bold">
+                                <th class="p-3 rounded-l-xl">#</th>
+                                <th class="p-3">Item Description</th>
+                                <th class="p-3">Purity</th>
+                                <th class="p-3 text-center">Net Wt</th>
+                                <th class="p-3 text-right">Metal Value</th>
+                                <th class="p-3 text-right">Making</th>
+                                <th class="p-3 text-right rounded-r-xl">Amount</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-gray-100">
                             ${inv.items.map((it, idx) => `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="border border-gray-300 p-2 text-center font-bold">${idx + 1}</td>
-                                    <td class="border border-gray-300 p-2 font-semibold">${it.name} <span class="font-mono text-gray-500 text-[10px]">(${it.id})</span> ${it.addonName ? `<br/><span class="text-amber-800 text-[11px]">+ ${it.addonName}: ₹${it.addonPrice}</span>` : ''}</td>
-                                    <td class="border border-gray-300 p-2 font-bold">${it.purity}</td>
-                                    <td class="border border-gray-300 p-2 text-center">${Number(it.netWt).toFixed(3)}</td>
-                                    <td class="border border-gray-300 p-2 text-right">₹${Math.round(it.metalValue).toLocaleString('en-IN')}</td>
-                                    <td class="border border-gray-300 p-2 text-right">₹${Math.round(it.makingCharge).toLocaleString('en-IN')}</td>
-                                    <td class="border border-gray-300 p-2 text-right font-extrabold">₹${Math.round(it.totalBeforeGst).toLocaleString('en-IN')}</td>
+                                <tr class="hover:bg-amber-50/30">
+                                    <td class="p-3 text-center font-bold text-gray-500">${idx + 1}</td>
+                                    <td class="p-3 font-bold text-gray-900">${it.name} <span class="font-mono text-gray-400 font-normal text-[10px]">(${it.id})</span> ${it.addonName ? `<br/><span class="text-amber-800 font-semibold text-[11px]">+ ${it.addonName}: ₹${it.addonPrice}</span>` : ''}</td>
+                                    <td class="p-3 font-bold text-amber-900">${it.purity}</td>
+                                    <td class="p-3 text-center font-semibold">${Number(it.netWt).toFixed(3)}g</td>
+                                    <td class="p-3 text-right text-gray-700">₹${Math.round(it.metalValue).toLocaleString('en-IN')}</td>
+                                    <td class="p-3 text-right text-gray-700">₹${Math.round(it.makingCharge).toLocaleString('en-IN')}</td>
+                                    <td class="p-3 text-right font-extrabold text-gray-900">₹${Math.round(it.totalBeforeGst).toLocaleString('en-IN')}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
 
-                    <!-- Totals & Calculations -->
-                    <div class="flex justify-between items-start pt-2">
-                        <div class="text-[11px] text-gray-600 max-w-xs space-y-1">
-                            <p><b>Terms & Conditions:</b></p>
-                            <p>1. Old gold purity is subject to testing.</p>
-                            <p>2. Goods once sold will not be taken back or exchanged without original invoice and hallmark intact.</p>
+                    <!-- Summary Box -->
+                    <div class="flex justify-between items-start pt-4 border-t border-gray-200">
+                        <div class="text-[11px] text-gray-500 max-w-xs space-y-1">
+                            <p class="font-bold text-gray-700">Terms & Conditions:</p>
+                            <p>1. Old gold purity is subject to testing/acid test.</p>
+                            <p>2. Goods once sold will not be taken back without original cash memo & intact hallmark.</p>
                         </div>
-                        <div class="w-64 space-y-1.5 text-xs bg-gray-50 p-4 rounded-xl border border-gray-300">
-                            ${inv.extraAddon > 0 ? `<div class="flex justify-between text-gray-700"><span>Additional / Extra:</span><span>₹${inv.extraAddon.toLocaleString('en-IN')}</span></div>` : ''}
-                            ${inv.discount > 0 ? `<div class="flex justify-between text-emerald-700 font-semibold"><span>Discount:</span><span>- ₹${inv.discount.toLocaleString('en-IN')}</span></div>` : ''}
-                            <div class="flex justify-between text-gray-700"><span>Subtotal:</span><span class="font-semibold">₹${inv.subtotal.toLocaleString('en-IN')}</span></div>
-                            <div class="flex justify-between text-gray-700"><span>CGST (1.5% on Gold):</span><span class="font-semibold">₹${Math.round(inv.gst / 2).toLocaleString('en-IN')}</span></div>
-                            <div class="flex justify-between text-gray-700"><span>SGST (1.5% on Gold):</span><span class="font-semibold">₹${Math.round(inv.gst / 2).toLocaleString('en-IN')}</span></div>
-                            <div class="flex justify-between border-t-2 border-amber-600 pt-2 text-sm font-black text-amber-900">
+                        <div class="w-72 space-y-2 text-xs bg-gray-50 p-4 rounded-2xl border border-gray-200 shadow-sm">
+                            ${inv.extraAddon > 0 ? `<div class="flex justify-between text-gray-600"><span>Additional:</span><span>₹${inv.extraAddon.toLocaleString('en-IN')}</span></div>` : ''}
+                            ${inv.discount > 0 ? `<div class="flex justify-between text-emerald-700 font-bold"><span>Discount:</span><span>- ₹${inv.discount.toLocaleString('en-IN')}</span></div>` : ''}
+                            <div class="flex justify-between text-gray-700"><span>Subtotal:</span><span class="font-bold">₹${inv.subtotal.toLocaleString('en-IN')}</span></div>
+                            <div class="flex justify-between text-gray-600"><span>CGST (1.5% on Gold):</span><span>₹${Math.round(inv.gst / 2).toLocaleString('en-IN')}</span></div>
+                            <div class="flex justify-between text-gray-600"><span>SGST (1.5% on Gold):</span><span>₹${Math.round(inv.gst / 2).toLocaleString('en-IN')}</span></div>
+                            <div class="flex justify-between border-t border-amber-300 pt-2 text-sm font-black text-amber-950">
                                 <span>Grand Total:</span>
-                                <span class="text-base text-amber-700">₹${inv.grandTotal.toLocaleString('en-IN')}</span>
+                                <span class="text-lg text-amber-700">₹${inv.grandTotal.toLocaleString('en-IN')}</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Signatures -->
-                    <div class="grid grid-cols-2 pt-16 text-xs font-bold text-gray-700">
+                    <div class="grid grid-cols-2 pt-20 text-xs font-bold text-gray-700">
                         <div class="text-left">
-                            <div class="border-t border-gray-400 w-48 pt-1">Customer's Signature</div>
+                            <div class="border-t border-gray-400 w-48 pt-1 text-center">Customer's Signature</div>
                         </div>
                         <div class="text-right flex flex-col items-end">
                             <div class="border-t border-gray-400 w-48 pt-1 text-center">Authorised Signatory</div>
-                            <div class="text-[10px] text-gray-500 font-normal mt-0.5">For ${branch.name}</div>
+                            <div class="text-[10px] text-gray-400 font-normal mt-0.5">For ${branch.name}</div>
                         </div>
                     </div>
                 </div>
