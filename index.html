@@ -371,7 +371,7 @@
                         <div class="flex justify-between text-gray-200"><span>Metal Value:</span><span id="calc-res-metal" class="font-bold text-base sm:text-lg">₹ 0</span></div>
                         <div class="flex justify-between text-gray-200"><span>Making Charge:</span><span id="calc-res-making" class="font-bold text-base sm:text-lg">₹ 0</span></div>
                         <div id="calc-res-addon-row" class="hidden flex justify-between text-gray-200"><span id="calc-res-addon-label">Addon:</span><span id="calc-res-addon" class="font-bold text-base sm:text-lg">₹ 0</span></div>
-                        <div id="calc-res-gst-row" class="flex justify-between text-gray-200"><span>GST (3% on Gold):</span><span id="calc-res-gst" class="font-bold text-base sm:text-lg">₹ 0</span></div>
+                        <div id="calc-res-gst-row" class="flex justify-between text-gray-200"><span id="calc-res-gst-label">GST (3% on Gold):</span><span id="calc-res-gst" class="font-bold text-base sm:text-lg">₹ 0</span></div>
                         <div class="flex justify-between items-center border-t border-gray-700 pt-3 text-lg sm:text-xl font-black text-amber-300">
                             <span>Estimated Total:</span>
                             <span id="calc-res-total" class="text-2xl sm:text-3xl text-amber-400">₹ 0</span>
@@ -1174,12 +1174,14 @@
             }
 
             const metalValue = (grams / 10) * rate10g;
-            // Rule: For Gold, if weight > 0 and < 1g, charge minimum 1g making charge
             const effectiveMakingWt = (!isSilver && grams > 0 && grams < 1) ? 1 : grams;
             const makingCharge = isSilver ? makingRate : (effectiveMakingWt * makingRate);
 
-            const subtotal = metalValue + makingCharge + addonPrice;
-            const gst = isSilver ? 0 : subtotal * 0.03;
+            // Gold and Making total for GST
+            const goldAndMakingTotal = metalValue + makingCharge;
+            const gst = isSilver ? 0 : goldAndMakingTotal * 0.03; // Only 3% on Gold & Making, 0 on Shakha/Addon
+            
+            const subtotal = goldAndMakingTotal + addonPrice;
             const total = subtotal + gst;
 
             document.getElementById('calc-res-metal').textContent = `₹ ${Math.round(metalValue).toLocaleString('en-IN')}`;
@@ -1391,11 +1393,17 @@
 
             const effectiveMakingWt = (!isSilver && grams > 0 && grams < 1) ? 1 : grams;
             const makingCharge = isSilver ? makingRate : (effectiveMakingWt * makingRate);
+            
             const addon = Number(item.addonPrice || 0);
-            const totalBeforeGst = metalValue + makingCharge + addon;
-            const gst = isSilver ? 0 : totalBeforeGst * 0.03;
+            // Gold & Making GST is 3%, Addon/Shakha can have separate tax or 0
+            const goldTotalForGst = metalValue + makingCharge;
+            const gstGold = isSilver ? 0 : goldTotalForGst * 0.03;
+            const gstAddon = addon * 0.03; // Optional 3% or 0 for Shakha
+            const totalGst = gstGold + gstAddon;
 
-            return { metalValue, makingCharge, addon, totalBeforeGst, gst, isSilver };
+            const totalBeforeGst = goldTotalForGst + addon;
+
+            return { metalValue, makingCharge, addon, totalBeforeGst, gst: totalGst, isSilver };
         }
 
         function renderPosCart() {
