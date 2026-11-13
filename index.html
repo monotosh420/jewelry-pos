@@ -1177,9 +1177,9 @@
             const effectiveMakingWt = (!isSilver && grams > 0 && grams < 1) ? 1 : grams;
             const makingCharge = isSilver ? makingRate : (effectiveMakingWt * makingRate);
 
-            // Gold and Making total for GST
+            // 3% GST ONLY on Gold & Making Charge. Shakha/Addon has 0% GST.
             const goldAndMakingTotal = metalValue + makingCharge;
-            const gst = isSilver ? 0 : goldAndMakingTotal * 0.03; // Only 3% on Gold & Making, 0 on Shakha/Addon
+            const gst = isSilver ? 0 : goldAndMakingTotal * 0.03;
             
             const subtotal = goldAndMakingTotal + addonPrice;
             const total = subtotal + gst;
@@ -1395,11 +1395,11 @@
             const makingCharge = isSilver ? makingRate : (effectiveMakingWt * makingRate);
             
             const addon = Number(item.addonPrice || 0);
-            // Gold & Making GST is 3%, Addon/Shakha can have separate tax or 0
+            
+            // 3% GST ONLY on Gold & Making. Shakha/Addon GST is strictly 0.
             const goldTotalForGst = metalValue + makingCharge;
             const gstGold = isSilver ? 0 : goldTotalForGst * 0.03;
-            const gstAddon = addon * 0.03; // Optional 3% or 0 for Shakha
-            const totalGst = gstGold + gstAddon;
+            const totalGst = gstGold;
 
             const totalBeforeGst = goldTotalForGst + addon;
 
@@ -1647,11 +1647,28 @@
                         <div class="font-bold text-sm text-gray-900">${inv.custName} ${inv.custPhone ? `(${inv.custPhone})` : ''}</div>
                         <div class="text-xs text-gray-600">${inv.items.length} item(s) | Total: <b class="text-emerald-700">₹${inv.grandTotal.toLocaleString('en-IN')}</b></div>
                     </div>
-                    <button type="button" onclick="printInvoice('${inv.invoiceNo}')" class="px-3 py-2 bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm">
-                        <i class="fas fa-print mr-1"></i> Print
-                    </button>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="printInvoice('${inv.invoiceNo}')" class="px-3 py-2 bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm">
+                            <i class="fas fa-print mr-1"></i> Print
+                        </button>
+                        ${currentUser && currentUser.role === 'owner' ? `
+                        <button type="button" onclick="deleteSalesInvoice('${inv.invoiceNo}')" class="px-2.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold" title="Delete Invoice">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
+                    </div>
                 </div>
             `).join('');
+        }
+
+        function deleteSalesInvoice(invoiceNo) {
+            openConfirmModal(`Are you sure you want to delete invoice ${invoiceNo}?`, () => {
+                const branch = getActiveBranch();
+                branch.sales = (branch.sales || []).filter(s => s.invoiceNo !== invoiceNo);
+                saveData();
+                renderSalesHistory();
+                updateDashboard();
+                showToast(`Invoice ${invoiceNo} deleted successfully!`);
+            });
         }
 
         // --- OWNER SETTINGS ---
