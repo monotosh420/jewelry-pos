@@ -133,21 +133,19 @@
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label id="login-id-label" class="block text-sm font-semibold text-gray-700 mb-1">Admin Username</label>
-                    <input type="text" id="login-id" required placeholder="e.g. admin" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-base">
+                    <input type="text" id="login-id" required value="admin" placeholder="e.g. admin" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-base">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Password / PIN</label>
-                    <input type="password" id="login-pin" required placeholder="••••" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-base">
+                    <input type="password" id="login-pin" required value="1234" placeholder="••••" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-base">
                 </div>
                 <button type="submit" class="w-full py-3.5 gold-gradient text-white font-bold rounded-xl shadow-md hover:opacity-95 active:scale-[0.99] transition text-base">
                     Login <i class="fas fa-arrow-right ml-1"></i>
                 </button>
             </form>
 
-            <div id="login-install-box" class="mt-4 pt-4 border-t border-amber-100 text-center">
-                <button type="button" onclick="triggerInstallApp()" class="w-full py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition shadow-sm">
-                    <i class="fas fa-mobile-alt text-amber-700 text-base"></i> Install Android / Mobile App
-                </button>
+            <div class="mt-4 text-center text-xs text-gray-500">
+                Default Owner: <b>admin</b> / PIN: <b>1234</b> | Staff: <b>staff1</b> / PIN: <b>1111</b>
             </div>
         </div>
     </div>
@@ -169,15 +167,12 @@
                         <span id="user-name-display" class="text-gray-600 font-medium">Owner</span>
                         <span id="user-badge" class="px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800">Owner</span>
                         <span id="cloud-sync-badge" class="px-2 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600 text-[10px]">
-                            <i class="fas fa-database mr-0.5"></i> Offline
+                            <i class="fas fa-database mr-0.5"></i> Connecting...
                         </span>
                     </div>
                 </div>
             </div>
             <div class="flex items-center gap-1.5">
-                <button type="button" id="header-install-btn" onclick="triggerInstallApp()" class="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-xl text-xs flex items-center gap-1 shadow-sm transition" title="Install App">
-                    <i class="fas fa-download text-amber-700"></i> <span class="hidden sm:inline">Install App</span>
-                </button>
                 <button type="button" onclick="logout()" class="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition" title="Logout">
                     <i class="fas fa-sign-out-alt text-lg"></i>
                 </button>
@@ -273,7 +268,7 @@
                             <h2 class="font-extrabold text-xl sm:text-2xl text-gray-900 leading-tight">
                                 Vori-Ana & Price Calculator
                             </h2>
-                            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Scan barcode or enter weight to show detailed price breakdown.</p>
+                            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">সোনার মেকিং চার্জ অটোমেটিক ও ১ গ্রামের নিচে ১ গ্রাম মজুরি ধরা হবে।</p>
                         </div>
                     </div>
 
@@ -342,7 +337,11 @@
                         </div>
                         <div>
                             <label id="calc-making-label" class="block text-sm font-bold text-gray-800 mb-1.5">Making Charge (₹/g Auto)</label>
-                            <input type="number" id="calc-making-val" oninput="calculateJewelryPrice()" class="w-full px-3.5 py-3 rounded-xl border-2 border-gray-200 text-base font-extrabold" placeholder="Auto from Settings">
+                            <input type="number" id="calc-making-val" oninput="calculateJewelryPrice()" class="w-full px-3.5 py-3 rounded-xl border-2 border-gray-200 text-base font-extrabold" placeholder="Auto">
+                        </div>
+                        <div id="calc-silver-rate-box" class="hidden col-span-2 bg-gray-100 p-3 rounded-xl border border-gray-300">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">রূপার আজকের রেট (প্রতি ১০ গ্রামে টাকা - নিজে সেট করুন)</label>
+                            <input type="number" id="calc-custom-silver-rate" oninput="calculateJewelryPrice()" class="w-full px-3 py-2 rounded-lg border bg-white text-base font-extrabold" placeholder="যেমন: 850">
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-800 mb-1.5">Addon Name</label>
@@ -462,11 +461,10 @@
                         </select>
                     </div>
 
-                    <!-- Instant Making Charge & Addon Override per Bill -->
                     <div class="grid grid-cols-2 gap-2 bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs">
                         <div>
                             <label class="block font-bold text-amber-950 mb-1">আজকের মেকিং চার্জ (₹ প্রতি গ্রাম)</label>
-                            <input type="number" id="pos-override-making" oninput="renderPosCart()" class="w-full px-2.5 py-1.5 rounded-lg border font-bold bg-white" placeholder="যেমন: ১০০">
+                            <input type="number" id="pos-override-making" oninput="renderPosCart()" class="w-full px-2.5 py-1.5 rounded-lg border font-bold bg-white" placeholder="Auto">
                         </div>
                         <div>
                             <label class="block font-bold text-amber-950 mb-1">অতিরিক্ত খরচ/ছাঁকা (₹)</label>
@@ -487,7 +485,7 @@
                         <input type="text" id="cust-address" placeholder="Customer Address" class="w-full px-3.5 py-2.5 rounded-xl border text-sm">
                         <div>
                             <label class="block text-[11px] font-bold text-gray-500 mb-1">Discount (₹)</label>
-                            <input type="number" id="pos-discount" value="0" oninput="renderPosCart()" class="w-full px-3 py-2.5 rounded-xl border text-sm font-bold">
+                            <input type="number" id="pos-discount" value="0" oninput="renderPosCart()" class="w-full px-3.5 py-2.5 rounded-xl border text-sm font-bold">
                         </div>
                     </div>
 
@@ -509,13 +507,13 @@
 
             <!-- 5. SALES HISTORY -->
             <section id="view-history" class="hidden space-y-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="font-bold text-lg text-gray-900">Branch Sales History & Invoices</h2>
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <h2 class="font-bold text-lg text-gray-900">Branch Sales History</h2>
                     <div class="flex items-center gap-1.5 text-xs">
                         <input type="date" id="history-from-date" onchange="renderSalesHistory()" class="px-2 py-1.5 border rounded-lg text-xs font-medium bg-white">
                         <span class="text-gray-400">to</span>
                         <input type="date" id="history-to-date" onchange="renderSalesHistory()" class="px-2 py-1.5 border rounded-lg text-xs font-medium bg-white">
-                        <button type="button" onclick="clearHistoryDateFilter()" class="text-xs text-amber-700 font-bold px-1 bg-amber-100 rounded">All</button>
+                        <button type="button" onclick="clearHistoryDateFilter()" class="text-xs text-amber-700 font-bold px-2 py-1.5 bg-amber-100 rounded-lg">All</button>
                     </div>
                 </div>
                 <div id="sales-history-list" class="space-y-3"></div>
@@ -534,9 +532,9 @@
                             <div><label class="block text-[11px] font-bold text-gray-700">22K Gold (10g)</label><input type="number" id="rate-set-22k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
                             <div><label class="block text-[11px] font-bold text-gray-700">18K Gold (10g)</label><input type="number" id="rate-set-18k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
                             <div><label class="block text-[11px] font-bold text-gray-700">9K Gold (10g)</label><input type="number" id="rate-set-9k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
-                            <div><label class="block text-[11px] font-bold text-gray-700">Silver 60 (10g)</label><input type="number" id="rate-set-silver60" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold" placeholder="রূপার রেট নিজে দিন"></div>
-                            <div><label class="block text-[11px] font-bold text-gray-700">Silver 70 (10g)</label><input type="number" id="rate-set-silver70" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold" placeholder="রূপার রেট নিজে দিন"></div>
-                            <div class="col-span-2"><label class="block text-[11px] font-bold text-gray-700">Gold Making Charge (₹ per Gram)</label><input type="number" step="0.01" id="rate-set-making" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold text-amber-800" placeholder="সোনার প্রতি গ্রাম মজুরি"></div>
+                            <div><label class="block text-[11px] font-bold text-gray-700">Silver 60 (10g)</label><input type="number" id="rate-set-silver60" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
+                            <div><label class="block text-[11px] font-bold text-gray-700">Silver 70 (10g)</label><input type="number" id="rate-set-silver70" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
+                            <div class="col-span-2 sm:col-span-1"><label class="block text-[11px] font-bold text-gray-700">Gold Making (₹/g)</label><input type="number" step="0.01" id="rate-set-making" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold text-amber-800"></div>
                         </div>
                         <button type="button" onclick="saveDailyRates()" class="w-full py-2 bg-amber-600 text-white font-bold rounded-xl text-xs shadow">Save Rates & Making Charge</button>
                     </div>
@@ -550,22 +548,22 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Phone Number</label>
-                                <input type="text" id="set-branch-phone" placeholder="e.g. +91 9876543210" class="w-full px-3 py-2 rounded-xl border text-sm bg-white font-semibold">
+                                <input type="text" id="set-branch-phone" class="w-full px-3 py-2 rounded-xl border text-sm bg-white font-semibold">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Shop Address</label>
-                                <input type="text" id="set-branch-address" placeholder="e.g. Main Road, City" class="w-full px-3 py-2 rounded-xl border text-sm bg-white">
+                                <input type="text" id="set-branch-address" class="w-full px-3 py-2 rounded-xl border text-sm bg-white">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Email ID</label>
-                                <input type="email" id="set-branch-email" placeholder="e.g. shop@example.com" class="w-full px-3 py-2 rounded-xl border text-sm bg-white">
+                                <input type="email" id="set-branch-email" class="w-full px-3 py-2 rounded-xl border text-sm bg-white">
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">GST Number (GSTIN)</label>
-                            <input type="text" id="set-branch-gst" placeholder="e.g. 19AAAAA0000A1Z5" class="w-full px-3 py-2 rounded-xl border text-sm bg-white font-mono uppercase">
+                            <input type="text" id="set-branch-gst" class="w-full px-3 py-2 rounded-xl border text-sm bg-white font-mono uppercase">
                         </div>
                         <button type="button" onclick="saveShopSettings()" class="w-full py-2 bg-amber-600 text-white font-bold rounded-xl text-xs shadow">Save Branch Details</button>
                     </div>
@@ -580,31 +578,11 @@
                             <input type="text" id="new-staff-name" required placeholder="Staff Full Name" class="w-full px-3 py-2 rounded-xl border text-xs bg-white">
                             <label class="flex items-center gap-2 text-xs font-bold text-blue-950 bg-white px-3 py-2 rounded-xl border cursor-pointer">
                                 <input type="checkbox" id="new-staff-can-bill" checked class="w-4 h-4 accent-blue-600 rounded">
-                                <span>Allow POS Billing Permission (বিল করার অনুমতি দিন)</span>
+                                <span>Allow POS Billing Permission</span>
                             </label>
                             <button type="submit" class="w-full py-2 bg-blue-600 text-white font-bold rounded-xl text-xs shadow">+ Add Staff to Branch</button>
                         </form>
                         <div id="branch-staff-list" class="space-y-1.5 pt-2"></div>
-                    </div>
-
-                    <div class="space-y-3 bg-gray-50 p-3 rounded-xl border">
-                        <h4 class="font-bold text-xs text-gray-800">Invoice Logos</h4>
-                        <div class="grid grid-cols-2 gap-2 text-center text-[11px]">
-                            <div class="bg-white p-2 rounded-xl border space-y-1.5">
-                                <span class="font-bold block">Left Logo</span>
-                                <img id="preview-left-logo" class="w-10 h-10 object-contain mx-auto hidden rounded">
-                                <label class="block py-1 px-2 bg-amber-100 text-amber-900 rounded-lg font-bold cursor-pointer">
-                                    Upload <input type="file" accept="image/*" onchange="handleLogoUpload(event, 'left')" class="hidden">
-                                </label>
-                            </div>
-                            <div class="bg-white p-2 rounded-xl border space-y-1.5">
-                                <span class="font-bold block">Right Hallmark</span>
-                                <img id="preview-right-logo" class="w-10 h-10 object-contain mx-auto hidden rounded">
-                                <label class="block py-1 px-2 bg-amber-100 text-amber-900 rounded-lg font-bold cursor-pointer">
-                                    Upload <input type="file" accept="image/*" onchange="handleLogoUpload(event, 'right')" class="hidden">
-                                </label>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="space-y-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-200">
@@ -635,13 +613,12 @@
 
                     <div class="space-y-3 bg-orange-50/70 p-3 rounded-xl border border-orange-200">
                         <h4 class="font-bold text-xs text-orange-950 flex items-center gap-1.5">
-                            <i class="fas fa-fire text-orange-600"></i> Firebase Online Cloud Sync (সব ডিভাইসে লাইভ ডাটা)
+                            <i class="fas fa-fire text-orange-600"></i> Firebase Online Cloud Sync (jewellery-6de28)
                         </h4>
-                        <p class="text-[11px] text-gray-600">আপনার প্রজেক্ট (<strong>jewellery-6de28</strong>) ডিফল্টভাবে যুক্ত করা আছে। প্রয়োজনে নিচের তথ্য পরিবর্তন করতে পারেন:</p>
                         <div class="space-y-2">
-                            <input type="text" id="fb-api-key" placeholder="Firebase API Key (AIzaSy...)" class="w-full px-3 py-2 rounded-xl border text-xs bg-white font-mono">
-                            <input type="text" id="fb-db-url" placeholder="Database URL (https://jewellery-6de28-default-rtdb.firebaseio.com)" class="w-full px-3 py-2 rounded-xl border text-xs bg-white font-mono">
-                            <input type="text" id="fb-project-id" placeholder="Project ID (jewellery-6de28)" class="w-full px-3 py-2 rounded-xl border text-xs bg-white font-mono">
+                            <input type="text" id="fb-api-key" placeholder="Firebase API Key" class="w-full px-3 py-2 rounded-xl border text-xs bg-white font-mono">
+                            <input type="text" id="fb-db-url" placeholder="Database URL" class="w-full px-3 py-2 rounded-xl border text-xs bg-white font-mono">
+                            <input type="text" id="fb-project-id" placeholder="Project ID" class="w-full px-3 py-2 rounded-xl border text-xs bg-white font-mono">
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <button type="button" onclick="saveFirebaseConfig()" class="py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-xs shadow">
@@ -722,7 +699,7 @@
                     email: '',
                     gstNumber: '',
                     staffList: [{ id: 'staff1', pin: '1111', name: 'Staff 1', canBill: true }],
-                    rates: { '22K': 72000, '18K': 58900, '9K': 29500, 'Silver60': 600, 'Silver70': 700, 'making': 10, 'makingFlat': 0 },
+                    rates: { '22K': 72000, '18K': 58900, '9K': 29500, 'Silver60': 600, 'Silver70': 700, 'making': 450, 'makingFlat': 0 },
                     leftLogo: '', rightLogo: '',
                     inventory: [
                         { id: 'GLD-1001', name: '22K Gold Ring', purity: '22K', netWt: 3.500, size: '16', customMaking: 0, addonName: '', addonPrice: 0, status: 'available' },
@@ -736,6 +713,41 @@
         let currentUser = JSON.parse(localStorage.getItem('jewelry_session_v2')) || null;
         let selectedLoginRole = 'owner';
         let posCart = [];
+        let invFilter = 'all';
+        let confirmCallback = null;
+
+        // --- TOAST & MODAL HELPERS ---
+        function showToast(msg, isError = false) {
+            const box = document.getElementById('toast-box');
+            const text = document.getElementById('toast-msg');
+            const icon = document.getElementById('toast-icon');
+            text.textContent = msg;
+            icon.className = isError ? 'fas fa-exclamation-circle text-red-400 ml-2' : 'fas fa-check-circle text-emerald-400 ml-2';
+            box.classList.remove('opacity-0', 'pointer-events-none');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
+                box.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        function openConfirmModal(msg, cb) {
+            document.getElementById('confirm-text').textContent = msg;
+            confirmCallback = cb;
+            document.getElementById('confirm-modal').classList.remove('hidden');
+            document.getElementById('confirm-modal').classList.add('flex');
+        }
+
+        function closeConfirmModal(confirmed) {
+            document.getElementById('confirm-modal').classList.add('hidden');
+            document.getElementById('confirm-modal').classList.remove('flex');
+            if (confirmed && typeof confirmCallback === 'function') confirmCallback();
+            confirmCallback = null;
+        }
+
+        function closePrintModal() {
+            document.getElementById('print-modal').classList.add('hidden');
+            document.getElementById('print-modal').classList.remove('flex');
+        }
 
         function getActiveBranch() {
             if (!appData.branches[appData.activeBranchId]) appData.activeBranchId = Object.keys(appData.branches)[0];
@@ -745,9 +757,10 @@
         function updateBranchDropdown() {
             const sel = document.getElementById('top-branch-selector');
             if (!sel) return;
-            sel.innerHTML = Object.keys(appData.branches).map(id => 
+            sel.innerHTML = Object.keys(appData.branches).map(id =>
                 `<option value="${id}" ${id === appData.activeBranchId ? 'selected' : ''}>${appData.branches[id].name}</option>`
             ).join('');
+            sel.disabled = (currentUser && currentUser.role === 'staff');
         }
 
         function switchBranch(branchId) {
@@ -791,10 +804,23 @@
         }
 
         function updateSyncBadge(status) {
-// ... existing code ... -->
+            const badge = document.getElementById('cloud-sync-badge');
+            if (!badge) return;
+            if (status === 'connected') {
+                badge.className = 'px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 text-[10px]';
+                badge.innerHTML = '<i class="fas fa-cloud mr-0.5"></i> Live Cloud';
+            } else if (status === 'connecting') {
+                badge.className = 'px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 text-[10px]';
+                badge.innerHTML = '<i class="fas fa-sync fa-spin mr-0.5"></i> Syncing...';
+            } else {
+                badge.className = 'px-2 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600 text-[10px]';
+                badge.innerHTML = '<i class="fas fa-database mr-0.5"></i> Offline';
+            }
+        }
+
         function initFirebaseCloud() {
             const savedCfg = getEffectiveFbConfig();
-            if (!savedCfg || !savedCfg.databaseURL) {
+            if (!savedCfg || !savedCfg.databaseURL || typeof firebase === 'undefined') {
                 updateSyncBadge('offline');
                 return;
             }
@@ -809,20 +835,878 @@
                     });
                 }
                 fbDbRef = firebase.database().ref('jewelry_store_data');
-// ... existing code ... -->
+                fbDbRef.on('value', (snapshot) => {
+                    const remoteData = snapshot.val();
+                    if (remoteData && remoteData.branches) {
+                        isApplyingRemoteUpdate = true;
+                        appData = remoteData;
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+                        updateBranchDropdown();
+                        updateDashboard();
+                        if (!document.getElementById('view-inventory').classList.contains('hidden')) renderInventory();
+                        if (!document.getElementById('view-history').classList.contains('hidden')) renderSalesHistory();
+                        if (!document.getElementById('view-settings').classList.contains('hidden')) loadSettingsView();
+                        isApplyingRemoteUpdate = false;
+                    } else if (!remoteData) {
+                        fbDbRef.set(appData);
+                    }
+                    updateSyncBadge('connected');
+                }, (err) => {
+                    console.error('Firebase read error:', err);
+                    updateSyncBadge('offline');
+                });
+            } catch (e) {
+                console.error('Firebase init error:', e);
+                updateSyncBadge('offline');
+            }
+        }
+
+        function syncToFirebase() {
+            if (fbDbRef && !isApplyingRemoteUpdate) {
+                fbDbRef.set(appData).then(() => updateSyncBadge('connected')).catch(() => updateSyncBadge('offline'));
+            }
+        }
+
+        function saveFirebaseConfig() {
+            const apiKey = document.getElementById('fb-api-key').value.trim();
+            const databaseURL = document.getElementById('fb-db-url').value.trim();
+            const projectId = document.getElementById('fb-project-id').value.trim();
+            if (!databaseURL) return showToast('Database URL দিন', true);
+            localStorage.setItem(FB_CONFIG_KEY, JSON.stringify({ apiKey, databaseURL, projectId }));
+            showToast('Firebase কনফিগারেশন সেভ হয়েছে! রিলোড হচ্ছে...');
+            setTimeout(() => location.reload(), 800);
+        }
+
         function disconnectFirebase() {
             localStorage.removeItem(FB_CONFIG_KEY);
             showToast('ডিফল্ট Firebase কনফিগারেশনে রিসেট করা হয়েছে।');
             setTimeout(() => location.reload(), 600);
         }
-// ... existing code ... -->
+
+        // --- LOGIN & AUTH ---
+        function switchLoginRole(role) {
+            selectedLoginRole = role;
+            const tabOwner = document.getElementById('tab-owner');
+            const tabStaff = document.getElementById('tab-staff');
+            const label = document.getElementById('login-id-label');
+            const idInput = document.getElementById('login-id');
+            const pinInput = document.getElementById('login-pin');
+
+            if (role === 'owner') {
+                tabOwner.className = 'py-2.5 text-sm font-bold rounded-lg bg-amber-600 text-white shadow transition';
+                tabStaff.className = 'py-2.5 text-sm font-bold rounded-lg text-amber-900 hover:bg-amber-200/50 transition';
+                label.textContent = 'Admin Username';
+                idInput.value = 'admin';
+                pinInput.value = '1234';
+            } else {
+                tabStaff.className = 'py-2.5 text-sm font-bold rounded-lg bg-amber-600 text-white shadow transition';
+                tabOwner.className = 'py-2.5 text-sm font-bold rounded-lg text-amber-900 hover:bg-amber-200/50 transition';
+                label.textContent = 'Staff ID';
+                idInput.value = 'staff1';
+                pinInput.value = '1111';
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const id = document.getElementById('login-id').value.trim();
+            const pin = document.getElementById('login-pin').value.trim();
+
+            if (selectedLoginRole === 'owner') {
+                if (id === appData.owner.id && pin === appData.owner.pin) {
+                    currentUser = { role: 'owner', id: id, name: 'Owner' };
+                    localStorage.setItem('jewelry_session_v2', JSON.stringify(currentUser));
+                    enterApp();
+                    showToast('Welcome Owner!');
+                } else {
+                    showToast('Invalid Admin Username or PIN', true);
+                }
+            } else {
+                let foundStaff = null;
+                let foundBranchId = null;
+                for (const bId of Object.keys(appData.branches)) {
+                    const st = (appData.branches[bId].staffList || []).find(s => s.id === id && s.pin === pin);
+                    if (st) {
+                        foundStaff = st;
+                        foundBranchId = bId;
+                        break;
+                    }
+                }
+                if (foundStaff) {
+                    appData.activeBranchId = foundBranchId;
+                    currentUser = { role: 'staff', id: foundStaff.id, name: foundStaff.name, branchId: foundBranchId, canBill: foundStaff.canBill !== false };
+                    localStorage.setItem('jewelry_session_v2', JSON.stringify(currentUser));
+                    enterApp();
+                    showToast(`Welcome ${foundStaff.name}!`);
+                } else {
+                    showToast('Invalid Staff ID or PIN', true);
+                }
+            }
+        }
+
+        function enterApp() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            document.getElementById('user-name-display').textContent = currentUser.name;
+            document.getElementById('user-badge').textContent = currentUser.role === 'owner' ? 'Owner' : 'Staff';
+
+            document.querySelectorAll('.owner-only').forEach(el => {
+                if (currentUser.role === 'owner') el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+
+            updateBranchDropdown();
+            updateDashboard();
+            navigateTo('dashboard');
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('jewelry_session_v2');
+            document.getElementById('app-container').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            showToast('Logged out');
+        }
+
+        function navigateTo(view) {
+            ['dashboard', 'calculator', 'inventory', 'pos', 'history', 'settings'].forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) el.classList.add('hidden');
+            });
+            const target = document.getElementById(`view-${view}`);
+            if (target) target.classList.remove('hidden');
+
+            if (view === 'dashboard') updateDashboard();
+            if (view === 'calculator') initCalcView();
+            if (view === 'inventory') renderInventory();
+            if (view === 'pos') initPosView();
+            if (view === 'history') renderSalesHistory();
+            if (view === 'settings') loadSettingsView();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- DASHBOARD ---
+        function updateDashboard() {
+            const branch = getActiveBranch();
+            document.getElementById('shop-header-name').textContent = branch.name;
+            document.getElementById('dash-branch-badge').textContent = branch.name;
+
+            const r = branch.rates || {};
+            document.getElementById('dash-rate-22k').textContent = `₹ ${(r['22K'] || 0).toLocaleString('en-IN')}`;
+            document.getElementById('dash-rate-18k').textContent = `₹ ${(r['18K'] || 0).toLocaleString('en-IN')}`;
+            document.getElementById('dash-rate-9k').textContent = `₹ ${(r['9K'] || 0).toLocaleString('en-IN')}`;
+            document.getElementById('dash-rate-silver60').textContent = `₹ ${(r['Silver60'] || 0).toLocaleString('en-IN')}`;
+            document.getElementById('dash-rate-silver70').textContent = `₹ ${(r['Silver70'] || 0).toLocaleString('en-IN')}`;
+
+            const avail = (branch.inventory || []).filter(i => i.status === 'available');
+            const totalWt = avail.reduce((s, i) => s + Number(i.netWt || 0), 0);
+            document.getElementById('stat-stock-count').textContent = `${avail.length} pcs`;
+            document.getElementById('stat-stock-weight').textContent = `Total Wt: ${totalWt.toFixed(3)} g`;
+
+            const sales = branch.sales || [];
+            const totalSales = sales.reduce((s, inv) => s + Number(inv.grandTotal || 0), 0);
+            document.getElementById('stat-sales-total').textContent = `₹ ${Math.round(totalSales).toLocaleString('en-IN')}`;
+            document.getElementById('stat-sales-count').textContent = `Total Invoices: ${sales.length}`;
+        }
+
+        // --- VORI-ANA & PRICE CALCULATOR ---
+        function gramsToVoriText(grams) {
+            if (!grams || grams <= 0) return '0 Vori 0 Ana 0 Roti';
+            const totalPoints = Math.round((grams / 11.664) * 960);
+            const vori = Math.floor(totalPoints / 960);
+            const remAfterVori = totalPoints % 960;
+            const ana = Math.floor(remAfterVori / 60);
+            const remAfterAna = remAfterVori % 60;
+            const roti = Math.floor(remAfterAna / 10);
+            const point = remAfterAna % 10;
+            return `${vori} Vori ${ana} Ana ${roti} Roti ${point} Pt`;
+        }
+
+        function setCalcMode(mode) {
+            const gBox = document.getElementById('calc-gram-box');
+            const vBox = document.getElementById('calc-vori-box');
+            const btnG = document.getElementById('calc-mode-g2v');
+            const btnV = document.getElementById('calc-mode-v2g');
+            if (mode === 'g2v') {
+                gBox.classList.remove('hidden');
+                vBox.classList.add('hidden');
+                btnG.className = 'py-3 text-sm font-extrabold rounded-xl bg-white text-amber-800 shadow transition';
+                btnV.className = 'py-3 text-sm font-extrabold rounded-xl text-gray-600 transition';
+            } else {
+                gBox.classList.add('hidden');
+                vBox.classList.remove('hidden');
+                btnV.className = 'py-3 text-sm font-extrabold rounded-xl bg-white text-amber-800 shadow transition';
+                btnG.className = 'py-3 text-sm font-extrabold rounded-xl text-gray-600 transition';
+            }
+        }
+
+        function convertVoriToGram() {
+            const v = Number(document.getElementById('in-vori').value || 0);
+            const a = Number(document.getElementById('in-ana').value || 0);
+            const r = Number(document.getElementById('in-roti').value || 0);
+            const p = Number(document.getElementById('in-point').value || 0);
+            const grams = (v * 11.664) + (a * (11.664 / 16)) + (r * (11.664 / 96)) + (p * (11.664 / 960));
+            document.getElementById('calc-grams').value = grams > 0 ? grams.toFixed(3) : '';
+            calculateJewelryPrice();
+        }
+
+        function initCalcView() {
+            const branch = getActiveBranch();
+            const sel = document.getElementById('calc-item-select');
+            const avail = (branch.inventory || []).filter(i => i.status === 'available');
+            sel.innerHTML = `<option value="">-- Or Choose From Stock (${avail.length}) --</option>` +
+                avail.map(i => `<option value="${i.id}">${i.id} - ${i.name} (${i.purity}, ${i.netWt}g)</option>`).join('');
+            onCalcPurityChange();
+        }
+
+        function onCalcPurityChange() {
+            const branch = getActiveBranch();
+            const purity = document.getElementById('calc-purity').value;
+            const makingInput = document.getElementById('calc-making-val');
+            const makingLabel = document.getElementById('calc-making-label');
+            const silverRateBox = document.getElementById('calc-silver-rate-box');
+            const customSilverInput = document.getElementById('calc-custom-silver-rate');
+
+            if (purity.startsWith('Silver')) {
+                silverRateBox.classList.remove('hidden');
+                customSilverInput.value = branch.rates[purity] || 600;
+                makingLabel.textContent = 'Silver Making (₹ Total/g - নিজে দিন)';
+                if (!makingInput.value) makingInput.value = 0;
+            } else {
+                silverRateBox.classList.add('hidden');
+                makingLabel.textContent = 'Gold Making Charge (₹/g Auto)';
+                makingInput.value = branch.rates.making || 0;
+            }
+            calculateJewelryPrice();
+        }
+
+        function handleCalcBarcodeScan(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                loadCalcItemByBarcode();
+            }
+        }
+
+        function loadCalcItemByBarcode() {
+            const code = document.getElementById('calc-barcode-input').value.trim().toLowerCase();
+            if (!code) return;
+            const branch = getActiveBranch();
+            const item = (branch.inventory || []).find(i => i.id.toLowerCase() === code || i.name.toLowerCase().includes(code));
+            if (!item) return showToast('Item not found in stock', true);
+
+            document.getElementById('calc-item-info-box').classList.remove('hidden');
+            document.getElementById('calc-info-name').textContent = item.name;
+            document.getElementById('calc-info-id').textContent = item.id;
+            document.getElementById('calc-info-purity').textContent = item.purity;
+            document.getElementById('calc-info-wt').textContent = `${item.netWt} g`;
+            document.getElementById('calc-info-trad').textContent = gramsToVoriText(item.netWt);
+
+            document.getElementById('calc-grams').value = item.netWt;
+            document.getElementById('calc-purity').value = item.purity;
+            onCalcPurityChange();
+            if (item.customMaking > 0) document.getElementById('calc-making-val').value = item.customMaking;
+            document.getElementById('calc-addon-name').value = item.addonName || '';
+            document.getElementById('calc-addon-price').value = item.addonPrice || 0;
+            calculateJewelryPrice();
+            showToast(`Loaded ${item.name}`);
+        }
+
+        function calculateJewelryPrice() {
+            const branch = getActiveBranch();
+            const grams = Number(document.getElementById('calc-grams').value || 0);
+            const purity = document.getElementById('calc-purity').value;
+            const makingRate = Number(document.getElementById('calc-making-val').value || 0);
+            const addonName = document.getElementById('calc-addon-name').value.trim();
+            const addonPrice = Number(document.getElementById('calc-addon-price').value || 0);
+
+            document.getElementById('calc-vori-output').textContent = gramsToVoriText(grams);
+            document.getElementById('calc-breakdown-wt').textContent = `${grams.toFixed(3)}g`;
+
+            const isSilver = purity.startsWith('Silver');
+            let rate10g = Number(branch.rates[purity] || 0);
+            if (isSilver) {
+                const customSilver = Number(document.getElementById('calc-custom-silver-rate').value || 0);
+                if (customSilver > 0) rate10g = customSilver;
+            }
+
+            const metalValue = (grams / 10) * rate10g;
+            // Rule: For Gold, if weight > 0 and < 1g, charge minimum 1g making charge
+            const effectiveMakingWt = (!isSilver && grams > 0 && grams < 1) ? 1 : grams;
+            const makingCharge = isSilver ? makingRate : (effectiveMakingWt * makingRate);
+
+            const subtotal = metalValue + makingCharge + addonPrice;
+            const gst = isSilver ? 0 : subtotal * 0.03;
+            const total = subtotal + gst;
+
+            document.getElementById('calc-res-metal').textContent = `₹ ${Math.round(metalValue).toLocaleString('en-IN')}`;
+            document.getElementById('calc-res-making').textContent = `₹ ${Math.round(makingCharge).toLocaleString('en-IN')}`;
+
+            const addonRow = document.getElementById('calc-res-addon-row');
+            if (addonPrice > 0) {
+                addonRow.classList.remove('hidden');
+                document.getElementById('calc-res-addon-label').textContent = `${addonName || 'Addon'}:`;
+                document.getElementById('calc-res-addon').textContent = `₹ ${Math.round(addonPrice).toLocaleString('en-IN')}`;
+            } else {
+                addonRow.classList.add('hidden');
+            }
+
+            document.getElementById('calc-res-gst').textContent = `₹ ${Math.round(gst).toLocaleString('en-IN')}`;
+            document.getElementById('calc-res-total').textContent = `₹ ${Math.round(total).toLocaleString('en-IN')}`;
+        }
+
+        // --- INVENTORY & BARCODE ---
+        function toggleAddStockForm() {
+            document.getElementById('add-stock-card').classList.toggle('hidden');
+        }
+
+        function filterInventory(f) {
+            invFilter = f;
+            ['all', 'available', 'sold'].forEach(k => {
+                const btn = document.getElementById(`filter-inv-${k === 'available' ? 'avail' : k}`);
+                if (btn) btn.className = (k === f) ? 'flex-1 py-1.5 text-xs font-bold rounded-lg bg-amber-600 text-white transition' : 'flex-1 py-1.5 text-xs font-bold rounded-lg text-gray-600 transition';
+            });
+            renderInventory();
+        }
+
+        function addStockItem(e) {
+            e.preventDefault();
+            const branch = getActiveBranch();
+            const customId = document.getElementById('item-custom-id').value.trim();
+            const name = document.getElementById('item-name').value.trim();
+            const purity = document.getElementById('item-purity').value;
+            const netWt = Number(document.getElementById('item-net-wt').value || 0);
+            const size = document.getElementById('item-size').value.trim();
+            const customMaking = Number(document.getElementById('item-custom-making').value || 0);
+            const addonName = document.getElementById('item-addon-name').value.trim();
+            const addonPrice = Number(document.getElementById('item-addon-price').value || 0);
+
+            const id = customId || (`GLD-${Math.floor(1000 + Math.random() * 9000)}`);
+            if ((branch.inventory || []).some(i => i.id.toLowerCase() === id.toLowerCase())) {
+                return showToast('Item ID already exists!', true);
+            }
+
+            const newItem = { id, name, purity, netWt, size, customMaking, addonName, addonPrice, status: 'available' };
+            branch.inventory = branch.inventory || [];
+            branch.inventory.unshift(newItem);
+            saveData();
+            renderInventory();
+            updateDashboard();
+
+            const submitter = e.submitter;
+            e.target.reset();
+            document.getElementById('add-stock-card').classList.add('hidden');
+            showToast(`Added ${name} (${id})`);
+
+            if (submitter && submitter.value === 'print') {
+                printBarcodeTag(newItem.id);
+            }
+        }
+
+        function renderInventory() {
+            const branch = getActiveBranch();
+            const listEl = document.getElementById('inventory-list');
+            let items = branch.inventory || [];
+            if (invFilter !== 'all') items = items.filter(i => i.status === invFilter);
+
+            if (!items.length) {
+                listEl.innerHTML = `<div class="bg-white p-6 rounded-2xl border text-center text-sm text-gray-400">No items found in this category.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = items.map(item => `
+                <div class="bg-white p-3.5 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between gap-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono text-xs font-extrabold px-2 py-0.5 bg-amber-100 text-amber-900 rounded">${item.id}</span>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${item.status === 'available' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}">
+                                ${item.status === 'available' ? 'In Stock' : 'Sold'}
+                            </span>
+                        </div>
+                        <div class="font-bold text-gray-900 text-sm">${item.name} ${item.size ? `(Size: ${item.size})` : ''}</div>
+                        <div class="text-xs text-gray-600">Purity: <b>${item.purity}</b> | Net Wt: <b>${Number(item.netWt).toFixed(3)}g</b> (${gramsToVoriText(item.netWt)})</div>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <button type="button" onclick="printBarcodeTag('${item.id}')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold">
+                            <i class="fas fa-barcode mr-1"></i> Tag
+                        </button>
+                        ${currentUser && currentUser.role === 'owner' ? `
+                        <button type="button" onclick="deleteStockItem('${item.id}')" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-xs font-bold">
+                            <i class="fas fa-trash"></i>
+                        </button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteStockItem(id) {
+            openConfirmModal(`Delete item ${id} from stock?`, () => {
+                const branch = getActiveBranch();
+                branch.inventory = (branch.inventory || []).filter(i => i.id !== id);
+                saveData();
+                renderInventory();
+                updateDashboard();
+                showToast('Item deleted');
+            });
+        }
+
+        function printBarcodeTag(id) {
+            const branch = getActiveBranch();
+            const item = (branch.inventory || []).find(i => i.id === id);
+            if (!item) return;
+
+            const area = document.getElementById('printable-area');
+            area.innerHTML = `
+                <div class="bg-white p-4 border-2 border-dashed border-gray-400 rounded-xl max-w-xs mx-auto text-center space-y-1">
+                    <div class="text-xs font-extrabold uppercase tracking-wide">${branch.name}</div>
+                    <div class="text-sm font-bold">${item.name} (${item.purity})</div>
+                    <div class="text-xs font-semibold">Wt: ${Number(item.netWt).toFixed(3)}g ${item.size ? `| Size: ${item.size}` : ''}</div>
+                    <svg id="barcode-svg" class="mx-auto"></svg>
+                </div>
+            `;
+            document.getElementById('print-modal').classList.remove('hidden');
+            document.getElementById('print-modal').classList.add('flex');
+            if (typeof JsBarcode !== 'undefined') {
+                JsBarcode("#barcode-svg", item.id, { width: 1.6, height: 42, fontSize: 12, margin: 4 });
+            }
+        }
+
+        // --- POS BILLING ---
+        function initPosView() {
+            const branch = getActiveBranch();
+            document.getElementById('pos-override-making').value = branch.rates.making || 0;
+            filterPosDropdown('');
+            renderPosCart();
+        }
+
+        function filterPosDropdown(query) {
+            const branch = getActiveBranch();
+            const q = (query || '').trim().toLowerCase();
+            const avail = (branch.inventory || []).filter(i => i.status === 'available' && (!q || i.id.toLowerCase().includes(q) || i.name.toLowerCase().includes(q)));
+            const sel = document.getElementById('pos-item-select');
+            sel.innerHTML = `<option value="">-- Choose Available Item (${avail.length}) --</option>` +
+                avail.map(i => `<option value="${i.id}">${i.id} - ${i.name} (${i.purity}, ${i.netWt}g)</option>`).join('');
+        }
+
+        function handleBarcodeScan(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addScannedItemToCart();
+            }
+        }
+
+        function addScannedItemToCart() {
+            const input = document.getElementById('pos-barcode-input');
+            const code = input.value.trim().toLowerCase();
+            if (!code) return;
+            const branch = getActiveBranch();
+            const item = (branch.inventory || []).find(i => i.status === 'available' && (i.id.toLowerCase() === code || i.name.toLowerCase().includes(code)));
+            if (!item) return showToast('Available item not found', true);
+            if (posCart.some(c => c.id === item.id)) return showToast('Item already in bill', true);
+
+            posCart.push({ ...item });
+            input.value = '';
+            filterPosDropdown('');
+            renderPosCart();
+            showToast(`Added ${item.name} to bill`);
+        }
+
+        function removeFromCart(id) {
+            posCart = posCart.filter(c => c.id !== id);
+            renderPosCart();
+        }
+
+        function calculateItemBillDetails(item) {
+            const branch = getActiveBranch();
+            const isSilver = item.purity.startsWith('Silver');
+            const rate10g = Number(branch.rates[item.purity] || 0);
+            const grams = Number(item.netWt || 0);
+            const metalValue = (grams / 10) * rate10g;
+
+            const overrideMaking = Number(document.getElementById('pos-override-making').value || 0);
+            const makingRate = item.customMaking > 0 ? Number(item.customMaking) : overrideMaking;
+
+            const effectiveMakingWt = (!isSilver && grams > 0 && grams < 1) ? 1 : grams;
+            const makingCharge = isSilver ? makingRate : (effectiveMakingWt * makingRate);
+            const addon = Number(item.addonPrice || 0);
+            const totalBeforeGst = metalValue + makingCharge + addon;
+            const gst = isSilver ? 0 : totalBeforeGst * 0.03;
+
+            return { metalValue, makingCharge, addon, totalBeforeGst, gst, isSilver };
+        }
+
+        function renderPosCart() {
+            const list = document.getElementById('pos-cart-list');
+            const extraAddon = Number(document.getElementById('pos-override-addon').value || 0);
+            const discount = Number(document.getElementById('pos-discount').value || 0);
+
+            if (!posCart.length) {
+                list.innerHTML = `<p class="text-xs text-gray-400 text-center py-4 bg-gray-50 rounded-xl border border-dashed">No items added to bill yet</p>`;
+                document.getElementById('pos-subtotal').textContent = '₹ 0';
+                document.getElementById('pos-cgst').textContent = '₹ 0';
+                document.getElementById('pos-sgst').textContent = '₹ 0';
+                document.getElementById('pos-grand-total').textContent = '₹ 0';
+                return;
+            }
+
+            let subtotal = extraAddon;
+            let totalGst = 0;
+
+            list.innerHTML = posCart.map(item => {
+                const d = calculateItemBillDetails(item);
+                subtotal += d.totalBeforeGst;
+                totalGst += d.gst;
+                return `
+                    <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200 flex items-center justify-between gap-2 text-xs">
+                        <div>
+                            <div class="font-bold text-gray-900">${item.name} <span class="font-mono text-amber-800">(${item.id})</span></div>
+                            <div class="text-gray-600">${item.purity} | ${Number(item.netWt).toFixed(3)}g | Metal: ₹${Math.round(d.metalValue)} | Making: ₹${Math.round(d.makingCharge)}</div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-sm text-gray-900">₹${Math.round(d.totalBeforeGst)}</span>
+                            <button type="button" onclick="removeFromCart('${item.id}')" class="p-1.5 text-red-600 hover:bg-red-100 rounded-lg"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const netSubtotal = Math.max(0, subtotal - discount);
+            const cgst = totalGst / 2;
+            const sgst = totalGst / 2;
+            const grandTotal = netSubtotal + totalGst;
+
+            document.getElementById('pos-subtotal').textContent = `₹ ${Math.round(netSubtotal).toLocaleString('en-IN')}`;
+            document.getElementById('pos-cgst').textContent = `₹ ${Math.round(cgst).toLocaleString('en-IN')}`;
+            document.getElementById('pos-sgst').textContent = `₹ ${Math.round(sgst).toLocaleString('en-IN')}`;
+            document.getElementById('pos-grand-total').textContent = `₹ ${Math.round(grandTotal).toLocaleString('en-IN')}`;
+        }
+
+        function completeSale() {
+            if (currentUser && currentUser.role === 'staff' && currentUser.canBill === false) {
+                return showToast('আপনার বিল করার অনুমতি নেই!', true);
+            }
+            if (!posCart.length) return showToast('Please add at least 1 item to bill', true);
+            const custName = document.getElementById('cust-name').value.trim();
+            if (!custName) return showToast('Customer Name is required', true);
+
+            const branch = getActiveBranch();
+            const custPhone = document.getElementById('cust-phone').value.trim();
+            const custAddress = document.getElementById('cust-address').value.trim();
+            const extraAddon = Number(document.getElementById('pos-override-addon').value || 0);
+            const discount = Number(document.getElementById('pos-discount').value || 0);
+
+            let subtotal = extraAddon;
+            let totalGst = 0;
+            const billedItems = posCart.map(item => {
+                const d = calculateItemBillDetails(item);
+                subtotal += d.totalBeforeGst;
+                totalGst += d.gst;
+                const stockRef = (branch.inventory || []).find(s => s.id === item.id);
+                if (stockRef) stockRef.status = 'sold';
+                return { ...item, ...d };
+            });
+
+            const netSubtotal = Math.max(0, subtotal - discount);
+            const grandTotal = Math.round(netSubtotal + totalGst);
+
+            const invoice = {
+                invoiceNo: `INV-${Date.now().toString().slice(-6)}`,
+                date: new Date().toISOString(),
+                custName, custPhone, custAddress,
+                items: billedItems,
+                extraAddon, discount,
+                subtotal: Math.round(netSubtotal),
+                gst: Math.round(totalGst),
+                grandTotal,
+                billedBy: currentUser ? currentUser.name : 'Owner'
+            };
+
+            branch.sales = branch.sales || [];
+            branch.sales.unshift(invoice);
+            posCart = [];
+            document.getElementById('cust-name').value = '';
+            document.getElementById('cust-phone').value = '';
+            document.getElementById('cust-address').value = '';
+            document.getElementById('pos-discount').value = 0;
+            document.getElementById('pos-override-addon').value = 0;
+
+            saveData();
+            renderPosCart();
+            updateDashboard();
+            showToast('Invoice Created!');
+            printInvoice(invoice.invoiceNo);
+        }
+
+        function printInvoice(invoiceNo) {
+            const branch = getActiveBranch();
+            const inv = (branch.sales || []).find(s => s.invoiceNo === invoiceNo);
+            if (!inv) return;
+
+            const area = document.getElementById('printable-area');
+            area.innerHTML = `
+                <div class="bg-white p-5 border border-gray-300 text-gray-900 space-y-4 text-xs">
+                    <div class="text-center border-b pb-3">
+                        <h2 class="text-lg font-extrabold uppercase text-amber-800">${branch.name}</h2>
+                        <p class="text-gray-600">${branch.address || ''} | Ph: ${branch.phone || ''}</p>
+                        ${branch.gstNumber ? `<p class="font-mono font-bold">GSTIN: ${branch.gstNumber}</p>` : ''}
+                    </div>
+                    <div class="flex justify-between">
+                        <div>
+                            <div><b>Customer:</b> ${inv.custName}</div>
+                            ${inv.custPhone ? `<div><b>Phone:</b> ${inv.custPhone}</div>` : ''}
+                            ${inv.custAddress ? `<div><b>Address:</b> ${inv.custAddress}</div>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <div><b>Invoice:</b> ${inv.invoiceNo}</div>
+                            <div><b>Date:</b> ${new Date(inv.date).toLocaleDateString('en-IN')}</div>
+                        </div>
+                    </div>
+                    <table class="w-full border-collapse border border-gray-300 text-left">
+                        <thead class="bg-amber-50">
+                            <tr>
+                                <th class="border p-1.5">Item</th>
+                                <th class="border p-1.5">Wt (g)</th>
+                                <th class="border p-1.5">Metal</th>
+                                <th class="border p-1.5">Making</th>
+                                <th class="border p-1.5 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${inv.items.map(it => `
+                                <tr>
+                                    <td class="border p-1.5">${it.name} (${it.purity})</td>
+                                    <td class="border p-1.5">${Number(it.netWt).toFixed(3)}</td>
+                                    <td class="border p-1.5">₹${Math.round(it.metalValue)}</td>
+                                    <td class="border p-1.5">₹${Math.round(it.makingCharge)}</td>
+                                    <td class="border p-1.5 text-right font-bold">₹${Math.round(it.totalBeforeGst)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="space-y-1 text-right">
+                        ${inv.discount > 0 ? `<div>Discount: - ₹${inv.discount}</div>` : ''}
+                        <div>Subtotal: ₹${inv.subtotal.toLocaleString('en-IN')}</div>
+                        <div>GST (3% Gold): ₹${inv.gst.toLocaleString('en-IN')}</div>
+                        <div class="text-base font-extrabold text-amber-800 border-t pt-1">Grand Total: ₹${inv.grandTotal.toLocaleString('en-IN')}</div>
+                    </div>
+                    <div class="text-center text-[10px] text-gray-500 pt-3 border-t">Thank you for shopping with ${branch.name}!</div>
+                </div>
+            `;
+            document.getElementById('print-modal').classList.remove('hidden');
+            document.getElementById('print-modal').classList.add('flex');
+        }
+
+        // --- SALES HISTORY ---
+        function clearHistoryDateFilter() {
+            document.getElementById('history-from-date').value = '';
+            document.getElementById('history-to-date').value = '';
+            renderSalesHistory();
+        }
+
+        function renderSalesHistory() {
+            const branch = getActiveBranch();
+            const list = document.getElementById('sales-history-list');
+            const fromDate = document.getElementById('history-from-date').value;
+            const toDate = document.getElementById('history-to-date').value;
+
+            let sales = branch.sales || [];
+            if (fromDate) sales = sales.filter(s => s.date.slice(0, 10) >= fromDate);
+            if (toDate) sales = sales.filter(s => s.date.slice(0, 10) <= toDate);
+
+            if (!sales.length) {
+                list.innerHTML = `<div class="bg-white p-6 rounded-2xl border text-center text-sm text-gray-400">No invoices found.</div>`;
+                return;
+            }
+
+            list.innerHTML = sales.map(inv => `
+                <div class="bg-white p-3.5 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between gap-2">
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono text-xs font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">${inv.invoiceNo}</span>
+                            <span class="text-xs text-gray-500">${new Date(inv.date).toLocaleDateString('en-IN')}</span>
+                        </div>
+                        <div class="font-bold text-sm text-gray-900">${inv.custName} ${inv.custPhone ? `(${inv.custPhone})` : ''}</div>
+                        <div class="text-xs text-gray-600">${inv.items.length} item(s) | Total: <b class="text-emerald-700">₹${inv.grandTotal.toLocaleString('en-IN')}</b></div>
+                    </div>
+                    <button type="button" onclick="printInvoice('${inv.invoiceNo}')" class="px-3 py-2 bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm">
+                        <i class="fas fa-print mr-1"></i> Print
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // --- OWNER SETTINGS ---
+        function loadSettingsView() {
+            const branch = getActiveBranch();
+            const r = branch.rates || {};
+            document.getElementById('rate-set-22k').value = r['22K'] || 0;
+            document.getElementById('rate-set-18k').value = r['18K'] || 0;
+            document.getElementById('rate-set-9k').value = r['9K'] || 0;
+            document.getElementById('rate-set-silver60').value = r['Silver60'] || 0;
+            document.getElementById('rate-set-silver70').value = r['Silver70'] || 0;
+            document.getElementById('rate-set-making').value = r['making'] || 0;
+
+            document.getElementById('set-branch-name').value = branch.name || '';
+            document.getElementById('set-branch-phone').value = branch.phone || '';
+            document.getElementById('set-branch-address').value = branch.address || '';
+            document.getElementById('set-branch-email').value = branch.email || '';
+            document.getElementById('set-branch-gst').value = branch.gstNumber || '';
+
             document.getElementById('set-owner-id').value = appData.owner.id;
             document.getElementById('set-owner-pin').value = appData.owner.pin;
+
             const savedCfg = getEffectiveFbConfig();
-            if (document.getElementById('fb-api-key')) {
-                document.getElementById('fb-api-key').value = savedCfg.apiKey || '';
-                document.getElementById('fb-db-url').value = savedCfg.databaseURL || '';
-                document.getElementById('fb-project-id').value = savedCfg.projectId || '';
-            }
+            document.getElementById('fb-api-key').value = savedCfg.apiKey || '';
+            document.getElementById('fb-db-url').value = savedCfg.databaseURL || '';
+            document.getElementById('fb-project-id').value = savedCfg.projectId || '';
+
             renderBranchStaffList();
-// ... existing code ... -->
+        }
+
+        function saveDailyRates() {
+            const branch = getActiveBranch();
+            branch.rates['22K'] = Number(document.getElementById('rate-set-22k').value || 0);
+            branch.rates['18K'] = Number(document.getElementById('rate-set-18k').value || 0);
+            branch.rates['9K'] = Number(document.getElementById('rate-set-9k').value || 0);
+            branch.rates['Silver60'] = Number(document.getElementById('rate-set-silver60').value || 0);
+            branch.rates['Silver70'] = Number(document.getElementById('rate-set-silver70').value || 0);
+            branch.rates['making'] = Number(document.getElementById('rate-set-making').value || 0);
+            saveData();
+            updateDashboard();
+            showToast('Daily Rates & Making Charge Saved!');
+        }
+
+        function saveShopSettings() {
+            const branch = getActiveBranch();
+            branch.name = document.getElementById('set-branch-name').value.trim() || branch.name;
+            branch.phone = document.getElementById('set-branch-phone').value.trim();
+            branch.address = document.getElementById('set-branch-address').value.trim();
+            branch.email = document.getElementById('set-branch-email').value.trim();
+            branch.gstNumber = document.getElementById('set-branch-gst').value.trim().toUpperCase();
+            saveData();
+            updateBranchDropdown();
+            updateDashboard();
+            showToast('Branch Details Updated!');
+        }
+
+        function addStaffToBranch(e) {
+            e.preventDefault();
+            const branch = getActiveBranch();
+            const id = document.getElementById('new-staff-id').value.trim();
+            const pin = document.getElementById('new-staff-pin').value.trim();
+            const name = document.getElementById('new-staff-name').value.trim();
+            const canBill = document.getElementById('new-staff-can-bill').checked;
+
+            branch.staffList = branch.staffList || [];
+            if (branch.staffList.some(s => s.id === id)) return showToast('Staff ID already exists', true);
+            branch.staffList.push({ id, pin, name, canBill });
+            saveData();
+            e.target.reset();
+            renderBranchStaffList();
+            showToast(`Staff ${name} added`);
+        }
+
+        function renderBranchStaffList() {
+            const branch = getActiveBranch();
+            const list = document.getElementById('branch-staff-list');
+            const staff = branch.staffList || [];
+            list.innerHTML = staff.map(s => `
+                <div class="bg-white px-3 py-2 rounded-xl border flex items-center justify-between text-xs">
+                    <div>
+                        <b>${s.name}</b> (ID: <span class="font-mono">${s.id}</span> | PIN: ${s.pin})
+                        <span class="ml-1 px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px]">${s.canBill !== false ? 'Can Bill' : 'View Only'}</span>
+                    </div>
+                    <button type="button" onclick="removeStaff('${s.id}')" class="text-red-600 font-bold px-2"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function removeStaff(id) {
+            const branch = getActiveBranch();
+            branch.staffList = (branch.staffList || []).filter(s => s.id !== id);
+            saveData();
+            renderBranchStaffList();
+            showToast('Staff removed');
+        }
+
+        function addNewBranch(e) {
+            e.preventDefault();
+            const id = document.getElementById('new-branch-id').value.trim().toLowerCase();
+            const name = document.getElementById('new-branch-name').value.trim();
+            if (appData.branches[id]) return showToast('Branch ID already exists', true);
+
+            const current = getActiveBranch();
+            appData.branches[id] = {
+                name,
+                address: '',
+                phone: '',
+                email: '',
+                gstNumber: '',
+                staffList: [],
+                rates: { ...current.rates },
+                leftLogo: '', rightLogo: '',
+                inventory: [],
+                sales: []
+            };
+            appData.activeBranchId = id;
+            saveData();
+            e.target.reset();
+            updateBranchDropdown();
+            updateDashboard();
+            loadSettingsView();
+            showToast(`Branch ${name} created!`);
+        }
+
+        function changeOwnerPassword(e) {
+            e.preventDefault();
+            const id = document.getElementById('set-owner-id').value.trim();
+            const pin = document.getElementById('set-owner-pin').value.trim();
+            if (!id || !pin) return;
+            appData.owner = { id, pin };
+            saveData();
+            showToast('Admin Username & Password Updated!');
+        }
+
+        function downloadFullBackup() {
+            const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `jewelry_pos_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Backup file downloaded!');
+        }
+
+        function restoreFullBackup(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const parsed = JSON.parse(ev.target.result);
+                    if (parsed && parsed.branches) {
+                        appData = parsed;
+                        saveData();
+                        updateBranchDropdown();
+                        updateDashboard();
+                        showToast('Backup Restored Successfully!');
+                    } else {
+                        showToast('Invalid backup file', true);
+                    }
+                } catch (err) {
+                    showToast('Error reading backup file', true);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- APP INIT ---
+        window.onload = function () {
+            initFirebaseCloud();
+            if (currentUser) {
+                enterApp();
+            }
+        };
+    </script>
+</body>
+</html>
