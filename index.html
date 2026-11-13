@@ -1477,8 +1477,13 @@
             const netSubtotal = Math.max(0, subtotal - discount);
             const grandTotal = Math.round(netSubtotal + totalGst);
 
+            // Sequential Invoice Number generation (1, 2, 3...)
+            branch.invoiceSequence = (branch.invoiceSequence || 0) + 1;
+            const nextSeqNum = branch.invoiceSequence;
+
             const invoice = {
-                invoiceNo: `INV-${Date.now().toString().slice(-6)}`,
+                invoiceNo: `INV-${String(nextSeqNum).padStart(3, '0')}`,
+                sequenceNo: nextSeqNum,
                 date: new Date().toISOString(),
                 custName, custPhone, custAddress,
                 items: billedItems,
@@ -1501,7 +1506,7 @@
             saveData();
             renderPosCart();
             updateDashboard();
-            showToast('Invoice Created!');
+            showToast(`Invoice INV-${String(nextSeqNum).padStart(3, '0')} Created!`);
             printInvoice(invoice.invoiceNo);
         }
 
