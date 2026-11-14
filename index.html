@@ -1552,12 +1552,6 @@
                         <div><span class="font-bold text-gray-600">Invoice No:</span> <span class="font-mono font-black text-amber-950 text-sm">${inv.invoiceNo}</span></div>
                         <div><span class="font-bold text-gray-600">Date:</span> <span class="font-bold text-gray-800">${new Date(inv.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></div>
                     </div>
-                        <div class="text-right space-y-1">
-                            <div class="inline-block px-3 py-1 bg-amber-600 text-white font-black rounded-lg text-xs uppercase tracking-widest shadow-sm">TAX INVOICE</div>
-                            <div class="text-sm font-bold font-mono text-gray-800 mt-2">${inv.invoiceNo}</div>
-                            <div class="text-xs text-gray-500 font-medium">Date: ${new Date(inv.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
-                        </div>
-                    </div>
 
                     <!-- Customer & Staff Info Grid -->
                     <div class="grid grid-cols-2 gap-4 text-xs bg-gray-50/80 p-4 rounded-2xl border border-gray-200">
@@ -1792,6 +1786,25 @@
             saveData();
             loadSettingsView();
             showToast('Logo removed');
+        }
+
+        function addStaffToBranch(e) {
+            e.preventDefault();
+            const branch = getActiveBranch();
+            const id = document.getElementById('new-staff-id').value.trim();
+            const pin = document.getElementById('new-staff-pin').value.trim();
+            const name = document.getElementById('new-staff-name').value.trim();
+            const canBill = document.getElementById('new-staff-can-bill').checked;
+
+            branch.staffList = branch.staffList || [];
+            if (branch.staffList.some(s => s.id === id)) return showToast('Staff ID already exists', true);
+
+            branch.staffList.push({ id, pin, name, canBill });
+            saveData();
+            e.target.reset();
+            document.getElementById('new-staff-can-bill').checked = true;
+            renderBranchStaffList();
+            showToast(`Staff ${name} added!`);
         }
 
         function renderBranchStaffList() {
