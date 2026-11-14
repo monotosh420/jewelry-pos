@@ -378,9 +378,13 @@
                                 <input type="text" id="item-custom-id" placeholder="Leave empty for auto" class="w-full px-3 py-2.5 rounded-xl border text-sm font-bold bg-amber-50/40">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Item Name *</label>
-                                <input type="text" id="item-name" required placeholder="e.g. Stone Ring / Pearl" class="w-full px-3 py-2.5 rounded-xl border text-sm">
+                                <label class="block text-xs font-bold text-gray-700 mb-1">HUID Number (6-Digit)</label>
+                                <input type="text" id="item-huid" maxlength="10" placeholder="e.g. A1B2C3" class="w-full px-3 py-2.5 rounded-xl border text-sm font-mono uppercase bg-amber-50/40">
                             </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Item Name *</label>
+                            <input type="text" id="item-name" required placeholder="e.g. Stone Ring / Pearl" class="w-full px-3 py-2.5 rounded-xl border text-sm">
                         </div>
                         <div class="grid grid-cols-3 gap-2">
                             <div>
@@ -1211,6 +1215,7 @@
             e.preventDefault();
             const branch = getActiveBranch();
             const customId = document.getElementById('item-custom-id').value.trim();
+            const huid = document.getElementById('item-huid').value.trim().toUpperCase();
             const name = document.getElementById('item-name').value.trim();
             const purity = document.getElementById('item-purity').value;
             const netWt = Number(document.getElementById('item-net-wt').value || 0);
@@ -1225,39 +1230,45 @@
                 return showToast('Item ID already exists!', true);
             }
 
-            const newItem = { id, name, purity, netWt, fixedPrice, size, customMaking, addonName, addonPrice, status: 'available' };
+            const newItem = { id, huid, name, purity, netWt, fixedPrice, size, customMaking, addonName, addonPrice, status: 'available' };
             branch.inventory = branch.inventory || [];
             branch.inventory.unshift(newItem);
             saveData();
+            
+            const actionType = e.submitter ? e.submitter.value : 'save';
+            e.target.reset();
+            document.getElementById('item-fixed-price').value = 0;
+            document.getElementById('item-custom-making').value = 0;
+            document.getElementById('item-addon-price').value = 0;
+            document.getElementById('add-stock-card').classList.add('hidden');
             renderInventory();
             updateDashboard();
+            showToast('Item saved successfully!');
 
-            const submitter = e.submitter;
-            e.target.reset();
-            document.getElementById('add-stock-card').classList.add('hidden');
-            showToast(`Added ${name} (${id})`);
-
-            if (submitter && submitter.value === 'print') {
-                printBarcodeTag(newItem.id);
+            if (actionType === 'print') {
+                printBarcodeTag(id);
             }
         }
 
         function renderInventory() {
             const branch = getActiveBranch();
-            const listEl = document.getElementById('inventory-list');
+            const list = document.getElementById('inventory-list');
             let items = branch.inventory || [];
-            if (invFilter !== 'all') items = items.filter(i => i.status === invFilter);
+
+            if (invFilter === 'available') items = items.filter(i => i.status === 'available');
+            else if (invFilter === 'sold') items = items.filter(i => i.status === 'sold');
 
             if (!items.length) {
-                listEl.innerHTML = `<div class="bg-white p-6 rounded-2xl border text-center text-sm text-gray-400">No items found in this category.</div>`;
+                list.innerHTML = `<div class="bg-white p-6 rounded-2xl border text-center text-sm text-gray-400">কোনো আইটেম পাওয়া যায়নি।</div>`;
                 return;
             }
 
-            listEl.innerHTML = items.map(item => `
-                <div class="bg-white p-3.5 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between gap-3">
+            list.innerHTML = items.map(item => `
+                <div class="bg-white p-3.5 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between gap-2">
                     <div class="space-y-1">
                         <div class="flex items-center gap-2">
                             <span class="font-mono text-xs font-extrabold px-2 py-0.5 bg-amber-100 text-amber-900 rounded">${item.id}</span>
+                            ${item.huid ? `<span class="font-mono text-[11px] font-bold px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded">HUID: ${item.huid}</span>` : ''}
                             <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${item.status === 'available' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}">
                                 ${item.status === 'available' ? 'In Stock' : 'Sold'}
                             </span>
@@ -1602,7 +1613,9 @@
                                         <td class="py-3 px-2.5 text-center font-bold text-gray-500">${idx + 1}</td>
                                         <td class="py-3 px-3">
                                             <div class="font-extrabold text-gray-900 text-xs">${it.name}</div>
-                                            <div class="text-[10px] font-mono text-gray-500">Tag ID: ${it.id}</div>
+                                            <div class="text-[10px] font-mono text-gray-500">
+                                                Tag ID: ${it.id} ${it.huid ? `| <b class="text-amber-900">HUID: ${it.huid}</b>` : ''}
+                                            </div>
                                             ${it.addonName ? `<div class="mt-0.5 inline-block bg-amber-100/70 text-amber-950 font-semibold text-[10px] px-1.5 py-0.5 rounded">+ ${it.addonName}: ₹${Number(it.addonPrice).toLocaleString('en-IN')}</div>` : ''}
                                         </td>
                                         <td class="py-3 px-2 text-center">
