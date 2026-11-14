@@ -550,6 +550,24 @@
                             <label class="block text-xs font-bold text-gray-700 mb-1">GST Number (GSTIN)</label>
                             <input type="text" id="set-branch-gst" class="w-full px-3 py-2 rounded-xl border text-sm bg-white font-mono uppercase">
                         </div>
+                        <div class="grid grid-cols-2 gap-3 pt-1">
+                            <div class="bg-white p-2.5 rounded-xl border border-amber-200">
+                                <label class="block text-[11px] font-bold text-gray-700 mb-1">Left Logo (বামের লোগো)</label>
+                                <input type="file" accept="image/*" onchange="handleBranchLogoUpload(event, 'leftLogo')" class="w-full text-[11px]">
+                                <div class="flex items-center justify-between mt-1.5">
+                                    <img id="preview-left-logo" src="" class="h-10 w-10 object-contain rounded border hidden">
+                                    <button type="button" onclick="clearBranchLogo('leftLogo')" class="text-[10px] text-red-600 font-bold">Remove</button>
+                                </div>
+                            </div>
+                            <div class="bg-white p-2.5 rounded-xl border border-amber-200">
+                                <label class="block text-[11px] font-bold text-gray-700 mb-1">Right Logo (ডানের লোগো)</label>
+                                <input type="file" accept="image/*" onchange="handleBranchLogoUpload(event, 'rightLogo')" class="w-full text-[11px]">
+                                <div class="flex items-center justify-between mt-1.5">
+                                    <img id="preview-right-logo" src="" class="h-10 w-10 object-contain rounded border hidden">
+                                    <button type="button" onclick="clearBranchLogo('rightLogo')" class="text-[10px] text-red-600 font-bold">Remove</button>
+                                </div>
+                            </div>
+                        </div>
                         <button type="button" onclick="saveShopSettings()" class="w-full py-2 bg-amber-600 text-white font-bold rounded-xl text-xs shadow">Save Branch Details</button>
                     </div>
 
@@ -1512,14 +1530,28 @@
             const area = document.getElementById('printable-area');
             area.innerHTML = `
                 <div class="bg-white p-8 border border-gray-200 text-gray-900 space-y-6 text-sm max-w-[210mm] mx-auto font-sans shadow-sm" style="min-height: 297mm;">
-                    <!-- Modern Header -->
-                    <div class="flex justify-between items-start border-b-2 border-amber-500 pb-6">
-                        <div class="space-y-1">
+                    <!-- Modern Header with Left & Right Logos -->
+                    <div class="flex justify-between items-center border-b-2 border-amber-500 pb-6 gap-4">
+                        <div class="w-20 h-20 flex-shrink-0 flex items-center justify-center">
+                            ${branch.leftLogo ? `<img src="${branch.leftLogo}" alt="Logo" class="max-h-20 max-w-20 object-contain">` : ''}
+                        </div>
+                        <div class="text-center flex-1 space-y-1">
+                            <div class="inline-block px-3 py-0.5 bg-amber-600 text-white font-black rounded-full text-[10px] uppercase tracking-widest mb-1">TAX INVOICE</div>
                             <h1 class="text-3xl font-black uppercase tracking-tight text-amber-950">${branch.name}</h1>
                             <p class="text-xs font-medium text-gray-600">${branch.address || ''}</p>
                             <p class="text-xs font-medium text-gray-600">Phone: ${branch.phone || ''} ${branch.email ? `| Email: ${branch.email}` : ''}</p>
-                            ${branch.gstNumber ? `<p class="font-mono text-xs font-bold text-gray-800 mt-1">GSTIN: ${branch.gstNumber}</p>` : ''}
+                            ${branch.gstNumber ? `<p class="font-mono text-xs font-bold text-gray-800">GSTIN: ${branch.gstNumber}</p>` : ''}
                         </div>
+                        <div class="w-20 h-20 flex-shrink-0 flex items-center justify-center">
+                            ${branch.rightLogo ? `<img src="${branch.rightLogo}" alt="Logo" class="max-h-20 max-w-20 object-contain">` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Invoice Number & Date Bar -->
+                    <div class="flex justify-between items-center text-xs bg-amber-50/70 px-4 py-2 rounded-xl border border-amber-200">
+                        <div><span class="font-bold text-gray-600">Invoice No:</span> <span class="font-mono font-black text-amber-950 text-sm">${inv.invoiceNo}</span></div>
+                        <div><span class="font-bold text-gray-600">Date:</span> <span class="font-bold text-gray-800">${new Date(inv.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></div>
+                    </div>
                         <div class="text-right space-y-1">
                             <div class="inline-block px-3 py-1 bg-amber-600 text-white font-black rounded-lg text-xs uppercase tracking-widest shadow-sm">TAX INVOICE</div>
                             <div class="text-sm font-bold font-mono text-gray-800 mt-2">${inv.invoiceNo}</div>
@@ -1679,6 +1711,17 @@
             document.getElementById('set-branch-email').value = branch.email || '';
             document.getElementById('set-branch-gst').value = branch.gstNumber || '';
 
+            const leftPrev = document.getElementById('preview-left-logo');
+            if (leftPrev) {
+                if (branch.leftLogo) { leftPrev.src = branch.leftLogo; leftPrev.classList.remove('hidden'); }
+                else { leftPrev.classList.add('hidden'); }
+            }
+            const rightPrev = document.getElementById('preview-right-logo');
+            if (rightPrev) {
+                if (branch.rightLogo) { rightPrev.src = branch.rightLogo; rightPrev.classList.remove('hidden'); }
+                else { rightPrev.classList.add('hidden'); }
+            }
+
             document.getElementById('set-owner-id').value = appData.owner.id;
             document.getElementById('set-owner-pin').value = appData.owner.pin;
 
@@ -1716,21 +1759,39 @@
             showToast('Branch Details Updated!');
         }
 
-        function addStaffToBranch(e) {
-            e.preventDefault();
-            const branch = getActiveBranch();
-            const id = document.getElementById('new-staff-id').value.trim();
-            const pin = document.getElementById('new-staff-pin').value.trim();
-            const name = document.getElementById('new-staff-name').value.trim();
-            const canBill = document.getElementById('new-staff-can-bill').checked;
+        function handleBranchLogoUpload(e, side) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const maxDim = 220;
+                    let w = img.width, h = img.height;
+                    if (w > h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+                    else if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+                    canvas.width = w;
+                    canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const compressed = canvas.toDataURL('image/png', 0.85);
+                    const branch = getActiveBranch();
+                    branch[side] = compressed;
+                    saveData();
+                    loadSettingsView();
+                    showToast('Logo uploaded successfully!');
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
 
-            branch.staffList = branch.staffList || [];
-            if (branch.staffList.some(s => s.id === id)) return showToast('Staff ID already exists', true);
-            branch.staffList.push({ id, pin, name, canBill });
+        function clearBranchLogo(side) {
+            const branch = getActiveBranch();
+            branch[side] = '';
             saveData();
-            e.target.reset();
-            renderBranchStaffList();
-            showToast(`Staff ${name} added`);
+            loadSettingsView();
+            showToast('Logo removed');
         }
 
         function renderBranchStaffList() {
