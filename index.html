@@ -224,157 +224,13 @@
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm">
                         <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-1">
-                            <span>Branch Sales</span>
+                            <span id="stat-sales-title">Today's Sales</span>
                             <i class="fas fa-receipt text-emerald-500 text-base"></i>
                         </div>
                         <div id="stat-sales-total" class="text-2xl font-bold text-emerald-700">₹ 0</div>
-                        <div id="stat-sales-count" class="text-xs text-gray-500 font-medium mt-0.5">Total Invoices: 0</div>
-                    </div>
-                </div>
-
-                <!-- NEW: Detailed Purity Wise Stock Breakdown Card -->
-                <div class="bg-white rounded-2xl p-4 border border-amber-200 shadow-sm space-y-2.5">
-                    <h3 class="font-bold text-gray-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fas fa-layer-group text-amber-600"></i> কেরেট অনুযায়ী স্টক বিবরণ (Purity Breakdown)
-                    </h3>
-                    <div id="dash-purity-breakdown-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        <!-- Populated via JS -->
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="font-bold text-gray-800 text-sm mb-2.5">Quick Actions</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                        <button type="button" onclick="navigateTo('pos')" class="p-3.5 bg-amber-600 text-white rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
-                            <i class="fas fa-cash-register text-xl"></i>
-                            <span class="text-xs font-bold">New Bill (POS)</span>
-                        </button>
-                        <button type="button" onclick="navigateTo('calculator')" class="p-3.5 bg-white border-2 border-amber-300 text-amber-900 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition">
-                            <div class="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center shadow-inner">
-                                <i class="fas fa-calculator text-3xl text-amber-600"></i>
-                            </div>
-                            <span class="text-sm font-extrabold">Vori-Ana Calc</span>
-                        </button>
-                        <button type="button" onclick="navigateTo('inventory')" class="p-3.5 bg-white border border-gray-200 text-gray-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
-                            <i class="fas fa-barcode text-xl text-blue-600"></i>
-                            <span class="text-xs font-bold">Stock & Barcode</span>
-                        </button>
-                        <button type="button" onclick="navigateTo('history')" class="p-3.5 bg-white border border-gray-200 text-gray-800 rounded-2xl shadow-sm flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
-                            <i class="fas fa-history text-xl text-purple-600"></i>
-                            <span class="text-xs font-bold">Sales History</span>
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 2. CALCULATOR -->
-            <section id="view-calculator" class="hidden space-y-5">
-                <div class="bg-white rounded-3xl border-2 border-amber-300 p-5 sm:p-6 shadow-md space-y-5">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-14 h-14 gold-gradient rounded-2xl flex items-center justify-center text-white shadow-md shrink-0">
-                            <i class="fas fa-calculator text-3xl"></i>
-                        </div>
-                        <div>
-                            <h2 class="font-extrabold text-xl sm:text-2xl text-gray-900 leading-tight">
-                                Vori-Ana & Price Calculator
-                            </h2>
-                            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">নাম লিখে বা ড্রপডাউন থেকে সিলেক্ট করে খুব সহজেই স্টক থেকে মাল খুঁজুন।</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-amber-50/90 p-4 rounded-2xl border border-amber-300 space-y-3">
-                        <label class="block text-sm font-bold text-amber-950">Search Item by Name / Barcode / ID:</label>
-                        <div class="flex gap-2.5">
-                            <input type="text" id="calc-barcode-input" onkeydown="handleCalcBarcodeScan(event)" oninput="filterCalcDropdown(this.value)" placeholder="Type item name or scan barcode..." class="flex-1 px-4 py-3 rounded-xl border-2 border-amber-300 bg-white text-base font-bold focus:border-amber-600 outline-none">
-                            <button type="button" onclick="loadCalcItemByBarcode()" class="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-base shadow active:scale-95 transition">Load</button>
-                        </div>
-                        <select id="calc-item-select" onchange="if(this.value){ document.getElementById('calc-barcode-input').value = this.value; loadCalcItemByBarcode(); }" class="w-full px-4 py-3 rounded-xl border border-amber-300 bg-white text-sm font-semibold">
-                            <option value="">-- Or Choose From Stock --</option>
-                        </select>
-                    </div>
-
-                    <div id="calc-item-info-box" class="hidden p-4 bg-amber-100/80 rounded-2xl border border-amber-400 text-sm space-y-1.5">
-                        <div class="flex justify-between items-center font-extrabold text-amber-950 text-base">
-                            <span id="calc-info-name">Ring</span>
-                            <span id="calc-info-id" class="font-mono bg-white px-2.5 py-1 rounded-lg text-xs border border-amber-300">GLD-1234</span>
-                        </div>
-                        <div class="text-gray-800 flex flex-wrap gap-x-4 gap-y-1 font-medium">
-                            <span>Purity: <strong id="calc-info-purity" class="text-amber-900">22K</strong></span>
-                            <span>Weight: <strong id="calc-info-wt" class="text-amber-900">0 g</strong></span>
-                            <span>Traditional: <strong id="calc-info-trad" class="text-amber-900">0 Vori</strong></span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2.5 p-1.5 bg-gray-100 rounded-2xl">
-                        <button type="button" id="calc-mode-g2v" onclick="setCalcMode('g2v')" class="py-3 text-sm font-extrabold rounded-xl bg-white text-amber-800 shadow transition">
-                            Grams → Vori
-                        </button>
-                        <button type="button" id="calc-mode-v2g" onclick="setCalcMode('v2g')" class="py-3 text-sm font-extrabold rounded-xl text-gray-600 transition">
-                            Vori → Grams
-                        </button>
-                    </div>
-
-                    <div id="calc-gram-box" class="space-y-3.5">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-800 mb-1.5">Net Weight (Grams)</label>
-                            <input type="number" step="0.001" id="calc-grams" oninput="calculateJewelryPrice()" placeholder="e.g. 11.664" class="w-full px-4 py-4 rounded-2xl border-2 border-gray-300 focus:border-amber-500 outline-none text-2xl font-extrabold text-gray-900">
-                        </div>
-                        <div class="p-4 bg-amber-50 rounded-2xl border border-amber-300 flex flex-wrap items-center justify-between gap-2">
-                            <span class="text-sm text-amber-900 font-bold">Traditional Weight:</span>
-                            <span id="calc-vori-output" class="text-lg font-extrabold text-amber-950">0 Vori 0 Ana 0 Roti</span>
-                        </div>
-                    </div>
-
-                    <div id="calc-vori-box" class="hidden">
-                        <div class="grid grid-cols-4 gap-2.5">
-                            <div><input type="number" id="in-vori" oninput="convertVoriToGram()" placeholder="0" class="w-full p-3.5 text-center rounded-2xl border-2 text-lg font-extrabold"><span class="block text-xs font-bold text-center text-gray-600 mt-1.5">Vori</span></div>
-                            <div><input type="number" id="in-ana" oninput="convertVoriToGram()" placeholder="0" class="w-full p-3.5 text-center rounded-2xl border-2 text-lg font-extrabold"><span class="block text-xs font-bold text-center text-gray-600 mt-1.5">Ana</span></div>
-                            <div><input type="number" id="in-roti" oninput="convertVoriToGram()" placeholder="0" class="w-full p-3.5 text-center rounded-2xl border-2 text-lg font-extrabold"><span class="block text-xs font-bold text-center text-gray-600 mt-1.5">Roti</span></div>
-                            <div><input type="number" id="in-point" oninput="convertVoriToGram()" placeholder="0" class="w-full p-3.5 text-center rounded-2xl border-2 text-lg font-extrabold"><span class="block text-xs font-bold text-center text-gray-600 mt-1.5">Point</span></div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3.5 pt-1">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-800 mb-1.5">Purity</label>
-                            <select id="calc-purity" onchange="onCalcPurityChange()" class="w-full px-3.5 py-3 rounded-xl border-2 border-gray-200 text-sm font-bold bg-white">
-                                <option value="22K">22K Gold</option>
-                                <option value="18K">18K Gold</option>
-                                <option value="9K">9K Gold</option>
-                                <option value="Silver60">Silver 60</option>
-                                <option value="Silver70">Silver 70</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label id="calc-making-label" class="block text-sm font-bold text-gray-800 mb-1.5">Making Charge (₹/g Auto)</label>
-                            <input type="number" id="calc-making-val" oninput="calculateJewelryPrice()" class="w-full px-3.5 py-3 rounded-xl border-2 border-gray-200 text-base font-extrabold" placeholder="Auto">
-                        </div>
-                        <div id="calc-silver-rate-box" class="hidden col-span-2 bg-gray-100 p-3 rounded-xl border border-gray-300">
-                            <label class="block text-xs font-bold text-gray-700 mb-1">রূপার আজকের রেট (প্রতি ১০ গ্রামে টাকা - নিজে সেট করুন)</label>
-                            <input type="number" id="calc-custom-silver-rate" oninput="calculateJewelryPrice()" class="w-full px-3 py-2 rounded-lg border bg-white text-base font-extrabold" placeholder="যেমন: 850">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-800 mb-1.5">Addon Name</label>
-                            <input type="text" id="calc-addon-name" oninput="calculateJewelryPrice()" placeholder="Shakha / Pala" class="w-full px-3.5 py-3 rounded-xl border-2 border-amber-200 bg-amber-50/40 text-sm font-semibold">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-800 mb-1.5">Addon Price (₹)</label>
-                            <input type="number" id="calc-addon-price" oninput="calculateJewelryPrice()" placeholder="0" class="w-full px-3.5 py-3 rounded-xl border-2 border-amber-200 bg-amber-50/40 text-base font-extrabold">
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-900 text-white p-5 rounded-2xl space-y-3 text-sm sm:text-base shadow-lg">
-                        <div class="font-extrabold text-amber-400 border-b border-gray-700 pb-2 flex justify-between text-base sm:text-lg">
-                            <span>Customer Price Breakdown</span>
-                            <span id="calc-breakdown-wt" class="bg-gray-800 px-3 py-0.5 rounded-lg text-amber-300">0g</span>
-                        </div>
-                        <div class="flex justify-between text-gray-200"><span>Metal Value:</span><span id="calc-res-metal" class="font-bold text-base sm:text-lg">₹ 0</span></div>
-                        <div class="flex justify-between text-gray-200"><span>Making Charge:</span><span id="calc-res-making" class="font-bold text-base sm:text-lg">₹ 0</span></div>
-                        <div id="calc-res-addon-row" class="hidden flex justify-between text-gray-200"><span id="calc-res-addon-label">Addon:</span><span id="calc-res-addon" class="font-bold text-base sm:text-lg">₹ 0</span></div>
-                        <div id="calc-res-gst-row" class="flex justify-between text-gray-200"><span id="calc-res-gst-label">GST (3% on Gold):</span><span id="calc-res-gst" class="font-bold text-base sm:text-lg">₹ 0</span></div>
-                        <div class="flex justify-between items-center border-t border-gray-700 pt-3 text-lg sm:text-xl font-black text-amber-300">
-                            <span>Estimated Total:</span>
-                            <span id="calc-res-total" class="text-2xl sm:text-3xl text-amber-400">₹ 0</span>
+                        <div id="stat-sales-count" class="text-xs text-gray-500 font-medium mt-0.5">Today Invoices: 0</div>
+                        <div id="stat-prev-sales-box" class="owner-only hidden mt-1.5 pt-1.5 border-t border-gray-100 text-[11px] font-bold text-amber-800">
+                            কাল পর্যন্ত মোট: <span id="stat-prev-sales-total">₹ 0</span>
                         </div>
                     </div>
                 </div>
@@ -1043,39 +899,26 @@
             }
 
             const sales = branch.sales || [];
-            const totalSales = sales.reduce((s, inv) => s + Number(inv.grandTotal || 0), 0);
-            document.getElementById('stat-sales-total').textContent = `₹ ${Math.round(totalSales).toLocaleString('en-IN')}`;
-            document.getElementById('stat-sales-count').textContent = `Total Invoices: ${sales.length}`;
-        }
+            const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local date
+            
+            const todaySalesList = sales.filter(inv => new Date(inv.date).toLocaleDateString('en-CA') === todayStr);
+            const prevSalesList = sales.filter(inv => new Date(inv.date).toLocaleDateString('en-CA') < todayStr);
 
-        // --- VORI-ANA & PRICE CALCULATOR ---
-        function gramsToVoriText(grams) {
-            if (!grams || grams <= 0) return '0 Vori 0 Ana 0 Roti';
-            const totalPoints = Math.round((grams / 11.664) * 960);
-            const vori = Math.floor(totalPoints / 960);
-            const remAfterVori = totalPoints % 960;
-            const ana = Math.floor(remAfterVori / 60);
-            const remAfterAna = remAfterVori % 60;
-            const roti = Math.floor(remAfterAna / 10);
-            const point = remAfterAna % 10;
-            return `${vori} Vori ${ana} Ana ${roti} Roti ${point} Pt`;
-        }
+            const todaySalesTotal = todaySalesList.reduce((s, inv) => s + Number(inv.grandTotal || 0), 0);
+            const prevSalesTotal = prevSalesList.reduce((s, inv) => s + Number(inv.grandTotal || 0), 0);
 
-        function setCalcMode(mode) {
-            const gBox = document.getElementById('calc-gram-box');
-            const vBox = document.getElementById('calc-vori-box');
-            const btnG = document.getElementById('calc-mode-g2v');
-            const btnV = document.getElementById('calc-mode-v2g');
-            if (mode === 'g2v') {
-                gBox.classList.remove('hidden');
-                vBox.classList.add('hidden');
-                btnG.className = 'py-3 text-sm font-extrabold rounded-xl bg-white text-amber-800 shadow transition';
-                btnV.className = 'py-3 text-sm font-extrabold rounded-xl text-gray-600 transition';
-            } else {
-                gBox.classList.add('hidden');
-                vBox.classList.remove('hidden');
-                btnV.className = 'py-3 text-sm font-extrabold rounded-xl bg-white text-amber-800 shadow transition';
-                btnG.className = 'py-3 text-sm font-extrabold rounded-xl text-gray-600 transition';
+            document.getElementById('stat-sales-title').textContent = "Today's Sales (আজকের বিক্রি)";
+            document.getElementById('stat-sales-total').textContent = `₹ ${Math.round(todaySalesTotal).toLocaleString('en-IN')}`;
+            document.getElementById('stat-sales-count').textContent = `Today Invoices: ${todaySalesList.length}`;
+            
+            const prevBox = document.getElementById('stat-prev-sales-box');
+            if (prevBox) {
+                if (currentUser && currentUser.role === 'owner') {
+                    prevBox.classList.remove('hidden');
+                    document.getElementById('stat-prev-sales-total').textContent = `₹ ${Math.round(prevSalesTotal).toLocaleString('en-IN')} (${prevSalesList.length} বিল)`;
+                } else {
+                    prevBox.classList.add('hidden');
+                }
             }
         }
 
