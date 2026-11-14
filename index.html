@@ -1529,101 +1529,138 @@
 
             const area = document.getElementById('printable-area');
             area.innerHTML = `
-                <div class="bg-white p-8 border border-gray-200 text-gray-900 space-y-6 text-sm max-w-[210mm] mx-auto font-sans shadow-sm" style="min-height: 297mm;">
-                    <!-- Modern Header with Left & Right Logos -->
-                    <div class="flex justify-between items-center border-b-2 border-amber-500 pb-6 gap-4">
-                        <div class="w-20 h-20 flex-shrink-0 flex items-center justify-center">
-                            ${branch.leftLogo ? `<img src="${branch.leftLogo}" alt="Logo" class="max-h-20 max-w-20 object-contain">` : ''}
+                <div class="bg-white p-6 sm:p-8 border-2 border-amber-600/80 text-gray-900 space-y-5 text-sm max-w-[210mm] mx-auto font-sans shadow-lg relative overflow-hidden" style="min-height: 290mm;">
+                    <!-- Decorative Top Gold Bar -->
+                    <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-700 via-yellow-500 to-amber-700"></div>
+
+                    <!-- Luxury Showroom Header with Left & Right Logos -->
+                    <div class="flex justify-between items-center border-b-2 border-amber-200 pb-5 pt-2 gap-4">
+                        <div class="w-20 h-20 flex-shrink-0 flex items-center justify-center bg-amber-50/50 rounded-2xl border border-amber-100 p-1">
+                            ${branch.leftLogo ? `<img src="${branch.leftLogo}" alt="Logo" class="max-h-18 max-w-18 object-contain">` : `<i class="fas fa-gem text-3xl text-amber-500/40"></i>`}
                         </div>
                         <div class="text-center flex-1 space-y-1">
-                            <div class="inline-block px-3 py-0.5 bg-amber-600 text-white font-black rounded-full text-[10px] uppercase tracking-widest mb-1">TAX INVOICE</div>
-                            <h1 class="text-3xl font-black uppercase tracking-tight text-amber-950">${branch.name}</h1>
+                            <span class="inline-block px-3.5 py-0.5 bg-gradient-to-r from-amber-700 to-amber-600 text-white font-extrabold rounded-full text-[10px] uppercase tracking-[0.2em] shadow-sm">TAX INVOICE / CASH MEMO</span>
+                            <h1 class="text-2xl sm:text-3xl font-black uppercase tracking-wide text-amber-950 pt-0.5">${branch.name}</h1>
                             <p class="text-xs font-medium text-gray-600">${branch.address || ''}</p>
-                            <p class="text-xs font-medium text-gray-600">Phone: ${branch.phone || ''} ${branch.email ? `| Email: ${branch.email}` : ''}</p>
-                            ${branch.gstNumber ? `<p class="font-mono text-xs font-bold text-gray-800">GSTIN: ${branch.gstNumber}</p>` : ''}
+                            <p class="text-xs font-semibold text-gray-700">
+                                ${branch.phone ? `<i class="fas fa-phone-alt text-amber-700 mr-1"></i>${branch.phone}` : ''} 
+                                ${branch.email ? `<span class="mx-1.5 text-gray-300">|</span><i class="fas fa-envelope text-amber-700 mr-1"></i>${branch.email}` : ''}
+                            </p>
+                            ${branch.gstNumber ? `<p class="inline-block bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded font-mono text-[11px] font-bold text-amber-950 mt-0.5">GSTIN: ${branch.gstNumber}</p>` : ''}
                         </div>
-                        <div class="w-20 h-20 flex-shrink-0 flex items-center justify-center">
-                            ${branch.rightLogo ? `<img src="${branch.rightLogo}" alt="Logo" class="max-h-20 max-w-20 object-contain">` : ''}
+                        <div class="w-20 h-20 flex-shrink-0 flex items-center justify-center bg-amber-50/50 rounded-2xl border border-amber-100 p-1">
+                            ${branch.rightLogo ? `<img src="${branch.rightLogo}" alt="Logo" class="max-h-18 max-w-18 object-contain">` : `<i class="fas fa-certificate text-3xl text-amber-500/40"></i>`}
                         </div>
                     </div>
 
-                    <!-- Invoice Number & Date Bar -->
-                    <div class="flex justify-between items-center text-xs bg-amber-50/70 px-4 py-2 rounded-xl border border-amber-200">
-                        <div><span class="font-bold text-gray-600">Invoice No:</span> <span class="font-mono font-black text-amber-950 text-sm">${inv.invoiceNo}</span></div>
-                        <div><span class="font-bold text-gray-600">Date:</span> <span class="font-bold text-gray-800">${new Date(inv.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></div>
-                    </div>
-
-                    <!-- Customer & Staff Info Grid -->
-                    <div class="grid grid-cols-2 gap-4 text-xs bg-gray-50/80 p-4 rounded-2xl border border-gray-200">
-                        <div class="space-y-1">
-                            <div class="font-bold text-amber-900 uppercase tracking-wide text-[11px]">Billed To:</div>
-                            <div class="text-base font-bold text-gray-900">${inv.custName}</div>
-                            ${inv.custPhone ? `<div class="text-gray-600"><b>Phone:</b> ${inv.custPhone}</div>` : ''}
+                    <!-- Invoice Metadata & Customer Card -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <!-- Customer Details -->
+                        <div class="bg-gradient-to-br from-amber-50/90 to-orange-50/40 p-3.5 rounded-2xl border border-amber-200/80 space-y-1">
+                            <div class="text-[10px] font-extrabold text-amber-800 uppercase tracking-widest flex items-center gap-1">
+                                <i class="fas fa-user-circle"></i> Customer Details
+                            </div>
+                            <div class="text-base font-black text-gray-900">${inv.custName}</div>
+                            ${inv.custPhone ? `<div class="text-gray-700 font-medium"><b>Mobile:</b> ${inv.custPhone}</div>` : ''}
                             ${inv.custAddress ? `<div class="text-gray-600"><b>Address:</b> ${inv.custAddress}</div>` : ''}
                         </div>
-                        <div class="space-y-1 text-right">
-                            <div class="font-bold text-amber-900 uppercase tracking-wide text-[11px]">Store Assistant:</div>
-                            <div class="text-sm font-bold text-gray-800">${inv.billedBy || 'Owner'}</div>
-                            <div class="text-gray-500 text-[11px] mt-2">Original Customer Copy</div>
-                        </div>
-                    </div>
 
-                    <!-- Modern Items Table -->
-                    <table class="w-full border-collapse text-xs text-left">
-                        <thead>
-                            <tr class="bg-gray-900 text-white font-bold">
-                                <th class="p-3 rounded-l-xl">#</th>
-                                <th class="p-3">Item Description</th>
-                                <th class="p-3">Purity</th>
-                                <th class="p-3 text-center">Net Wt</th>
-                                <th class="p-3 text-right">Metal Value</th>
-                                <th class="p-3 text-right">Making</th>
-                                <th class="p-3 text-right rounded-r-xl">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            ${inv.items.map((it, idx) => `
-                                <tr class="hover:bg-amber-50/30">
-                                    <td class="p-3 text-center font-bold text-gray-500">${idx + 1}</td>
-                                    <td class="p-3 font-bold text-gray-900">${it.name} <span class="font-mono text-gray-400 font-normal text-[10px]">(${it.id})</span> ${it.addonName ? `<br/><span class="text-amber-800 font-semibold text-[11px]">+ ${it.addonName}: ₹${it.addonPrice}</span>` : ''}</td>
-                                    <td class="p-3 font-bold text-amber-900">${it.purity}</td>
-                                    <td class="p-3 text-center font-semibold">${Number(it.netWt).toFixed(3)}g</td>
-                                    <td class="p-3 text-right text-gray-700">₹${Math.round(it.metalValue).toLocaleString('en-IN')}</td>
-                                    <td class="p-3 text-right text-gray-700">₹${Math.round(it.makingCharge).toLocaleString('en-IN')}</td>
-                                    <td class="p-3 text-right font-extrabold text-gray-900">₹${Math.round(it.totalBeforeGst).toLocaleString('en-IN')}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-
-                    <!-- Summary Box -->
-                    <div class="flex justify-between items-start pt-4 border-t border-gray-200">
-                        <div class="text-[11px] text-gray-500 max-w-xs space-y-1">
-                            <p class="font-bold text-gray-700">Terms & Conditions:</p>
-                            <p>1. Old gold purity is subject to testing/acid test.</p>
-                            <p>2. Goods once sold will not be taken back without original cash memo & intact hallmark.</p>
-                        </div>
-                        <div class="w-72 space-y-2 text-xs bg-gray-50 p-4 rounded-2xl border border-gray-200 shadow-sm">
-                            ${inv.extraAddon > 0 ? `<div class="flex justify-between text-gray-600"><span>Additional:</span><span>₹${inv.extraAddon.toLocaleString('en-IN')}</span></div>` : ''}
-                            ${inv.discount > 0 ? `<div class="flex justify-between text-emerald-700 font-bold"><span>Discount:</span><span>- ₹${inv.discount.toLocaleString('en-IN')}</span></div>` : ''}
-                            <div class="flex justify-between text-gray-700"><span>Subtotal:</span><span class="font-bold">₹${inv.subtotal.toLocaleString('en-IN')}</span></div>
-                            <div class="flex justify-between text-gray-600"><span>CGST (1.5% on Gold):</span><span>₹${Math.round(inv.gst / 2).toLocaleString('en-IN')}</span></div>
-                            <div class="flex justify-between text-gray-600"><span>SGST (1.5% on Gold):</span><span>₹${Math.round(inv.gst / 2).toLocaleString('en-IN')}</span></div>
-                            <div class="flex justify-between border-t border-amber-300 pt-2 text-sm font-black text-amber-950">
-                                <span>Grand Total:</span>
-                                <span class="text-lg text-amber-700">₹${inv.grandTotal.toLocaleString('en-IN')}</span>
+                        <!-- Invoice Info -->
+                        <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 flex flex-col justify-between">
+                            <div class="flex justify-between items-center border-b border-gray-200 pb-1.5">
+                                <span class="text-gray-500 font-semibold">Invoice No:</span>
+                                <span class="font-mono font-black text-amber-900 text-sm bg-amber-100/80 px-2 py-0.5 rounded">${inv.invoiceNo}</span>
+                            </div>
+                            <div class="flex justify-between items-center py-1.5 border-b border-gray-200">
+                                <span class="text-gray-500 font-semibold">Invoice Date:</span>
+                                <span class="font-bold text-gray-800">${new Date(inv.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                            </div>
+                            <div class="flex justify-between items-center pt-1.5">
+                                <span class="text-gray-500 font-semibold">Copy Type:</span>
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">Original Recipient</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Signatures -->
-                    <div class="grid grid-cols-2 pt-20 text-xs font-bold text-gray-700">
-                        <div class="text-left">
-                            <div class="border-t border-gray-400 w-48 pt-1 text-center">Customer's Signature</div>
+                    <!-- Premium Jewelry Items Table -->
+                    <div class="rounded-2xl border border-amber-200 overflow-hidden shadow-sm">
+                        <table class="w-full border-collapse text-xs text-left">
+                            <thead>
+                                <tr class="bg-gradient-to-r from-amber-900 via-amber-800 to-amber-900 text-white font-bold uppercase tracking-wider text-[11px]">
+                                    <th class="py-3 px-2.5 text-center w-8">#</th>
+                                    <th class="py-3 px-3">Ornament Description</th>
+                                    <th class="py-3 px-2 text-center">Purity</th>
+                                    <th class="py-3 px-2 text-center">Net Wt.</th>
+                                    <th class="py-3 px-2.5 text-right">Metal Value</th>
+                                    <th class="py-3 px-2.5 text-right">Making</th>
+                                    <th class="py-3 px-3 text-right">Total (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-amber-100 bg-white">
+                                ${inv.items.map((it, idx) => `
+                                    <tr class="${idx % 2 === 1 ? 'bg-amber-50/25' : ''}">
+                                        <td class="py-3 px-2.5 text-center font-bold text-gray-500">${idx + 1}</td>
+                                        <td class="py-3 px-3">
+                                            <div class="font-extrabold text-gray-900 text-xs">${it.name}</div>
+                                            <div class="text-[10px] font-mono text-gray-500">Tag ID: ${it.id}</div>
+                                            ${it.addonName ? `<div class="mt-0.5 inline-block bg-amber-100/70 text-amber-950 font-semibold text-[10px] px-1.5 py-0.5 rounded">+ ${it.addonName}: ₹${Number(it.addonPrice).toLocaleString('en-IN')}</div>` : ''}
+                                        </td>
+                                        <td class="py-3 px-2 text-center">
+                                            <span class="px-2 py-0.5 bg-amber-100 text-amber-950 font-extrabold rounded text-[11px]">${it.purity}</span>
+                                        </td>
+                                        <td class="py-3 px-2 text-center">
+                                            <div class="font-extrabold text-gray-900">${Number(it.netWt).toFixed(3)} g</div>
+                                        </td>
+                                        <td class="py-3 px-2.5 text-right font-medium text-gray-700">₹${Math.round(it.metalValue).toLocaleString('en-IN')}</td>
+                                        <td class="py-3 px-2.5 text-right font-medium text-gray-700">₹${Math.round(it.makingCharge).toLocaleString('en-IN')}</td>
+                                        <td class="py-3 px-3 text-right font-black text-gray-900">₹${Math.round(it.totalBeforeGst).toLocaleString('en-IN')}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Billing Summary & Declaration -->
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 pt-2 items-start">
+                        <!-- Left Terms & Hallmark Note -->
+                        <div class="sm:col-span-7 space-y-2.5 text-[11px] text-gray-600 bg-gray-50/80 p-3.5 rounded-2xl border border-gray-200">
+                            <div class="flex items-center gap-2 text-amber-900 font-bold text-xs">
+                                <i class="fas fa-shield-alt text-amber-600"></i> Purity & Hallmark Guarantee
+                            </div>
+                            <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                <li>100% BIS Hallmarked / Certified Purity Guaranteed.</li>
+                                <li>Old gold exchange value is subject to melting & purity testing.</li>
+                                <li>Please preserve this original invoice for future exchange or buyback.</li>
+                            </ul>
                         </div>
-                        <div class="text-right flex flex-col items-end">
-                            <div class="border-t border-gray-400 w-48 pt-1 text-center">Authorised Signatory</div>
-                            <div class="text-[10px] text-gray-400 font-normal mt-0.5">For ${branch.name}</div>
+
+                        <!-- Right Totals Box -->
+                        <div class="sm:col-span-5 bg-gradient-to-b from-amber-50 to-amber-100/50 p-4 rounded-2xl border-2 border-amber-300/80 space-y-2 text-xs shadow-sm">
+                            ${inv.extraAddon > 0 ? `<div class="flex justify-between text-gray-700"><span>Additional Charges:</span><span class="font-semibold">₹${inv.extraAddon.toLocaleString('en-IN')}</span></div>` : ''}
+                            ${inv.discount > 0 ? `<div class="flex justify-between text-emerald-700 font-bold"><span>Special Discount:</span><span>- ₹${inv.discount.toLocaleString('en-IN')}</span></div>` : ''}
+                            <div class="flex justify-between text-gray-800 font-semibold"><span>Taxable Amount:</span><span>₹${inv.subtotal.toLocaleString('en-IN')}</span></div>
+                            <div class="flex justify-between text-gray-600"><span>CGST (1.5% on Gold):</span><span>₹${Math.round(inv.gst / 2).toLocaleString('en-IN')}</span></div>
+                            <div class="flex justify-between text-gray-600"><span>SGST (1.5% on Gold):</span><span>₹${Math.round(inv.gst / 2).toLocaleString('en-IN')}</span></div>
+                            <div class="flex justify-between items-center border-t-2 border-amber-400 pt-2.5 mt-1">
+                                <span class="text-sm font-black text-amber-950 uppercase">Grand Total:</span>
+                                <span class="text-xl font-black text-amber-800">₹${inv.grandTotal.toLocaleString('en-IN')}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer & Signatures -->
+                    <div class="pt-14 mt-auto">
+                        <div class="grid grid-cols-2 gap-8 text-xs font-bold text-gray-700">
+                            <div class="text-left">
+                                <div class="border-t-2 border-dashed border-gray-400 w-44 pt-1.5 text-center text-gray-600">Customer's Signature</div>
+                            </div>
+                            <div class="text-right flex flex-col items-end">
+                                <div class="border-t-2 border-amber-700 w-48 pt-1.5 text-center text-amber-950 font-extrabold">Authorised Signatory</div>
+                                <div class="text-[10px] text-amber-800 font-semibold mt-0.5">For ${branch.name}</div>
+                            </div>
+                        </div>
+                        <div class="text-center text-[10px] text-gray-400 font-medium mt-6 pt-2 border-t border-gray-100">
+                            Thank you for shopping with ${branch.name}! We value your trust.
                         </div>
                     </div>
                 </div>
