@@ -234,6 +234,124 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Purity Breakdown Card -->
+                <div class="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm space-y-2.5">
+                    <h4 class="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                        <i class="fas fa-layer-group text-amber-600"></i> কেরেট অনুযায়ী স্টক বিবরণ
+                    </h4>
+                    <div id="dash-purity-breakdown-list" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+                </div>
+            </section>
+
+            <!-- 2. JEWELRY CALCULATOR -->
+            <section id="view-calculator" class="hidden space-y-4">
+                <div class="bg-white rounded-2xl border border-amber-200 p-4 shadow-sm space-y-4">
+                    <h2 class="font-bold text-lg text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-calculator text-amber-600"></i> Jewelry Price & Weight Calculator
+                    </h2>
+
+                    <!-- Search / Barcode Scanner in Calculator -->
+                    <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200/80 space-y-2">
+                        <label class="block text-xs font-bold text-amber-950">স্টক থেকে আইটেম খুঁজুন বা বারকোড দিন:</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="calc-barcode-input" onkeydown="handleCalcBarcodeScan(event)" oninput="filterCalcDropdown(this.value)" placeholder="Barcode বা আইটেমের নাম লিখুন..." class="flex-1 px-3 py-2 rounded-xl border border-amber-300 bg-white text-sm font-bold">
+                            <button type="button" onclick="loadCalcItemByBarcode()" class="px-4 py-2 bg-amber-600 text-white font-bold rounded-xl text-xs shadow">Load</button>
+                        </div>
+                        <select id="calc-item-select" onchange="if(this.value){ document.getElementById('calc-barcode-input').value = this.value; loadCalcItemByBarcode(); }" class="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-medium">
+                            <option value="">-- Or Choose From Stock --</option>
+                        </select>
+                        <div id="calc-item-info-box" class="hidden bg-white p-2.5 rounded-xl border border-amber-200 text-xs flex justify-between items-center">
+                            <div>
+                                <div class="font-bold text-gray-900"><span id="calc-info-name"></span> (<span id="calc-info-id" class="font-mono text-amber-800"></span>)</div>
+                                <div class="text-gray-600">Purity: <b id="calc-info-purity"></b> | Wt: <b id="calc-info-wt"></b> (<span id="calc-info-trad"></span>)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vori Ana Roti Converter -->
+                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
+                        <div class="text-xs font-bold text-gray-700">ভরি - আনা - রতি - পয়েন্ট থেকে গ্রাম কনভার্টার:</div>
+                        <div class="grid grid-cols-4 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500">ভরি (Vori)</label>
+                                <input type="number" id="in-vori" oninput="convertVoriToGram()" placeholder="0" class="w-full px-2 py-1.5 rounded-lg border text-xs font-bold bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500">আনা (Ana)</label>
+                                <input type="number" id="in-ana" oninput="convertVoriToGram()" placeholder="0" class="w-full px-2 py-1.5 rounded-lg border text-xs font-bold bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500">রতি (Roti)</label>
+                                <input type="number" id="in-roti" oninput="convertVoriToGram()" placeholder="0" class="w-full px-2 py-1.5 rounded-lg border text-xs font-bold bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500">পয়েন্ট (Pt)</label>
+                                <input type="number" id="in-point" oninput="convertVoriToGram()" placeholder="0" class="w-full px-2 py-1.5 rounded-lg border text-xs font-bold bg-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Weight & Purity Inputs -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Net Weight (গ্রাম)</label>
+                            <input type="number" step="0.001" id="calc-grams" oninput="calculateJewelryPrice()" placeholder="0.000" class="w-full px-3 py-2.5 rounded-xl border border-amber-300 text-base font-extrabold text-amber-950 bg-amber-50/30">
+                            <div id="calc-vori-output" class="text-[11px] font-bold text-amber-700 mt-1">0 ভরি 0 আনা 0 রতি 0 পয়েন্ট</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Purity / Metal</label>
+                            <select id="calc-purity" onchange="onCalcPurityChange()" class="w-full px-3 py-2.5 rounded-xl border bg-white text-sm font-bold">
+                                <option value="22K">22K Gold</option>
+                                <option value="18K">18K Gold</option>
+                                <option value="9K">9K Gold</option>
+                                <option value="Silver60">Silver 60</option>
+                                <option value="Silver70">Silver 70</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="calc-silver-rate-box" class="hidden">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Silver Rate (₹ per 10g)</label>
+                        <input type="number" id="calc-custom-silver-rate" oninput="calculateJewelryPrice()" class="w-full px-3 py-2 rounded-xl border text-sm font-bold bg-gray-50">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label id="calc-making-label" class="block text-xs font-bold text-gray-700 mb-1">Gold Making Charge (₹/g)</label>
+                            <input type="number" id="calc-making-val" oninput="calculateJewelryPrice()" class="w-full px-3 py-2 rounded-xl border text-sm font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">শাখা / অন্যান্য মূল্য (₹ - No GST)</label>
+                            <input type="number" id="calc-addon-price" value="0" oninput="calculateJewelryPrice()" class="w-full px-3 py-2 rounded-xl border text-sm font-bold">
+                        </div>
+                    </div>
+                    <input type="hidden" id="calc-addon-name" value="Shakha / Addon">
+
+                    <!-- Price Breakdown Output -->
+                    <div class="gold-card p-4 rounded-2xl space-y-2 text-sm">
+                        <div class="flex justify-between text-gray-700">
+                            <span>Metal Value (<span id="calc-breakdown-wt">0.000g</span>):</span>
+                            <span id="calc-res-metal" class="font-bold">₹ 0</span>
+                        </div>
+                        <div class="flex justify-between text-gray-700">
+                            <span>Making Charge:</span>
+                            <span id="calc-res-making" class="font-bold">₹ 0</span>
+                        </div>
+                        <div id="calc-res-addon-row" class="hidden flex justify-between text-gray-700">
+                            <span id="calc-res-addon-label">Addon:</span>
+                            <span id="calc-res-addon" class="font-bold">₹ 0</span>
+                        </div>
+                        <div class="flex justify-between text-gray-700">
+                            <span>GST (3% on Gold & Making):</span>
+                            <span id="calc-res-gst" class="font-bold">₹ 0</span>
+                        </div>
+                        <div class="flex justify-between border-t border-amber-300 pt-2 text-base font-extrabold text-amber-950">
+                            <span>Estimated Total Price:</span>
+                            <span id="calc-res-total" class="text-xl text-amber-700">₹ 0</span>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- 3. INVENTORY -->
@@ -287,8 +405,8 @@
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Custom Making (₹)</label>
-                                <input type="number" id="item-custom-making" value="0" placeholder="Making Charge" class="w-full px-3 py-2.5 rounded-xl border text-sm font-bold bg-amber-50/50">
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Making Charge (₹) <span class="text-[10px] text-amber-700 font-normal">(রুপোর জন্য ফিক্সড মজুরি দিন)</span></label>
+                                <input type="number" id="item-custom-making" value="0" placeholder="রুপোর ফিক্সড মজুরি / সোনার আলাদা রেট" class="w-full px-3 py-2.5 rounded-xl border text-sm font-bold bg-amber-50/50">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Addon Name</label>
@@ -856,6 +974,19 @@
         }
 
         // --- DASHBOARD ---
+        function gramsToVoriText(grams) {
+            const g = Number(grams || 0);
+            if (g <= 0) return '0 ভরি 0 আনা 0 রতি 0 পয়েন্ট';
+            const totalPoints = Math.round((g / 11.664) * 960);
+            const vori = Math.floor(totalPoints / 960);
+            const remVori = totalPoints % 960;
+            const ana = Math.floor(remVori / 60);
+            const remAna = remVori % 60;
+            const roti = Math.floor(remAna / 10);
+            const point = remAna % 10;
+            return `${vori} ভরি ${ana} আনা ${roti} রতি ${point} পয়েন্ট`;
+        }
+
         function updateDashboard() {
             const branch = getActiveBranch();
             document.getElementById('shop-header-name').textContent = branch.name;
@@ -1239,10 +1370,17 @@
             const metalValue = (grams / 10) * rate10g;
 
             const overrideMaking = Number(document.getElementById('pos-override-making').value || 0);
-            const makingRate = item.customMaking > 0 ? Number(item.customMaking) : overrideMaking;
-
-            const effectiveMakingWt = (!isSilver && grams > 0 && grams < 1) ? 1 : grams;
-            const makingCharge = isSilver ? makingRate : (effectiveMakingWt * makingRate);
+            
+            // For Silver: ONLY use the item's own customMaking (fixed per piece), never Gold's per-gram rate!
+            // For Gold: Use item's customMaking if set, otherwise use the daily per-gram gold making rate.
+            let makingCharge = 0;
+            if (isSilver) {
+                makingCharge = Number(item.customMaking || 0);
+            } else {
+                const makingRate = item.customMaking > 0 ? Number(item.customMaking) : overrideMaking;
+                const effectiveMakingWt = (grams > 0 && grams < 1) ? 1 : grams;
+                makingCharge = effectiveMakingWt * makingRate;
+            }
             
             const addon = Number(item.addonPrice || 0);
             
