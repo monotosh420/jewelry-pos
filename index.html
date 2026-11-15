@@ -318,7 +318,7 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label id="calc-making-label" class="block text-xs font-bold text-gray-700 mb-1">Gold Making Charge (₹/g)</label>
+                            <label id="calc-making-label" class="block text-xs font-bold text-gray-700 mb-1">Making Charge (₹/g)</label>
                             <input type="number" id="calc-making-val" oninput="calculateJewelryPrice()" class="w-full px-3 py-2 rounded-xl border text-sm font-bold">
                         </div>
                         <div>
@@ -358,9 +358,14 @@
             <section id="view-inventory" class="hidden space-y-4">
                 <div class="flex items-center justify-between">
                     <h2 class="font-bold text-lg text-gray-900">Branch Stock & Barcode</h2>
-                    <button type="button" onclick="toggleAddStockForm()" class="owner-only px-3.5 py-2 gold-gradient text-white font-bold rounded-xl text-xs shadow">
-                        <i class="fas fa-plus mr-1"></i> Add Item
-                    </button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="openAuditModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow flex items-center gap-1">
+                            <i class="fas fa-barcode"></i> স্টক মেলান (Audit)
+                        </button>
+                        <button type="button" onclick="toggleAddStockForm()" class="owner-only px-3.5 py-2 gold-gradient text-white font-bold rounded-xl text-xs shadow">
+                            <i class="fas fa-plus mr-1"></i> Add Item
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex gap-2 bg-white p-2 rounded-xl border border-gray-200">
@@ -409,8 +414,8 @@
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Making Charge (₹) <span class="text-[10px] text-amber-700 font-normal">(রুপোর জন্য ফিক্সড মজুরি দিন)</span></label>
-                                <input type="number" id="item-custom-making" value="0" placeholder="রুপোর ফিক্সড মজুরি / সোনার আলাদা রেট" class="w-full px-3 py-2.5 rounded-xl border text-sm font-bold bg-amber-50/50">
+                                <label class="block text-xs font-bold text-gray-700 mb-1">Making Charge (₹) <span class="text-[10px] text-amber-700 font-normal">(আলাদা মজুরি)</span></label>
+                                <input type="number" id="item-custom-making" value="0" placeholder="স্বতন্ত্র মজুরি দিন" class="w-full px-3 py-2.5 rounded-xl border text-sm font-bold bg-amber-50/50">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">Addon Name</label>
@@ -516,16 +521,18 @@
                     </h3>
                     
                     <div class="space-y-3 bg-amber-50/50 p-3 rounded-xl border border-amber-200">
-                        <h4 class="font-bold text-xs text-amber-950">Update Daily Metal Rates & Making Charge (₹ per Gram)</h4>
+                        <h4 class="font-bold text-xs text-amber-950">Update Daily Metal Rates & Making Charges (₹ per Gram)</h4>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             <div><label class="block text-[11px] font-bold text-gray-700">22K Gold (10g)</label><input type="number" id="rate-set-22k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
                             <div><label class="block text-[11px] font-bold text-gray-700">18K Gold (10g)</label><input type="number" id="rate-set-18k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
                             <div><label class="block text-[11px] font-bold text-gray-700">9K Gold (10g)</label><input type="number" id="rate-set-9k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
                             <div><label class="block text-[11px] font-bold text-gray-700">Silver 60 (10g)</label><input type="number" id="rate-set-silver60" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
                             <div><label class="block text-[11px] font-bold text-gray-700">Silver 70 (10g)</label><input type="number" id="rate-set-silver70" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold"></div>
-                            <div class="col-span-2 sm:col-span-1"><label class="block text-[11px] font-bold text-gray-700">Gold Making (₹/g)</label><input type="number" step="0.01" id="rate-set-making" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold text-amber-800"></div>
+                            <div><label class="block text-[11px] font-bold text-gray-700">22K Making (₹/g)</label><input type="number" id="rate-set-making" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold text-amber-800"></div>
+                            <div><label class="block text-[11px] font-bold text-gray-700">18K Making (₹/g)</label><input type="number" id="rate-set-making18k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold text-amber-800"></div>
+                            <div><label class="block text-[11px] font-bold text-gray-700">9K Making (₹/g)</label><input type="number" id="rate-set-making9k" class="w-full px-2.5 py-1.5 rounded-lg border text-xs bg-white font-bold text-amber-800"></div>
                         </div>
-                        <button type="button" onclick="saveDailyRates()" class="w-full py-2 bg-amber-600 text-white font-bold rounded-xl text-xs shadow">Save Rates & Making Charge</button>
+                        <button type="button" onclick="saveDailyRates()" class="w-full py-2 bg-amber-600 text-white font-bold rounded-xl text-xs shadow">Save Rates & Making Charges</button>
                     </div>
 
                     <div class="space-y-3 bg-amber-50/50 p-3 rounded-xl border border-amber-200">
@@ -695,6 +702,67 @@
         </nav>
     </div>
 
+    <!-- STOCK AUDIT / VERIFICATION MODAL -->
+    <div id="audit-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b bg-emerald-50 flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-emerald-950 text-base flex items-center gap-2">
+                        <i class="fas fa-clipboard-check text-emerald-600"></i> স্টক মেলানো (Stock Audit & Verification)
+                    </h3>
+                    <p class="text-xs text-emerald-800 mt-0.5">দোকানের বেচাকেনা বা স্টক ডিলিট না করেই বারকোড স্ক্যান করে মাল মিলিয়ে নিন</p>
+                </div>
+                <button type="button" onclick="closeAuditModal()" class="p-2 text-gray-500 hover:text-gray-800 rounded-lg">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-4 bg-gray-50 border-b grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div class="bg-white p-2.5 rounded-xl border shadow-sm">
+                    <div class="text-gray-500 font-semibold">Total Stock</div>
+                    <div id="audit-stat-total" class="text-base font-black text-gray-900">0 pcs</div>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border shadow-sm">
+                    <div class="text-emerald-700 font-semibold">Matched (মিলেছে)</div>
+                    <div id="audit-stat-matched" class="text-base font-black text-emerald-700">0 pcs</div>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border shadow-sm">
+                    <div class="text-red-600 font-semibold">Missing (বাকি)</div>
+                    <div id="audit-stat-missing" class="text-base font-black text-red-600">0 pcs</div>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border shadow-sm flex flex-col justify-center">
+                    <button type="button" onclick="resetAudit()" class="py-1 px-2 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs transition">
+                        <i class="fas fa-redo mr-1"></i> Reset Audit
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 bg-white border-b space-y-2">
+                <label class="block text-xs font-bold text-gray-700">বারকোড স্ক্যান করুন বা আইডি লিখুন:</label>
+                <div class="flex gap-2">
+                    <input type="text" id="audit-input" onkeydown="handleAuditScan(event)" placeholder="Scan Barcode / Item ID here..." class="flex-1 px-3.5 py-2.5 rounded-xl border border-emerald-400 bg-emerald-50/30 text-sm font-bold">
+                    <button type="button" onclick="processAuditScan()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow">Verify</button>
+                </div>
+            </div>
+
+            <div class="flex gap-2 bg-gray-100 p-2 border-b text-xs font-bold">
+                <button type="button" onclick="switchAuditTab('matched')" id="audit-tab-matched" class="flex-1 py-2 rounded-lg bg-emerald-600 text-white transition">মিলেছে (Matched)</button>
+                <button type="button" onclick="switchAuditTab('missing')" id="audit-tab-missing" class="flex-1 py-2 rounded-lg text-gray-700 bg-white transition">বাকি আছে (Missing)</button>
+            </div>
+
+            <div class="p-4 overflow-y-auto flex-1 space-y-2 bg-gray-50" id="audit-item-list-container">
+                <!-- Dynamic Items -->
+            </div>
+
+            <div class="p-3 border-t bg-white flex justify-between items-center">
+                <button type="button" onclick="printMissingAuditList()" class="py-2 px-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl text-xs shadow flex items-center gap-1.5">
+                    <i class="fas fa-print"></i> প্রিন্ট মিসিং লিস্ট
+                </button>
+                <button type="button" onclick="closeAuditModal()" class="py-2 px-5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl text-xs">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const STORAGE_KEY = 'jewelry_pos_multibranch_v3';
 
@@ -709,8 +777,9 @@
                     email: '',
                     gstNumber: '',
                     staffList: [{ id: 'staff1', pin: '1111', name: 'Staff 1', canBill: true }],
-                    rates: { '22K': 72000, '18K': 58900, '9K': 29500, 'Silver60': 600, 'Silver70': 700, 'making': 450, 'makingFlat': 0 },
+                    rates: { '22K': 72000, '18K': 58900, '9K': 29500, 'Silver60': 600, 'Silver70': 700, 'making': 450, 'making18k': 400, 'making9k': 350, 'makingFlat': 0 },
                     leftLogo: '', rightLogo: '',
+                    auditScans: [],
                     inventory: [
                         { id: 'GLD-1001', name: '22K Gold Ring', purity: '22K', netWt: 3.500, size: '16', customMaking: 0, addonName: '', addonPrice: 0, status: 'available' },
                         { id: 'GLD-1002', name: 'Shakha Badhano', purity: '22K', netWt: 4.250, size: '2.4', customMaking: 0, addonName: 'Shakha Pair', addonPrice: 1200, status: 'available' }
@@ -724,6 +793,7 @@
         let selectedLoginRole = 'owner';
         let posCart = [];
         let invFilter = 'all';
+        let auditTab = 'matched';
         let confirmCallback = null;
 
         // --- TOAST & MODAL HELPERS ---
@@ -1026,7 +1096,6 @@
             document.getElementById('stat-stock-count').textContent = `${avail.length} pcs`;
             document.getElementById('stat-stock-weight').textContent = `Total Wt: ${totalWt.toFixed(3)} g`;
 
-            // Calculate Purity wise breakdown
             const purityMap = {};
             avail.forEach(item => {
                 const p = item.purity || 'Other';
@@ -1052,8 +1121,7 @@
             }
 
             const sales = branch.sales || [];
-            const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local date
-            
+            const todayStr = new Date().toLocaleDateString('en-CA');
             const todaySalesList = sales.filter(inv => new Date(inv.date).toLocaleDateString('en-CA') === todayStr);
             const prevSalesList = sales.filter(inv => new Date(inv.date).toLocaleDateString('en-CA') < todayStr);
 
@@ -1075,6 +1143,167 @@
             }
         }
 
+        // --- STOCK AUDIT FUNCTIONS ---
+        function openAuditModal() {
+            document.getElementById('audit-modal').classList.remove('hidden');
+            document.getElementById('audit-modal').classList.add('flex');
+            renderAuditData();
+            setTimeout(() => document.getElementById('audit-input').focus(), 100);
+        }
+
+        function closeAuditModal() {
+            document.getElementById('audit-modal').classList.add('hidden');
+            document.getElementById('audit-modal').classList.remove('flex');
+        }
+
+        function switchAuditTab(tab) {
+            auditTab = tab;
+            document.getElementById('audit-tab-matched').className = tab === 'matched' ? 'flex-1 py-2 rounded-lg bg-emerald-600 text-white transition' : 'flex-1 py-2 rounded-lg text-gray-700 bg-white transition';
+            document.getElementById('audit-tab-missing').className = tab === 'missing' ? 'flex-1 py-2 rounded-lg bg-red-600 text-white transition' : 'flex-1 py-2 rounded-lg text-gray-700 bg-white transition';
+            renderAuditData();
+        }
+
+        function handleAuditScan(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                processAuditScan();
+            }
+        }
+
+        function processAuditScan() {
+            const input = document.getElementById('audit-input');
+            const code = input.value.trim().toLowerCase();
+            if (!code) return;
+
+            const branch = getActiveBranch();
+            const item = (branch.inventory || []).find(i => i.status === 'available' && (i.id.toLowerCase() === code || i.name.toLowerCase().includes(code)));
+            
+            if (!item) {
+                showToast('Item not found in available stock!', true);
+                input.value = '';
+                return;
+            }
+
+            branch.auditScans = branch.auditScans || [];
+            if (!branch.auditScans.includes(item.id)) {
+                branch.auditScans.push(item.id);
+                saveData();
+                showToast(`Matched: ${item.name}`);
+            } else {
+                showToast('Already scanned!');
+            }
+
+            input.value = '';
+            renderAuditData();
+        }
+
+        function resetAudit() {
+            openConfirmModal('রিসেট করলে সমস্ত অডিট স্ক্যান মুছে যাবে। আপনি কি নিশ্চিত?', () => {
+                const branch = getActiveBranch();
+                branch.auditScans = [];
+                saveData();
+                renderAuditData();
+                showToast('অডিট রিসেট করা হয়েছে');
+            });
+        }
+
+        function renderAuditData() {
+            const branch = getActiveBranch();
+            const avail = (branch.inventory || []).filter(i => i.status === 'available');
+            const scans = branch.auditScans || [];
+
+            const matchedItems = avail.filter(i => scans.includes(i.id));
+            const missingItems = avail.filter(i => !scans.includes(i.id));
+
+            document.getElementById('audit-stat-total').textContent = `${avail.length} pcs`;
+            document.getElementById('audit-stat-matched').textContent = `${matchedItems.length} pcs`;
+            document.getElementById('audit-stat-missing').textContent = `${missingItems.length} pcs`;
+
+            const container = document.getElementById('audit-item-list-container');
+            const targetList = auditTab === 'matched' ? matchedItems : missingItems;
+
+            if (!targetList.length) {
+                container.innerHTML = `<div class="bg-white p-6 rounded-xl text-center text-xs text-gray-400 border">কোনো আইটেম নেই</div>`;
+                return;
+            }
+
+            container.innerHTML = targetList.map(item => `
+                <div class="bg-white p-3 rounded-xl border flex items-center justify-between text-xs shadow-sm">
+                    <div>
+                        <div class="font-bold text-gray-900">${item.name} <span class="font-mono text-amber-800">(${item.id})</span></div>
+                        <div class="text-gray-500">Purity: <b>${item.purity}</b> | Wt: <b>${Number(item.netWt).toFixed(3)}g</b></div>
+                    </div>
+                    <div>
+                        ${auditTab === 'matched' ? 
+                            `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold rounded-lg text-[10px]">Verified</span>` :
+                            `<button type="button" onclick="manualVerifyAudit('${item.id}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded-lg text-[10px]">Mark Found</button>`
+                        }
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function manualVerifyAudit(id) {
+            const branch = getActiveBranch();
+            branch.auditScans = branch.auditScans || [];
+            if (!branch.auditScans.includes(id)) {
+                branch.auditScans.push(id);
+                saveData();
+                renderAuditData();
+                showToast('আইটেমটি মিলে গেছে হিসেবে যুক্ত হলো');
+            }
+        }
+
+        function printMissingAuditList() {
+            const branch = getActiveBranch();
+            const avail = (branch.inventory || []).filter(i => i.status === 'available');
+            const scans = branch.auditScans || [];
+            const missingItems = avail.filter(i => !scans.includes(i.id));
+
+            if (!missingItems.length) return showToast('কোনো মিসিং আইটেম নেই!', true);
+
+            const totalMissingWt = missingItems.reduce((s, i) => s + Number(i.netWt || 0), 0);
+
+            const area = document.getElementById('printable-area');
+            area.innerHTML = `
+                <div class="bg-white p-6 text-gray-900 space-y-4 font-sans max-w-[210mm] mx-auto text-xs">
+                    <div class="text-center border-b pb-3">
+                        <h2 class="text-xl font-black uppercase text-amber-950">${branch.name}</h2>
+                        <div class="text-sm font-bold text-red-700 mt-1">STOCK AUDIT - MISSING REPORT (খুঁজে পাওয়া যায়নি)</div>
+                        <div class="text-gray-500 text-[11px] mt-0.5">Date: ${new Date().toLocaleDateString('en-IN')}</div>
+                    </div>
+                    <div class="flex justify-between font-bold text-sm bg-amber-50 p-2.5 rounded-lg border">
+                        <span>Total Missing: ${missingItems.length} pcs</span>
+                        <span>Total Missing Weight: ${totalMissingWt.toFixed(3)} g</span>
+                    </div>
+                    <table class="w-full border-collapse border border-gray-300 text-left">
+                        <thead>
+                            <tr class="bg-gray-100 font-bold">
+                                <th class="p-2 border">#</th>
+                                <th class="p-2 border">Barcode / ID</th>
+                                <th class="p-2 border">Item Name</th>
+                                <th class="p-2 border">Purity</th>
+                                <th class="p-2 border">Net Wt.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${missingItems.map((it, idx) => `
+                                <tr>
+                                    <td class="p-2 border text-center">${idx + 1}</td>
+                                    <td class="p-2 border font-mono font-bold">${it.id}</td>
+                                    <td class="p-2 border font-semibold">${it.name}</td>
+                                    <td class="p-2 border text-center">${it.purity}</td>
+                                    <td class="p-2 border text-right font-bold">${Number(it.netWt).toFixed(3)}g</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('print-modal').classList.remove('hidden');
+            document.getElementById('print-modal').classList.add('flex');
+        }
+
         function convertVoriToGram() {
             const v = Number(document.getElementById('in-vori').value || 0);
             const a = Number(document.getElementById('in-ana').value || 0);
@@ -1086,7 +1315,6 @@
         }
 
         function initCalcView() {
-            const branch = getActiveBranch();
             filterCalcDropdown('');
             onCalcPurityChange();
         }
@@ -1108,15 +1336,18 @@
             const silverRateBox = document.getElementById('calc-silver-rate-box');
             const customSilverInput = document.getElementById('calc-custom-silver-rate');
 
+            const r = branch.rates || {};
             if (purity.startsWith('Silver')) {
                 silverRateBox.classList.remove('hidden');
-                customSilverInput.value = branch.rates[purity] || 600;
+                customSilverInput.value = r[purity] || 600;
                 makingLabel.textContent = 'Silver Making (₹ Total/g - নিজে দিন)';
-                if (!makingInput.value) makingInput.value = 0;
+                makingInput.value = 0;
             } else {
                 silverRateBox.classList.add('hidden');
-                makingLabel.textContent = 'Gold Making Charge (₹/g Auto)';
-                makingInput.value = branch.rates.making || 0;
+                makingLabel.textContent = `${purity} Making Charge (₹/g)`;
+                if (purity === '18K') makingInput.value = r.making18k !== undefined ? r.making18k : (r.making || 450);
+                else if (purity === '9K') makingInput.value = r.making9k !== undefined ? r.making9k : (r.making || 450);
+                else makingInput.value = r.making || 450;
             }
             calculateJewelryPrice();
         }
@@ -1174,7 +1405,6 @@
             const effectiveMakingWt = (!isSilver && grams > 0 && grams < 1) ? 1 : grams;
             const makingCharge = isSilver ? makingRate : (effectiveMakingWt * makingRate);
 
-            // 3% GST ONLY on Gold & Making Charge. Shakha/Addon has 0% GST.
             const goldAndMakingTotal = metalValue + makingCharge;
             const gst = isSilver ? 0 : goldAndMakingTotal * 0.03;
             
@@ -1325,7 +1555,6 @@
         function initPosView() {
             const branch = getActiveBranch();
             
-            // Check if staff has billing permission
             if (currentUser && currentUser.role === 'staff') {
                 const currentStaffObj = (branch.staffList || []).find(s => s.id === currentUser.id);
                 const hasPermission = currentStaffObj ? (currentStaffObj.canBill !== false) : (currentUser.canBill !== false);
@@ -1400,22 +1629,24 @@
 
             const overrideMaking = Number(document.getElementById('pos-override-making').value || 0);
             
-            // For Silver: ONLY use the item's own customMaking (fixed per piece), never Gold's per-gram rate!
-            // For Gold: Use item's customMaking if set, otherwise use the daily per-gram gold making rate.
             let makingCharge = 0;
             if (isSilver) {
                 makingCharge = Number(item.customMaking || 0);
             } else {
-                const makingRate = item.customMaking > 0 ? Number(item.customMaking) : overrideMaking;
+                let defaultMaking = overrideMaking;
+                const r = branch.rates || {};
+                if (item.purity === '18K') defaultMaking = r.making18k !== undefined ? r.making18k : (r.making || 450);
+                else if (item.purity === '9K') defaultMaking = r.making9k !== undefined ? r.making9k : (r.making || 450);
+                else defaultMaking = r.making || 450;
+
+                const makingRate = item.customMaking > 0 ? Number(item.customMaking) : defaultMaking;
                 const effectiveMakingWt = (grams > 0 && grams < 1) ? 1 : grams;
                 makingCharge = effectiveMakingWt * makingRate;
             }
             
             const addon = Number(item.addonPrice || 0);
-            
             const goldTotalForGst = metalValue + makingCharge;
             const gstGold = isSilver ? 0 : goldTotalForGst * 0.03;
-
             const totalBeforeGst = goldTotalForGst + addon;
 
             return { metalValue, makingCharge, addon, totalBeforeGst, gst: gstGold, isSilver };
@@ -1500,7 +1731,6 @@
             const netSubtotal = Math.max(0, subtotal - discount);
             const grandTotal = Math.round(netSubtotal + totalGst);
 
-            // Sequential Invoice Number generation (1, 2, 3...)
             branch.invoiceSequence = (branch.invoiceSequence || 0) + 1;
             const nextSeqNum = branch.invoiceSequence;
 
@@ -1541,10 +1771,8 @@
             const area = document.getElementById('printable-area');
             area.innerHTML = `
                 <div class="bg-white p-6 sm:p-8 border-2 border-amber-600/80 text-gray-900 space-y-5 text-sm max-w-[210mm] mx-auto font-sans shadow-lg relative overflow-hidden" style="min-height: 290mm;">
-                    <!-- Decorative Top Gold Bar -->
                     <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-700 via-yellow-500 to-amber-700"></div>
 
-                    <!-- Luxury Showroom Header with Left & Right Logos -->
                     <div class="flex justify-between items-center border-b-2 border-amber-200 pb-5 pt-2 gap-4">
                         <div class="w-20 h-20 flex-shrink-0 flex items-center justify-center bg-amber-50/50 rounded-2xl border border-amber-100 p-1">
                             ${branch.leftLogo ? `<img src="${branch.leftLogo}" alt="Logo" class="max-h-18 max-w-18 object-contain">` : `<i class="fas fa-gem text-3xl text-amber-500/40"></i>`}
@@ -1564,9 +1792,7 @@
                         </div>
                     </div>
 
-                    <!-- Invoice Metadata & Customer Card -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        <!-- Customer Details -->
                         <div class="bg-gradient-to-br from-amber-50/90 to-orange-50/40 p-3.5 rounded-2xl border border-amber-200/80 space-y-1">
                             <div class="text-[10px] font-extrabold text-amber-800 uppercase tracking-widest flex items-center gap-1">
                                 <i class="fas fa-user-circle"></i> Customer Details
@@ -1576,7 +1802,6 @@
                             ${inv.custAddress ? `<div class="text-gray-600"><b>Address:</b> ${inv.custAddress}</div>` : ''}
                         </div>
 
-                        <!-- Invoice Info -->
                         <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 flex flex-col justify-between">
                             <div class="flex justify-between items-center border-b border-gray-200 pb-1.5">
                                 <span class="text-gray-500 font-semibold">Invoice No:</span>
@@ -1593,7 +1818,6 @@
                         </div>
                     </div>
 
-                    <!-- Premium Jewelry Items Table -->
                     <div class="rounded-2xl border border-amber-200 overflow-hidden shadow-sm">
                         <table class="w-full border-collapse text-xs text-left">
                             <thead>
@@ -1633,9 +1857,7 @@
                         </table>
                     </div>
 
-                    <!-- Billing Summary & Declaration -->
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 pt-2 items-start">
-                        <!-- Left Terms & Hallmark Note -->
                         <div class="sm:col-span-7 space-y-2.5 text-[11px] text-gray-600 bg-gray-50/80 p-3.5 rounded-2xl border border-gray-200">
                             <div class="flex items-center gap-2 text-amber-900 font-bold text-xs">
                                 <i class="fas fa-shield-alt text-amber-600"></i> Purity & Hallmark Guarantee
@@ -1647,7 +1869,6 @@
                             </ul>
                         </div>
 
-                        <!-- Right Totals Box -->
                         <div class="sm:col-span-5 bg-gradient-to-b from-amber-50 to-amber-100/50 p-4 rounded-2xl border-2 border-amber-300/80 space-y-2 text-xs shadow-sm">
                             ${inv.extraAddon > 0 ? `<div class="flex justify-between text-gray-700"><span>Additional Charges:</span><span class="font-semibold">₹${inv.extraAddon.toLocaleString('en-IN')}</span></div>` : ''}
                             ${inv.discount > 0 ? `<div class="flex justify-between text-emerald-700 font-bold"><span>Special Discount:</span><span>- ₹${inv.discount.toLocaleString('en-IN')}</span></div>` : ''}
@@ -1661,7 +1882,6 @@
                         </div>
                     </div>
 
-                    <!-- Footer & Signatures -->
                     <div class="pt-14 mt-auto">
                         <div class="grid grid-cols-2 gap-8 text-xs font-bold text-gray-700">
                             <div class="text-left">
@@ -1748,6 +1968,8 @@
             document.getElementById('rate-set-silver60').value = r['Silver60'] || 0;
             document.getElementById('rate-set-silver70').value = r['Silver70'] || 0;
             document.getElementById('rate-set-making').value = r['making'] || 0;
+            document.getElementById('rate-set-making18k').value = r['making18k'] !== undefined ? r['making18k'] : (r['making'] || 450);
+            document.getElementById('rate-set-making9k').value = r['making9k'] !== undefined ? r['making9k'] : (r['making'] || 450);
 
             document.getElementById('set-branch-name').value = branch.name || '';
             document.getElementById('set-branch-phone').value = branch.phone || '';
@@ -1785,9 +2007,11 @@
             branch.rates['Silver60'] = Number(document.getElementById('rate-set-silver60').value || 0);
             branch.rates['Silver70'] = Number(document.getElementById('rate-set-silver70').value || 0);
             branch.rates['making'] = Number(document.getElementById('rate-set-making').value || 0);
+            branch.rates['making18k'] = Number(document.getElementById('rate-set-making18k').value || 0);
+            branch.rates['making9k'] = Number(document.getElementById('rate-set-making9k').value || 0);
             saveData();
             updateDashboard();
-            showToast('Daily Rates & Making Charge Saved!');
+            showToast('Daily Rates & Making Charges Saved!');
         }
 
         function saveShopSettings() {
@@ -1968,7 +2192,6 @@
             reader.readAsText(file);
         }
 
-        // --- APP INIT ---
         window.onload = function () {
             initFirebaseCloud();
             if (currentUser) {
