@@ -583,19 +583,28 @@
                     </div>
 
                     <div class="space-y-3 bg-blue-50/50 p-3 rounded-xl border border-blue-200">
-                        <h4 class="font-bold text-xs text-blue-950">Manage Staff & Billing Permission</h4>
+                        <h4 class="font-bold text-xs text-blue-950">Manage Staff & Permissions</h4>
                         <form onsubmit="addStaffToBranch(event)" class="space-y-2">
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="text" id="new-staff-id" required placeholder="Staff ID (e.g. staff2)" class="w-full px-3 py-2 rounded-xl border text-xs bg-white">
                                 <input type="text" id="new-staff-pin" required placeholder="Password / PIN" class="w-full px-3 py-2 rounded-xl border text-xs bg-white">
                             </div>
                             <input type="text" id="new-staff-name" required placeholder="Staff Full Name" class="w-full px-3 py-2 rounded-xl border text-xs bg-white">
-                            <div class="bg-white p-3 rounded-xl border border-blue-300 flex items-center justify-between shadow-sm">
-                                <div>
-                                    <span class="text-xs font-extrabold text-blue-950 block">POS Billing Permission</span>
-                                    <span class="text-[10px] text-gray-500 block">টিক দিলে এই স্টাফ বিল করতে পারবে</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="bg-white p-2.5 rounded-xl border border-blue-300 flex items-center justify-between shadow-sm">
+                                    <div>
+                                        <span class="text-xs font-extrabold text-blue-950 block">POS Billing</span>
+                                        <span class="text-[10px] text-gray-500 block">বিল করার অনুমতি</span>
+                                    </div>
+                                    <input type="checkbox" id="new-staff-can-bill" checked class="w-5 h-5 accent-amber-600 rounded cursor-pointer">
                                 </div>
-                                <input type="checkbox" id="new-staff-can-bill" checked class="w-6 h-6 accent-amber-600 rounded cursor-pointer">
+                                <div class="bg-white p-2.5 rounded-xl border border-emerald-300 flex items-center justify-between shadow-sm">
+                                    <div>
+                                        <span class="text-xs font-extrabold text-emerald-950 block">Stock Audit</span>
+                                        <span class="text-[10px] text-gray-500 block">স্টক মেলানোর অনুমতি</span>
+                                    </div>
+                                    <input type="checkbox" id="new-staff-can-audit" class="w-5 h-5 accent-emerald-600 rounded cursor-pointer">
+                                </div>
                             </div>
                             <button type="submit" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs shadow">+ Add Staff to Branch</button>
                         </form>
@@ -1014,7 +1023,14 @@
                 }
                 if (foundStaff) {
                     appData.activeBranchId = foundBranchId;
-                    currentUser = { role: 'staff', id: foundStaff.id, name: foundStaff.name, branchId: foundBranchId, canBill: foundStaff.canBill !== false };
+                    currentUser = { 
+                        role: 'staff', 
+                        id: foundStaff.id, 
+                        name: foundStaff.name, 
+                        branchId: foundBranchId, 
+                        canBill: foundStaff.canBill !== false,
+                        canAudit: foundStaff.canAudit === true
+                    };
                     localStorage.setItem('jewelry_session_v2', JSON.stringify(currentUser));
                     enterApp();
                     showToast(`Welcome ${foundStaff.name}!`);
@@ -1144,7 +1160,18 @@
         }
 
         // --- STOCK AUDIT FUNCTIONS ---
+        function canUserAudit() {
+            if (!currentUser) return false;
+            if (currentUser.role === 'owner') return true;
+            const branch = getActiveBranch();
+            const st = (branch.staffList || []).find(s => s.id === currentUser.id);
+            return st ? (st.canAudit === true) : (currentUser.canAudit === true);
+        }
+
         function openAuditModal() {
+            if (!canUserAudit()) {
+                return showToast('আপনার স্টক মেলানোর অনুমতি নেই! ওনারের কাছ থেকে অনুমতি নিন।', true);
+            }
             document.getElementById('audit-modal').classList.remove('hidden');
             document.getElementById('audit-modal').classList.add('flex');
             renderAuditData();
@@ -2069,14 +2096,16 @@
             const pin = document.getElementById('new-staff-pin').value.trim();
             const name = document.getElementById('new-staff-name').value.trim();
             const canBill = document.getElementById('new-staff-can-bill').checked;
+            const canAudit = document.getElementById('new-staff-can-audit').checked;
 
             branch.staffList = branch.staffList || [];
             if (branch.staffList.some(s => s.id === id)) return showToast('Staff ID already exists', true);
 
-            branch.staffList.push({ id, pin, name, canBill });
+            branch.staffList.push({ id, pin, name, canBill, canAudit });
             saveData();
             e.target.reset();
             document.getElementById('new-staff-can-bill').checked = true;
+            document.getElementById('new-staff-can-audit').checked = false;
             renderBranchStaffList();
             showToast(`Staff ${name} added!`);
         }
@@ -2086,15 +2115,19 @@
             const list = document.getElementById('branch-staff-list');
             const staff = branch.staffList || [];
             list.innerHTML = staff.map(s => `
-                <div class="bg-white px-3 py-2.5 rounded-xl border flex items-center justify-between text-xs gap-2">
+                <div class="bg-white px-3 py-2.5 rounded-xl border flex flex-wrap items-center justify-between text-xs gap-2">
                     <div>
                         <div class="font-bold text-gray-900">${s.name} <span class="font-mono text-gray-500">(${s.id})</span></div>
                         <div class="text-[11px] text-gray-500">PIN: ${s.pin}</div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5">
                         <label class="flex items-center gap-1 cursor-pointer bg-amber-50 px-2 py-1 rounded-lg border border-amber-200">
-                            <input type="checkbox" ${s.canBill !== false ? 'checked' : ''} onchange="toggleStaffBillingPermission('${s.id}', this.checked)" class="w-4 h-4 accent-amber-600 rounded">
+                            <input type="checkbox" ${s.canBill !== false ? 'checked' : ''} onchange="toggleStaffPermission('${s.id}', 'canBill', this.checked)" class="w-4 h-4 accent-amber-600 rounded">
                             <span class="text-[10px] font-bold text-amber-900">POS Bill</span>
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
+                            <input type="checkbox" ${s.canAudit === true ? 'checked' : ''} onchange="toggleStaffPermission('${s.id}', 'canAudit', this.checked)" class="w-4 h-4 accent-emerald-600 rounded">
+                            <span class="text-[10px] font-bold text-emerald-900">Stock Audit</span>
                         </label>
                         <button type="button" onclick="removeStaff('${s.id}')" class="text-red-600 font-bold px-2 py-1 hover:bg-red-50 rounded"><i class="fas fa-trash"></i></button>
                     </div>
@@ -2102,11 +2135,11 @@
             `).join('');
         }
 
-        function toggleStaffBillingPermission(staffId, canBill) {
+        function toggleStaffPermission(staffId, permKey, value) {
             const branch = getActiveBranch();
             const st = (branch.staffList || []).find(s => s.id === staffId);
             if (st) {
-                st.canBill = canBill;
+                st[permKey] = value;
                 saveData();
                 showToast(`Permission updated for ${st.name}`);
             }
